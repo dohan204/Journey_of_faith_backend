@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="Journey_of_faith.Api/Journey_of_faith.Api.csproj" />
+    <Project Path="Journey_of_faith.Application/Journey_of_faith.Application.csproj" />
+    <Project Path="Journey_of_faith.Domain/Journey_of_faith.Domain.csproj" />
+    <Project Path="Journey_of_faith.Infrastructure/Journey_of_faith.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/" />
+</Solution>
