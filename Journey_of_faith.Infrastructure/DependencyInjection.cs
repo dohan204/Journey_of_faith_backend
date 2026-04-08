@@ -1,9 +1,14 @@
-﻿using Journey_of_faith.Infrastructure.context;
+﻿using Journey_of_faith.Application.common.interfaces;
+using Journey_of_faith.Infrastructure.context;
 using Journey_of_faith.Infrastructure.identity;
+using Journey_of_faith.Infrastructure.identity.services;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -38,7 +43,38 @@ namespace Journey_of_faith.Infrastructure
                 options.Lockout.MaxFailedAccessAttempts = 5;
                 options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
             });
+
+            service.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+                .AddJwtBearer(options =>
+                {
+                    options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        ValidIssuer = configuration.GetValue<string>("Token:Issuer"),
+                        ValidAudience = configuration.GetValue<string>("Token:Audience"),
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration.GetValue<string>("Token:Key") ?? string.Empty))
+                    };
+                });
+            service.AddScoped<TokenService>();
+            service.AddScoped<IIdentityService, IdentityService>();
             return service;
         } 
+    }
+
+
+    public static class DpAutomapper
+    {
+        public static IServiceCollection AddAutomapper(this IServiceCollection services, IConfiguration configuration)
+        {
+            return services;
+        }
     }
 }

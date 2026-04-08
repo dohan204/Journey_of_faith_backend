@@ -2,19 +2,26 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-
+using Journey_of_faith.Domain.entities.prayer;
+using Journey_of_faith.Domain.entities.social;
+using Journey_of_faith.Domain.entities.notifications;
+using Journey_of_faith.Domain.entities.quiz;
+using Journey_of_faith.Domain.entities.events;
+using System.Security.Cryptography.X509Certificates;
 namespace Journey_of_faith.Domain.entities
 {
     public class User : AuditableEntity
     {
-        public string Name { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
-        public string? Avatar { get; set; }
-        public string PasswordHash { get; set; } = string.Empty;
-        public int RoleId { get; set; }
-        public int? ChurchId { get; set; }
-        public int? ProvinceId { get; set; }
-        public int? SchoolId { get; set; }
+        public string Name { get; private set; } = string.Empty;
+        public string Username { get; private set; } = string.Empty;
+        public string Email { get; private set; } = string.Empty;
+        public string Password { get; private set; } = string.Empty;
+        public string? Avatar { get; private set; }
+        public string PasswordHash { get; private set; } = string.Empty;
+        public int? RoleId { get; private set; }
+        public int? ChurchId { get; private set; }
+        public int? ProvinceId { get; private set; }
+        public int? SchoolId { get; private set; }
 
         private readonly List<UserChurch> _userChurches = new();
         private readonly List<Friendship> _friendships = new();
@@ -42,6 +49,28 @@ namespace Journey_of_faith.Domain.entities
         public IReadOnlyCollection<ListeningHistory> ListeningHistories => _listeningHistories.AsReadOnly();
         public IReadOnlyCollection<UserEvent> UserEvents => _userEvents.AsReadOnly();
 
+
+        public User(string name, string email, string username, string password, string? avatar)
+        {
+            Name = name;
+            Email = email;
+            Username = username;
+            Password = password;
+            Avatar = avatar;
+        }
+        public User(string username, string password, string name, string email)
+        {
+            if(string.IsNullOrEmpty(username))
+            {
+
+            }
+            Username = username;
+            Password = password;
+            Name = name;
+            Email = email;
+        }
+        public static User Create(string username, string password, string name, string email) 
+            => new User(username, password, name, email);
         public void AddUserChurch(UserChurch uc) => _userChurches.Add(uc);
         public void AddPlaylist(Playlist p) => _playlists.Add(p);
         public void AddFavoriteSong(UserFavoriteSong fs) => _favoriteSongs.Add(fs);

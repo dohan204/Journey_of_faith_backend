@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.5" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.5" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.5" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.5">
@@ -23,7 +24,11 @@
 
   <ItemGroup>
     <Folder Include="services\" />
-    <Folder Include="repositories\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Journey_of_faith.Application\Journey_of_faith.Application.csproj" />
+    <ProjectReference Include="..\Journey_of_faith.Domain\Journey_of_faith.Domain.csproj" />
   </ItemGroup>
 
 </Project>

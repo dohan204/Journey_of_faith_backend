@@ -1,0 +1,13 @@
+﻿using Journey_of_faith.Domain.entities;
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace Journey_of_faith.Application.common.interfaces
+{
+    public interface IIdentityService
+    {
+        Task<bool> CreateAsync(User user);
+        Task<bool> ExistsEmail(string email);
+    }
+}
