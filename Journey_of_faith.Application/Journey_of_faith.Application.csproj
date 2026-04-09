@@ -7,8 +7,26 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="usecases\commands\" />
-    <Folder Include="usecases\queries\" />
+    <Compile Remove="usecases\commands\**" />
+    <Compile Remove="usecases\queries\**" />
+    <EmbeddedResource Remove="usecases\commands\**" />
+    <EmbeddedResource Remove="usecases\queries\**" />
+    <None Remove="usecases\commands\**" />
+    <None Remove="usecases\queries\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FluentValidation" Version="12.1.1" />
+    <PackageReference Include="MediatR" Version="14.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Journey_of_faith.Domain\Journey_of_faith.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="common\dtos\" />
+    <Folder Include="usecases\auth\dtos\" />
   </ItemGroup>
 
 </Project>
