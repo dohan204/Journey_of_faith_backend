@@ -10,7 +10,7 @@ namespace Journey_of_faith.Infrastructure.identity.services
 {
     public class TokenService(IConfiguration config)
     {
-        public async Task<string> GenerateToken(ApplicationUser user, List<string> roles)
+        public string GenerateToken(ApplicationUser user, List<string> roles)
         {
             var claim = new List<Claim>()
             {
@@ -34,7 +34,7 @@ namespace Journey_of_faith.Infrastructure.identity.services
 
             var token = new JwtSecurityToken(
                 issuer: config.GetValue<string>("Token:Issuer"),
-                audience: config.GetValue<string>("Token:Audence"),
+                audience: config.GetValue<string>("Token:Audience"),
                 claims: claim,
                 expires: DateTime.Now.AddHours(3),
                 signingCredentials: signa
@@ -42,6 +42,20 @@ namespace Journey_of_faith.Infrastructure.identity.services
 
 
             return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
+
+        public RefreshToken CreateRefreshToken(Guid userId)
+        {
+            var refreshToken = new RefreshToken
+            {
+                Id = Guid.NewGuid(),
+                Token = Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(64)),
+                ExpiresOnUtc = DateTime.UtcNow.AddDays(7),
+                UserId = userId
+            };
+
+            return refreshToken;
         }
     }
 }

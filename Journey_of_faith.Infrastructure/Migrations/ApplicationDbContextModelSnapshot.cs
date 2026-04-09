@@ -17,7 +17,6 @@ namespace Journey_of_faith.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasDefaultSchema("dbo")
                 .HasAnnotation("ProductVersion", "10.0.5")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
@@ -48,7 +47,7 @@ namespace Journey_of_faith.Infrastructure.Migrations
                         .HasDatabaseName("RoleNameIndex")
                         .HasFilter("[NormalizedName] IS NOT NULL");
 
-                    b.ToTable("AspNetRoles", "dbo");
+                    b.ToTable("AspNetRoles", (string)null);
                 });
 
             modelBuilder.Entity("Journey_of_faith.Infrastructure.identity.ApplicationUser", b =>
@@ -165,7 +164,34 @@ namespace Journey_of_faith.Infrastructure.Migrations
 
                     b.HasIndex("SchoolId");
 
-                    b.ToTable("User", "dbo");
+                    b.ToTable("User", (string)null);
+                });
+
+            modelBuilder.Entity("Journey_of_faith.Infrastructure.identity.RefreshToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("ExpiresOnUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Token")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("RefreshTokens");
                 });
 
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.events.Event", b =>
@@ -228,7 +254,7 @@ namespace Journey_of_faith.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Event", "dbo");
+                    b.ToTable("Event", (string)null);
                 });
 
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.events.EventCategory", b =>
@@ -246,7 +272,7 @@ namespace Journey_of_faith.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("EventCategory", "dbo");
+                    b.ToTable("EventCategory", (string)null);
                 });
 
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.events.EventCategoryMapping", b =>
@@ -269,7 +295,7 @@ namespace Journey_of_faith.Infrastructure.Migrations
 
                     b.HasIndex("EventId");
 
-                    b.ToTable("EventCategoryMapping", "dbo");
+                    b.ToTable("EventCategoryMapping", (string)null);
                 });
 
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.events.EventComment", b =>
@@ -299,7 +325,7 @@ namespace Journey_of_faith.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("EventComment", "dbo");
+                    b.ToTable("EventComment", (string)null);
                 });
 
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.events.EventFollower", b =>
@@ -330,7 +356,7 @@ namespace Journey_of_faith.Infrastructure.Migrations
 
                     b.HasIndex("EventId");
 
-                    b.ToTable("EventFollower", "dbo");
+                    b.ToTable("EventFollower", (string)null);
                 });
 
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.events.EventImage", b =>
@@ -352,7 +378,7 @@ namespace Journey_of_faith.Infrastructure.Migrations
 
                     b.HasIndex("EventId");
 
-                    b.ToTable("EventImage", "dbo");
+                    b.ToTable("EventImage", (string)null);
                 });
 
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.events.EventNotification", b =>
@@ -385,7 +411,7 @@ namespace Journey_of_faith.Infrastructure.Migrations
 
                     b.HasIndex("EventId");
 
-                    b.ToTable("EventNotification", "dbo");
+                    b.ToTable("EventNotification", (string)null);
                 });
 
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.events.EventParticipant", b =>
@@ -416,7 +442,7 @@ namespace Journey_of_faith.Infrastructure.Migrations
 
                     b.HasIndex("EventId");
 
-                    b.ToTable("EventParticipant", "dbo");
+                    b.ToTable("EventParticipant", (string)null);
                 });
 
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.events.UserEvent", b =>
@@ -436,7 +462,7 @@ namespace Journey_of_faith.Infrastructure.Migrations
 
                     b.HasIndex("EventId");
 
-                    b.ToTable("UserEvent", "dbo");
+                    b.ToTable("UserEvent", (string)null);
                 });
 
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.faith_notifications.CatholicFeast", b =>
@@ -491,7 +517,7 @@ namespace Journey_of_faith.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("CatholicFeast", "dbo");
+                    b.ToTable("CatholicFeast", (string)null);
                 });
 
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.faith_notifications.DailyWord", b =>
@@ -549,7 +575,7 @@ namespace Journey_of_faith.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("DailyWord", "dbo");
+                    b.ToTable("DailyWord", (string)null);
                 });
 
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.faith_notifications.DeviceToken", b =>
@@ -581,7 +607,7 @@ namespace Journey_of_faith.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("DeviceToken", "dbo");
+                    b.ToTable("DeviceToken", (string)null);
                 });
 
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.faith_notifications.LiveStream", b =>
@@ -628,7 +654,7 @@ namespace Journey_of_faith.Infrastructure.Migrations
 
                     b.HasIndex("ChurchId");
 
-                    b.ToTable("LiveStream", "dbo");
+                    b.ToTable("LiveStream", (string)null);
                 });
 
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.faith_notifications.MassSchedule", b =>
@@ -693,7 +719,7 @@ namespace Journey_of_faith.Infrastructure.Migrations
 
                     b.HasIndex("MassTypeId");
 
-                    b.ToTable("MassSchedule", "dbo");
+                    b.ToTable("MassSchedule", (string)null);
                 });
 
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.faith_notifications.MassType", b =>
@@ -711,7 +737,7 @@ namespace Journey_of_faith.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("MassType", "dbo");
+                    b.ToTable("MassType", (string)null);
                 });
 
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.faith_notifications.MassVideo", b =>
@@ -767,7 +793,7 @@ namespace Journey_of_faith.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("MassVideo", "dbo");
+                    b.ToTable("MassVideo", (string)null);
                 });
 
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.faith_notifications.NotificationPreference", b =>
@@ -803,7 +829,7 @@ namespace Journey_of_faith.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("NotificationPreference", "dbo");
+                    b.ToTable("NotificationPreference", (string)null);
                 });
 
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.faith_notifications.PrayerComment", b =>
@@ -858,7 +884,7 @@ namespace Journey_of_faith.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("PrayerComment", "dbo");
+                    b.ToTable("PrayerComment", (string)null);
                 });
 
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.faith_notifications.PrayerRequest", b =>
@@ -914,7 +940,7 @@ namespace Journey_of_faith.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("PrayerRequest", "dbo");
+                    b.ToTable("PrayerRequest", (string)null);
                 });
 
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.faith_notifications.ReminderSetting", b =>
@@ -942,7 +968,7 @@ namespace Journey_of_faith.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("ReminderSetting", "dbo");
+                    b.ToTable("ReminderSetting", (string)null);
                 });
 
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.location.Church", b =>
@@ -1010,7 +1036,7 @@ namespace Journey_of_faith.Infrastructure.Migrations
 
                     b.HasIndex("DioceseId");
 
-                    b.ToTable("Church", "dbo");
+                    b.ToTable("Church", (string)null);
                 });
 
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.location.Diocese", b =>
@@ -1067,7 +1093,7 @@ namespace Journey_of_faith.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Diocese", "dbo");
+                    b.ToTable("Diocese", (string)null);
                 });
 
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.location.Province", b =>
@@ -1093,7 +1119,7 @@ namespace Journey_of_faith.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Province", "dbo");
+                    b.ToTable("Province", (string)null);
                 });
 
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.location.School", b =>
@@ -1124,7 +1150,7 @@ namespace Journey_of_faith.Infrastructure.Migrations
 
                     b.HasIndex("LevelId");
 
-                    b.ToTable("School", "dbo");
+                    b.ToTable("School", (string)null);
                 });
 
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.location.SchoolLevel", b =>
@@ -1142,7 +1168,7 @@ namespace Journey_of_faith.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("SchoolLevel", "dbo");
+                    b.ToTable("SchoolLevel", (string)null);
                 });
 
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.location.UserChurch", b =>
@@ -1157,7 +1183,7 @@ namespace Journey_of_faith.Infrastructure.Migrations
 
                     b.HasIndex("ChurchId");
 
-                    b.ToTable("UserChurch", "dbo");
+                    b.ToTable("UserChurch", (string)null);
                 });
 
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.messaging.Conversation", b =>
@@ -1193,7 +1219,7 @@ namespace Journey_of_faith.Infrastructure.Migrations
 
                     b.HasIndex("GroupId");
 
-                    b.ToTable("Conversation", "dbo");
+                    b.ToTable("Conversation", (string)null);
                 });
 
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.messaging.ConversationParticipant", b =>
@@ -1231,7 +1257,7 @@ namespace Journey_of_faith.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("ConversationParticipant", "dbo");
+                    b.ToTable("ConversationParticipant", (string)null);
                 });
 
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.messaging.GroupEvent", b =>
@@ -1258,7 +1284,7 @@ namespace Journey_of_faith.Infrastructure.Migrations
 
                     b.HasIndex("ConversationId");
 
-                    b.ToTable("GroupEvent", "dbo");
+                    b.ToTable("GroupEvent", (string)null);
                 });
 
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.messaging.Message", b =>
@@ -1303,7 +1329,7 @@ namespace Journey_of_faith.Infrastructure.Migrations
 
                     b.HasIndex("FromUserId");
 
-                    b.ToTable("Message", "dbo");
+                    b.ToTable("Message", (string)null);
                 });
 
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.messaging.MessageAttachment", b =>
@@ -1336,7 +1362,7 @@ namespace Journey_of_faith.Infrastructure.Migrations
 
                     b.HasIndex("MessageId");
 
-                    b.ToTable("MessageAttachment", "dbo");
+                    b.ToTable("MessageAttachment", (string)null);
                 });
 
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.messaging.MessageReaction", b =>
@@ -1363,7 +1389,7 @@ namespace Journey_of_faith.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("MessageReaction", "dbo");
+                    b.ToTable("MessageReaction", (string)null);
                 });
 
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.messaging.MessageStatus", b =>
@@ -1392,7 +1418,7 @@ namespace Journey_of_faith.Infrastructure.Migrations
 
                     b.HasIndex("MessageId");
 
-                    b.ToTable("MessageStatus", "dbo");
+                    b.ToTable("MessageStatus", (string)null);
                 });
 
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.music.Album", b =>
@@ -1422,7 +1448,7 @@ namespace Journey_of_faith.Infrastructure.Migrations
 
                     b.HasIndex("ArtistId");
 
-                    b.ToTable("Album", "dbo");
+                    b.ToTable("Album", (string)null);
                 });
 
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.music.Artist", b =>
@@ -1449,7 +1475,7 @@ namespace Journey_of_faith.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Artist", "dbo");
+                    b.ToTable("Artist", (string)null);
                 });
 
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.music.ListeningHistory", b =>
@@ -1475,7 +1501,7 @@ namespace Journey_of_faith.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("ListeningHistory", "dbo");
+                    b.ToTable("ListeningHistory", (string)null);
                 });
 
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.music.Playlist", b =>
@@ -1501,7 +1527,7 @@ namespace Journey_of_faith.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Playlist", "dbo");
+                    b.ToTable("Playlist", (string)null);
                 });
 
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.music.PlaylistSong", b =>
@@ -1527,7 +1553,7 @@ namespace Journey_of_faith.Infrastructure.Migrations
 
                     b.HasIndex("SongId");
 
-                    b.ToTable("PlaylistSong", "dbo");
+                    b.ToTable("PlaylistSong", (string)null);
                 });
 
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.music.Song", b =>
@@ -1602,7 +1628,7 @@ namespace Journey_of_faith.Infrastructure.Migrations
 
                     b.HasIndex("ArtistId");
 
-                    b.ToTable("Song", "dbo");
+                    b.ToTable("Song", (string)null);
                 });
 
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.music.SongCategory", b =>
@@ -1619,7 +1645,7 @@ namespace Journey_of_faith.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("SongCategory", "dbo");
+                    b.ToTable("SongCategory", (string)null);
                 });
 
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.music.SongCategoryMapping", b =>
@@ -1642,7 +1668,7 @@ namespace Journey_of_faith.Infrastructure.Migrations
 
                     b.HasIndex("SongId");
 
-                    b.ToTable("SongCategoryMapping", "dbo");
+                    b.ToTable("SongCategoryMapping", (string)null);
                 });
 
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.music.UserFavoriteSong", b =>
@@ -1668,7 +1694,7 @@ namespace Journey_of_faith.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserFavoriteSong", "dbo");
+                    b.ToTable("UserFavoriteSong", (string)null);
                 });
 
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.quiz.Answer", b =>
@@ -1701,7 +1727,7 @@ namespace Journey_of_faith.Infrastructure.Migrations
 
                     b.HasIndex("QuestionId");
 
-                    b.ToTable("Answer", "dbo");
+                    b.ToTable("Answer", (string)null);
                 });
 
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.quiz.AttemptAnswer", b =>
@@ -1728,7 +1754,7 @@ namespace Journey_of_faith.Infrastructure.Migrations
 
                     b.HasIndex("AttemptId");
 
-                    b.ToTable("AttemptAnswer", "dbo");
+                    b.ToTable("AttemptAnswer", (string)null);
                 });
 
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.quiz.Question", b =>
@@ -1772,7 +1798,7 @@ namespace Journey_of_faith.Infrastructure.Migrations
 
                     b.HasIndex("TypeId");
 
-                    b.ToTable("Question", "dbo");
+                    b.ToTable("Question", (string)null);
                 });
 
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.quiz.QuestionCategory", b =>
@@ -1790,7 +1816,7 @@ namespace Journey_of_faith.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("QuestionCategory", "dbo");
+                    b.ToTable("QuestionCategory", (string)null);
                 });
 
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.quiz.QuestionType", b =>
@@ -1808,7 +1834,7 @@ namespace Journey_of_faith.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("QuestionType", "dbo");
+                    b.ToTable("QuestionType", (string)null);
                 });
 
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.quiz.Quiz", b =>
@@ -1841,7 +1867,7 @@ namespace Journey_of_faith.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Quiz", "dbo");
+                    b.ToTable("Quiz", (string)null);
                 });
 
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.quiz.QuizAttempt", b =>
@@ -1873,7 +1899,7 @@ namespace Journey_of_faith.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("QuizAttempt", "dbo");
+                    b.ToTable("QuizAttempt", (string)null);
                 });
 
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.quiz.QuizLevel", b =>
@@ -1891,7 +1917,7 @@ namespace Journey_of_faith.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("QuizLevel", "dbo");
+                    b.ToTable("QuizLevel", (string)null);
                 });
 
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.quiz.QuizQuestion", b =>
@@ -1917,7 +1943,7 @@ namespace Journey_of_faith.Infrastructure.Migrations
 
                     b.HasIndex("QuizId");
 
-                    b.ToTable("QuizQuestion", "dbo");
+                    b.ToTable("QuizQuestion", (string)null);
                 });
 
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.social.Friendship", b =>
@@ -1972,7 +1998,7 @@ namespace Journey_of_faith.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Friendship", "dbo");
+                    b.ToTable("Friendship", (string)null);
                 });
 
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.social.Group", b =>
@@ -2032,7 +2058,7 @@ namespace Journey_of_faith.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Group", "dbo");
+                    b.ToTable("Group", (string)null);
                 });
 
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.social.GroupMember", b =>
@@ -2061,7 +2087,7 @@ namespace Journey_of_faith.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("GroupMember", "dbo");
+                    b.ToTable("GroupMember", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
@@ -2085,7 +2111,7 @@ namespace Journey_of_faith.Infrastructure.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("AspNetRoleClaims", "dbo");
+                    b.ToTable("AspNetRoleClaims", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<System.Guid>", b =>
@@ -2109,7 +2135,7 @@ namespace Journey_of_faith.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("AspNetUserClaims", "dbo");
+                    b.ToTable("AspNetUserClaims", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<System.Guid>", b =>
@@ -2130,7 +2156,7 @@ namespace Journey_of_faith.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("AspNetUserLogins", "dbo");
+                    b.ToTable("AspNetUserLogins", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<System.Guid>", b =>
@@ -2145,7 +2171,7 @@ namespace Journey_of_faith.Infrastructure.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("AspNetUserRoles", "dbo");
+                    b.ToTable("AspNetUserRoles", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<System.Guid>", b =>
@@ -2164,7 +2190,7 @@ namespace Journey_of_faith.Infrastructure.Migrations
 
                     b.HasKey("UserId", "LoginProvider", "Name");
 
-                    b.ToTable("AspNetUserTokens", "dbo");
+                    b.ToTable("AspNetUserTokens", (string)null);
                 });
 
             modelBuilder.Entity("Journey_of_faith.Infrastructure.identity.ApplicationUser", b =>
@@ -2189,6 +2215,17 @@ namespace Journey_of_faith.Infrastructure.Migrations
                     b.Navigation("Province");
 
                     b.Navigation("School");
+                });
+
+            modelBuilder.Entity("Journey_of_faith.Infrastructure.identity.RefreshToken", b =>
+                {
+                    b.HasOne("Journey_of_faith.Infrastructure.identity.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.events.EventCategoryMapping", b =>

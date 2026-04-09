@@ -18,6 +18,7 @@ namespace Journey_of_faith.Infrastructure.context
     {
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
+        public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
         // ── Location ──────────────────────────────────────────────────────
         public DbSet<Province> Provinces => Set<Province>();
         public DbSet<Diocese> Dioceses => Set<Diocese>();
