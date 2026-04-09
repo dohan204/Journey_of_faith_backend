@@ -65,6 +65,9 @@ namespace Journey_of_faith.Infrastructure
                 });
             service.AddScoped<TokenService>();
             service.AddScoped<IIdentityService, IdentityService>();
+            service.AddScoped<IAuthService, AuthService>();
+
+            service.AddHttpContextAccessor();
             return service;
         } 
     }

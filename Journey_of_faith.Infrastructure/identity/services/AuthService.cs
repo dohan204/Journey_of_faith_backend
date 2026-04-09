@@ -1,6 +1,10 @@
 ﻿using Journey_of_faith.Application.common.interfaces;
 using Journey_of_faith.Application.exceptions;
+using Journey_of_faith.Application.usecases.auth.queries;
+using Journey_of_faith.Infrastructure.context;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
@@ -12,21 +16,25 @@ namespace Journey_of_faith.Infrastructure.identity.services
     {
         private readonly TokenService _tokenService;
         private readonly UserManager<ApplicationUser> _userManager;
-        public AuthService(TokenService tokenService, UserManager<ApplicationUser> userManager)
+        private readonly ApplicationDbContext _context;
+        private readonly ICurrentUserService _currentUser;
+        public AuthService(TokenService tokenService, UserManager<ApplicationUser> userManager, ApplicationDbContext context, ICurrentUserService currentUserService)
         {
             _tokenService = tokenService;
             _userManager = userManager;
+            _context = context;
+            _currentUser = currentUserService;
         }
 
         public async Task<LoginUserResponse> Login(string username, string passwrod)
         {
-            var user = await _userManager.FindByNameAsync(request.username);
+            var user = await _userManager.FindByNameAsync(username);
             if(user is null)
             {
                 throw new NotFoundException("Tài khoản này chưa được tạo");
             }
 
-            var result = await _userManager.CheckPasswordAsync(user, request.password);
+            var result = await _userManager.CheckPasswordAsync(user, passwrod);
             if(!result)
             {
                 throw new UnauthorizationException("Tên đăng nhập hoặc mật khẩu không đúng");
@@ -34,8 +42,36 @@ namespace Journey_of_faith.Infrastructure.identity.services
             var roles = await _userManager.GetRolesAsync(user);
 
             var token = _tokenService.GenerateToken(user, roles.ToList());
+            var refreshToken = _tokenService.CreateRefreshToken(user.Id);
 
-            return new LoginUserResponse(status: true, token: token.ToString());
+            await _context.RefreshTokens.AddAsync(refreshToken);
+
+            await _context.SaveChangesAsync();
+            return new LoginUserResponse(status: true, token: token, refreshToken: refreshToken.Token);
+        }
+
+        public async Task<LoginUserResponse> RefreshToken(string refreshToken)
+        {
+            var refresh = await _context.RefreshTokens
+                .FirstOrDefaultAsync(t => t.Token == refreshToken);
+
+            if(refresh is null || refresh.ExpiresOnUtc < DateTime.UtcNow)
+            {
+                throw new UnauthorizationException("Refresh token đã hết hạn hoặc không hợp lệ");
+            }
+
+            var user = await _userManager.FindByIdAsync(refresh.UserId.ToString());
+            var roles = await _userManager.GetRolesAsync(user);
+
+
+            var newToken = _tokenService.GenerateToken(user, roles.ToList());
+            var newRefreshToken = _tokenService.CreateRefreshToken(user.Id);
+
+            _context.RefreshTokens.Remove(refresh);
+            await _context.RefreshTokens.AddAsync(newRefreshToken);
+            await _context.SaveChangesAsync();
+
+            return new LoginUserResponse(true, token: newToken, refreshToken: newRefreshToken.Token);
         }
     }
 }

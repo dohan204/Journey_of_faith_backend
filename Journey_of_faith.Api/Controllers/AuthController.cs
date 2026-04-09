@@ -13,7 +13,7 @@ namespace Journey_of_faith.Api.Controllers
         {
             _me = me;
         }
-
+        [HttpPost]
         public async Task<IActionResult> Login([FromBody] UserLoginQuery query)
         {
             var login = await _me.Send(query);
