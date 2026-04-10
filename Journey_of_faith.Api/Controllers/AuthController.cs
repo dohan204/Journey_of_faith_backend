@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Journey_of_faith.Api.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("Journey_of_faith/[controller]")]
     public class AuthController : ControllerBase
     {
         private readonly IMediator _me;

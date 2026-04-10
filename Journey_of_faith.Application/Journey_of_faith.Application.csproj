@@ -27,6 +27,7 @@
   <ItemGroup>
     <Folder Include="common\dtos\" />
     <Folder Include="usecases\auth\dtos\" />
+    <Folder Include="usecases\questions\queries\" />
   </ItemGroup>
 
 </Project>

@@ -7,6 +7,15 @@ namespace Journey_of_faith.Domain.entities.quiz
     public class QuestionCategory
     {
         public int Id { get; set; }
-        public string Name { get; set; } = string.Empty;
+        public string Name { get; private set; } = string.Empty;
+        public QuestionCategory(string name)
+        {
+            if(string.IsNullOrEmpty(name))
+            {
+                throw new ArgumentNullException($"{name} is required.");
+            }
+
+            Name = name;
+        }
     }
 }
