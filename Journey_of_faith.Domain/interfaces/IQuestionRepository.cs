@@ -12,8 +12,21 @@ namespace Journey_of_faith.Domain.interfaces
         Task<bool> CreateQuizLevel(QuizLevel quiz);
         Task<bool> CreateQuestionType(QuestionType questionType);
         Task<bool> CreateQuestionCategory(QuestionCategory questionCategory);
+
+
         Task<bool> CreateQuestionAsync(Question question);
-        Task<bool> CreateAnswerAsync(Answer answer);
+        //Task<Question?> GetDetailsQuestion(int id);
+        Task<int> GetCountQuestion();
+        Task<bool> CheckUniqueName(string name);
+
+        Task<IEnumerable<QuizLevel>> GetLevelsAsync();
+        Task<QuizLevel?> GetDetailQuizLevel(int Id);
+
+        Task<IEnumerable<QuestionType>> GetAllTypeQuestion();
+        Task<QuestionType?> GetDetailsQuestionType(int Id);
+        Task<IEnumerable<QuestionCategory>> GetAllCategoryQuestion();
+        Task<QuestionCategory?> GetDetailsQuestionCategory(int Id);
+
         Task<bool> CheckValidId(int id, string table);
         
 

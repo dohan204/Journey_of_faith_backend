@@ -89,6 +89,8 @@ namespace Journey_of_faith.Infrastructure
             services.AddScoped<IQuestionRepository, QuestionRepository>();
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
+            services.AddScoped<IFileStorageService, FileStorageQuestion>();
+            services.AddScoped<IExamRepository,  ExamRepository>();
             return services;
         }
     }

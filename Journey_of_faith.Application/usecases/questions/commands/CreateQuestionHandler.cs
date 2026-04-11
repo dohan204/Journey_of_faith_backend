@@ -60,7 +60,7 @@ namespace Journey_of_faith.Application.usecases.questions.commands
         }
     }
 
-    public class CreateQuestionHandler(IQuestionRepository question, IDbConnectionFactory connection) 
+    public class CreateQuestionHandler(IQuestionRepository question, IDbConnectionFactory connection, IFileStorageService file) 
         : IRequestHandler<CreateQuestionCommand, bool>
     {
         private readonly IQuestionRepository _question = question;
@@ -92,14 +92,17 @@ namespace Journey_of_faith.Application.usecases.questions.commands
                 throw new BadRequestException("Phải có ít nhất từ 3 đáp án");
             }
 
-
+            if(await _question.CheckUniqueName(command.QuestionContent))
+            {
+                throw new UnprocessableEntityException("Không thể thêm câu hỏi trùng nội dung");
+            }
             var question = Question.Create(levelId: command.LevelId, questionContent: command.QuestionContent, 
                 typeId: command.TypeId, categoryId: command.CategoryId, imageUrl: command.ImageUrl);
 
-                
+            Console.WriteLine(question.Id);
             foreach(var item in command.Items)
             {
-                question.AddAnswer(questionId: item.QuestionId, content: item.Content,isCorrect:item.IsCorrect,
+                question.AddAnswer(questionId: question.Id,content: item.Content,isCorrect:item.IsCorrect,
                    imageUrl: item.ImageUrl, explance: item.Explanation);
             }
             await _question.CreateQuestionAsync(question);

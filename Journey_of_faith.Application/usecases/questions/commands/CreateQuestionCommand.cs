@@ -21,8 +21,8 @@ namespace Journey_of_faith.Application.usecases.questions.commands
         public string QuestionContent { get; set; } = string.Empty;
         public int TypeId { get; set; }
         public int CategoryId { get; set; }
-        public string ImageUrl { get; set; } = string.Empty;
-        public List<CreateAnswerCommand> Items = new();
+        public string? ImageUrl { get; set; }
+        public List<CreateAnswerCommand> Items { get; set; }
     }
 
     public class CreateAnswerCommand
@@ -93,9 +93,6 @@ namespace Journey_of_faith.Application.usecases.questions.commands
             RuleFor(e => e.CategoryId)
                .NotEmpty().WithMessage("Danh mục câu hỏi không được để trống")
                .GreaterThan(0).WithMessage("Danh mục không được nhỏ hơn 0");
-
-            RuleFor(e => e.ImageUrl)
-                .NotEmpty().WithMessage("Vui lòng không để ảnh trống");
 
             RuleForEach(e => e.Items).SetValidator(new CreateAnswerValidator());
         }

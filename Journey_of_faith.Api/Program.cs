@@ -1,6 +1,7 @@
 using Journey_of_faith.Api.middlewares;
 using Journey_of_faith.Application;
 using Journey_of_faith.Infrastructure;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.OpenApi;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddCors(options =>
@@ -36,7 +37,17 @@ if (app.Environment.IsDevelopment())
 app.UseCors("allowFrontend");
 app.UseExceptionHandler();
 app.UseHttpsRedirection();
-
+var currentDirectoryFile = Path.Combine(Directory.GetCurrentDirectory(), "uploads");
+if(!Directory.Exists(currentDirectoryFile))
+{
+    Directory.CreateDirectory(currentDirectoryFile);
+}
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(currentDirectoryFile),
+    RequestPath = "/uploads"
+});
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

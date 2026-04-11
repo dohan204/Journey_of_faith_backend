@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace Journey_of_faith.Domain.entities.quiz
@@ -63,14 +64,14 @@ namespace Journey_of_faith.Domain.entities.quiz
         public static Question Create(int levelId, string questionContent, int typeId, int categoryId, string imageUrl)
             => new Question(levelId, questionContent, typeId, categoryId, imageUrl);
 
-        public void AddAnswer(int questionId, string content, bool isCorrect)
+        public void AddAnswer(int questionId,string content, bool isCorrect)
         {
-            var answer = Answer.Create(questionId, content, isCorrect);
+            var answer = Answer.Create(this.Id, content, isCorrect);
             _answers.Add(answer);
         }
-        public void AddAnswer(int questionId, string content, bool isCorrect,  string imageUrl, string explance)
+        public void AddAnswer(int questionId,string content, bool isCorrect,  string imageUrl, string explance)
         {
-            var answer = Answer.Create(questionId , content, isCorrect, imageUrl, explance);
+            var answer = Answer.Create(this.Id , content, isCorrect, imageUrl, explance);
             _answers.Add(answer);
         }
        
