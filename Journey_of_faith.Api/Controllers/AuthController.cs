@@ -1,4 +1,5 @@
-﻿using Journey_of_faith.Application.usecases.auth.queries;
+﻿using Journey_of_faith.Application.usecases.auth.commands;
+using Journey_of_faith.Application.usecases.auth.queries;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,6 +19,13 @@ namespace Journey_of_faith.Api.Controllers
         {
             var login = await _me.Send(query);
             return Ok(login);
+        }
+
+        [HttpPost("/refresh")]
+        public async Task<IActionResult> RefreshToken([FromBody] CreateRefreshTokenCommand command)
+        {
+            var refresh = await _me.Send(command);
+            return Ok(refresh);
         }
     }
 }

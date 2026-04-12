@@ -24,6 +24,7 @@ namespace Journey_of_faith.Domain.entities.quiz
         public IReadOnlyCollection<QuizQuestion> QuizQuestions => _quizQuestions.AsReadOnly();
         public IReadOnlyCollection<AttemptAnswer> AttemptAnswers => _attemptAnswers.AsReadOnly();
 
+        private Question() { }
         public Question(int levelId, string questionContent, int typeId, int categoryId, string imageUrl)
         {
             if(levelId.Equals(0))

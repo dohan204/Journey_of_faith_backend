@@ -15,6 +15,7 @@ namespace Journey_of_faith.Infrastructure.identity.services
             _context = context;
         }
 
-        public string UserId => _context.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
+        public string UserId => _context.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        public string GetRoleUserName => _context?.HttpContext?.User?.FindFirst("role")?.Value;
     }
 }

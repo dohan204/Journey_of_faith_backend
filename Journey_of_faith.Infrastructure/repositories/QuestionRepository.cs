@@ -48,6 +48,12 @@ namespace Journey_of_faith.Infrastructure.repositories
             var categories = new GetRequestData<QuizLevel>(factory: factory, _options);
             return await categories.GetEntityDetails<QuizLevel>(Id, "GetDetailsQuestionLevel");
         }
+        public async Task<int> GetCountQuestionByLevel(string name)
+        {
+            var connection = _connection.CreateConnection();
+            return await connection.ExecuteScalarAsync<int>
+                ("GetCountQuestionLevel", new { Name = name }, commandType: System.Data.CommandType.StoredProcedure);
+        }
         public async Task<bool> CreateQuestionType(QuestionType questionType)
         {
             return await InsertOnlyName(TableQuestion.QuestionType, new { Name = questionType.Name });
@@ -96,14 +102,13 @@ namespace Journey_of_faith.Infrastructure.repositories
         {
             using var connection = _connection.CreateConnection();
 
-            // Sử dụng EXISTS để kiểm tra sự tồn tại (trả về 1 nếu có, 0 nếu không)
             string sql = $@"
-        IF EXISTS (
-            SELECT 1 
-            FROM [{_name.Schema}].[{TableQuestion.Question}] 
-            WHERE QuestionContent = @QuestionContent
-        ) 
-        SELECT 1 ELSE SELECT 0";
+            IF EXISTS (
+                SELECT 1 
+                FROM [{_name.Schema}].[{TableQuestion.Question}] 
+                WHERE QuestionContent = @QuestionContent
+            ) 
+            SELECT 1 ELSE SELECT 0";
 
             return await connection.ExecuteScalarAsync<int>(sql, new { QuestionContent = name }) > 0;
         }

@@ -21,6 +21,7 @@ namespace Journey_of_faith.Domain.interfaces
 
         Task<IEnumerable<QuizLevel>> GetLevelsAsync();
         Task<QuizLevel?> GetDetailQuizLevel(int Id);
+        Task<int> GetCountQuestionByLevel(string name);
 
         Task<IEnumerable<QuestionType>> GetAllTypeQuestion();
         Task<QuestionType?> GetDetailsQuestionType(int Id);

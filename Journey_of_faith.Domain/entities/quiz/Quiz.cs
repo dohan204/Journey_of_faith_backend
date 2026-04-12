@@ -21,7 +21,7 @@ namespace Journey_of_faith.Domain.entities.quiz
         public IReadOnlyCollection<QuizQuestion> QuizQuestions => _quizQuestions.AsReadOnly();
         public IReadOnlyCollection<QuizAttempt> QuizAttempts => _quizAttempts.AsReadOnly();
 
-
+        private Quiz () { }
         public Quiz(string title, string description, int timeLimit, int questionCount)
         {
             if(title is null)
@@ -56,4 +56,5 @@ namespace Journey_of_faith.Domain.entities.quiz
         }
 
     }
+
 }

@@ -4,6 +4,7 @@ using Journey_of_faith.Application.usecases.auth.queries;
 using Journey_of_faith.Infrastructure.context;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
@@ -18,12 +19,15 @@ namespace Journey_of_faith.Infrastructure.identity.services
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _context;
         private readonly ICurrentUserService _currentUser;
-        public AuthService(TokenService tokenService, UserManager<ApplicationUser> userManager, ApplicationDbContext context, ICurrentUserService currentUserService)
+        private readonly IConfiguration configuration;
+        public AuthService(TokenService tokenService, UserManager<ApplicationUser> userManager, 
+            ApplicationDbContext context, ICurrentUserService currentUserService, IConfiguration configuration)
         {
             _tokenService = tokenService;
             _userManager = userManager;
             _context = context;
             _currentUser = currentUserService;
+            this.configuration = configuration;
         }
 
         public async Task<LoginUserResponse> Login(string username, string passwrod)
@@ -47,7 +51,7 @@ namespace Journey_of_faith.Infrastructure.identity.services
             await _context.RefreshTokens.AddAsync(refreshToken);
 
             await _context.SaveChangesAsync();
-            return new LoginUserResponse(status: true, token: token, refreshToken: refreshToken.Token);
+            return new LoginUserResponse(status: true, token: token, refreshToken: refreshToken.Token, expiry: configuration.GetValue<int>("Token:Expiry"));
         }
 
         public async Task<LoginUserResponse> RefreshToken(string refreshToken)
@@ -62,7 +66,7 @@ namespace Journey_of_faith.Infrastructure.identity.services
 
             var user = await _userManager.FindByIdAsync(refresh.UserId.ToString());
             var roles = await _userManager.GetRolesAsync(user);
-
+            var expiry = configuration.GetValue<int>("Token:Expiry");
 
             var newToken = _tokenService.GenerateToken(user, roles.ToList());
             var newRefreshToken = _tokenService.CreateRefreshToken(user.Id);
@@ -71,7 +75,7 @@ namespace Journey_of_faith.Infrastructure.identity.services
             await _context.RefreshTokens.AddAsync(newRefreshToken);
             await _context.SaveChangesAsync();
 
-            return new LoginUserResponse(true, token: newToken, refreshToken: newRefreshToken.Token);
+            return new LoginUserResponse(true, token: newToken, refreshToken: newRefreshToken.Token, expiry);
         }
     }
 }

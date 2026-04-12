@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Journey_of_faith.Application.usecases.auth.queries
 {
-    public record UserLoginResponse(bool success, string token, string refreshToken);
+    public record UserLoginResponse(bool success, string token, string refreshToken, int expiry);
     public class UserLoginQuery : IRequest<UserLoginResponse>
     {
         public string Username { get; set; } = string.Empty;
