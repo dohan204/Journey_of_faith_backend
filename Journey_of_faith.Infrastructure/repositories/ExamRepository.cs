@@ -110,6 +110,18 @@ namespace Journey_of_faith.Infrastructure.repositories
                 throw;
             }
         }
+
+        public async Task<bool> DeleteQuiz(int Id)
+        {
+            using var connection = _factory.CreateConnection();
+            var isDelete = await connection.ExecuteAsync($@"
+                UPDATE [{name.Schema}].[{QuizTalbe.Quiz}] SET
+                IsDeleted = @IsDeleted, DeletedAt = @DeletedAt
+                Where Id = @Id and IsDeleted = 0
+            ", new { IsDeleted = true, DeletedAt = DateTime.Now, Id = Id});
+
+            return isDelete > 0;
+        }
     }
     public static class QuizTalbe
     {

@@ -70,7 +70,7 @@ namespace Journey_of_faith.Domain.entities.quiz
             var answer = Answer.Create(this.Id, content, isCorrect);
             _answers.Add(answer);
         }
-        public void AddAnswer(int questionId,string content, bool isCorrect,  string imageUrl, string explance)
+        public void AddAnswer(int questionId, string content, bool isCorrect,  string imageUrl, string explance)
         {
             var answer = Answer.Create(this.Id , content, isCorrect, imageUrl, explance);
             _answers.Add(answer);

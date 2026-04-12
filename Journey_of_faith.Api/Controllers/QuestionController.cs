@@ -204,6 +204,12 @@ namespace Journey_of_faith.Api.Controllers
                 Data = command
             });
         }
+        [HttpDelete("{Id}")]
+        public async Task<IActionResult> DeleteQuestion(int Id)
+        {
+            await _mediator.Send(new DeleteQuestionCommand { Id = Id });
+            return NoContent();
+        }
     }
 }
 

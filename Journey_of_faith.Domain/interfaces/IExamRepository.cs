@@ -50,6 +50,7 @@ namespace Journey_of_faith.Domain.interfaces
         Task<QuizView?> GetDetailsQuiz(int Id);
 
         Task<int> SaveScoreTest(QuizAttempt quiz);
+        Task<bool> DeleteQuiz(int Id);
     }
 
 

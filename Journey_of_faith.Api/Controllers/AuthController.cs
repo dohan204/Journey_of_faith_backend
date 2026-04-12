@@ -21,7 +21,7 @@ namespace Journey_of_faith.Api.Controllers
             return Ok(login);
         }
 
-        [HttpPost("/refresh")]
+        [HttpPost("refresh")]
         public async Task<IActionResult> RefreshToken([FromBody] CreateRefreshTokenCommand command)
         {
             var refresh = await _me.Send(command);

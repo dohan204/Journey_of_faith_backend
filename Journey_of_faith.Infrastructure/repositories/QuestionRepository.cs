@@ -117,6 +117,38 @@ namespace Journey_of_faith.Infrastructure.repositories
             var connection = _connection.CreateConnection();
             return await connection.ExecuteScalarAsync<int>($"Select Count(*) from [{_name.Schema}].[{TableQuestion.Question}]");
         }
+        //public async Task<Question?> GetDetailsQuestion(int id)
+        //{
+        //    using var connection = _connection.CreateConnection();
+        //    using(var multiLine = await connection.QueryMultipleAsync($@"Select * from [jcodepro_journey_of_faith].Question
+        //                            inner join Answer on [jcodepro_journey_of_faith].Question.Id = Answer.Id where Question.Id = @Id", new { Id = id}))
+        //    {
+        //        var question = await multiLine.ReadSingleOrDefaultAsync<Question>();
+        //        var answer = (await multiLine.ReadAsync<Answer>()).ToList();
+
+        //        question.Answers = answer;
+        //    }
+        //} 
+
+
+        public async Task<bool> DeleteQuestion(int id)
+        {
+            using var connection = _connection.CreateConnection();
+
+            var rowsAffected = await connection.ExecuteAsync($@"
+                UPDATE [{_name.Schema}].[{TableQuestion.Question}]
+                SET IsDeleted = @IsDeleted,
+                    DeletedAt = @DeletedAt
+                WHERE Id = @Id and IsDeleted = 0",
+                        new
+                        {
+                            IsDeleted = true,
+                            DeletedAt = DateTime.Now,
+                            Id = id
+                        });
+
+            return rowsAffected > 0;
+        }
 
         public async Task<IEnumerable<QuizLevel>> GetLevelsAsync()
         {

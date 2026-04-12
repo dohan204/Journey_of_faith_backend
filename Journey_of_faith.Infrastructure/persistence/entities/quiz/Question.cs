@@ -14,7 +14,8 @@ namespace Journey_of_faith.Infrastructure.persistence.entities.quiz
         public string? ImageUrl { get; set; }
         public bool? IsActive { get; set; }
         public DateTime? CreatedTime { get; set; }
-
+        public bool IsDeleted { get; set; }
+        public DateTimeOffset? DateTimeOffset { get; set; }
         public QuizLevel Level { get; set; } = null!;
         public QuestionType? Type { get; set; }
         public QuestionCategory? Category { get; set; }

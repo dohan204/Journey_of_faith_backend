@@ -67,5 +67,13 @@ namespace Journey_of_faith.Api.Controllers
                 Data = com
             });
         }
+
+        [HttpDelete("{id}")]
+        [ProducesResponseType(statusCode: StatusCodes.Status204NoContent)]
+        public async Task<IActionResult> DeleteQuiz(int id)
+        {
+            await _mediator.Send(new DeleteQuizCommand { Id = id });
+            return NoContent();
+        }
     }
 }

@@ -17,7 +17,10 @@ namespace Journey_of_faith.Domain.interfaces
         Task<bool> CreateQuestionAsync(Question question);
         //Task<Question?> GetDetailsQuestion(int id);
         Task<int> GetCountQuestion();
+        //Task<Question?> GetDetailsQuestion(int id);
         Task<bool> CheckUniqueName(string name);
+
+        Task<bool> DeleteQuestion(int Id);
 
         Task<IEnumerable<QuizLevel>> GetLevelsAsync();
         Task<QuizLevel?> GetDetailQuizLevel(int Id);
