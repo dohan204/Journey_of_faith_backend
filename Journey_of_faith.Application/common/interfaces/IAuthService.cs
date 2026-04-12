@@ -6,9 +6,10 @@ using System.Text;
 namespace Journey_of_faith.Application.common.interfaces
 {
     public record LoginUserRequest(string username, string password);
-    public record LoginUserResponse(bool status, string token, string refreshToken);
+    public record LoginUserResponse(bool status, string token, string refreshToken, int expiry);
     public interface IAuthService
     {
         Task<LoginUserResponse> Login(string username, string passwrod);
+        Task<LoginUserResponse> RefreshToken(string refreshToken);
     }
 }

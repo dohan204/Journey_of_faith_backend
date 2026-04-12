@@ -1,7 +1,11 @@
 ﻿using Journey_of_faith.Application.common.interfaces;
+using Journey_of_faith.Domain.interfaces;
+using Journey_of_faith.Infrastructure.common;
 using Journey_of_faith.Infrastructure.context;
 using Journey_of_faith.Infrastructure.identity;
 using Journey_of_faith.Infrastructure.identity.services;
+using Journey_of_faith.Infrastructure.repositories;
+using Journey_of_faith.Infrastructure.services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -63,20 +67,30 @@ namespace Journey_of_faith.Infrastructure
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration.GetValue<string>("Token:Key") ?? string.Empty))
                     };
                 });
-            service.AddScoped<TokenService>();
-            service.AddScoped<IIdentityService, IdentityService>();
-            service.AddScoped<IAuthService, AuthService>();
-            service.AddScoped<ICurrentUserService, CurrentUserService>();
-            service.AddHttpContextAccessor();
+            
             return service;
         } 
     }
 
 
-    public static class DpAutomapper
+    public static class RegisterService
     {
-        public static IServiceCollection AddAutomapper(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection AddRegisterService(this IServiceCollection services, IConfiguration configuration)
         {
+            services.AddScoped<TokenService>();
+            services.AddScoped<IIdentityService, IdentityService>();
+            services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<ICurrentUserService, CurrentUserService>();
+            services.AddHttpContextAccessor();
+            services.Configure<TableSchemaName>(
+                configuration.GetSection("Db")
+            );
+            services.AddScoped<IDbConnectionFactory, DbConnectionFactory>();
+            services.AddScoped<IQuestionRepository, QuestionRepository>();
+
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
+            services.AddScoped<IFileStorageService, FileStorageQuestion>();
+            services.AddScoped<IExamRepository,  ExamRepository>();
             return services;
         }
     }

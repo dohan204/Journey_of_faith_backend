@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Journey_of_faith.Api.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("Journey_of_faith/[controller]")]
     public class UserController : ControllerBase
     {
         private readonly IMediator _mediator;
@@ -14,7 +14,6 @@ namespace Journey_of_faith.Api.Controllers
         {
             _mediator = mediator;
         }
-
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateUserCommand command)
         {

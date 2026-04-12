@@ -36,7 +36,7 @@ namespace Journey_of_faith.Infrastructure.identity.services
                 issuer: config.GetValue<string>("Token:Issuer"),
                 audience: config.GetValue<string>("Token:Audience"),
                 claims: claim,
-                expires: DateTime.Now.AddHours(3),
+                expires: DateTime.Now.AddHours(1),
                 signingCredentials: signa
             );
 

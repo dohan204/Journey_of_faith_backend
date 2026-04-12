@@ -16,9 +16,9 @@ namespace Journey_of_faith.Application.usecases.auth.queries
 
         public async Task<UserLoginResponse> Handle(UserLoginQuery query, CancellationToken tokens)
         {
-            var (status, token, refreshToken) = await _auth.Login(query.Username, query.Password);
+            var (status, token, refreshToken, expiry) = await _auth.Login(query.Username, query.Password);
             Console.WriteLine(token.ToString());
-            return new UserLoginResponse(status, token, refreshToken);
+            return new UserLoginResponse(status, token, refreshToken, expiry);
         }
     }
 }
