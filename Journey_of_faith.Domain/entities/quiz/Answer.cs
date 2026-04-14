@@ -29,11 +29,22 @@ namespace Journey_of_faith.Domain.entities.quiz
             this.Explanation = explantion;
         }
 
+        public Answer(string? content, bool? IsCorrect, string? imageUrl, string? explantion)
+        {
+            this.Content = content;
+            this.IsCorrect = (bool)IsCorrect;
+            this.ImageUrl = imageUrl;
+            this.Explanation = explantion;
+        }
         public static Answer Create(int questionId, string content, bool IsCorrect)
             => new Answer(questionId, content, IsCorrect);
 
         public static Answer Create(int questionId, string content, bool IsCorrect, string imageUrl, string explantion)
             => new Answer(questionId, content, IsCorrect, imageUrl, explantion);
+
+
+        public static Answer Update(string? content, bool? isCorrect, string? imageUrl, string? explantion)
+         => new Answer(content, isCorrect, explantion, explantion);
 
     }
 }

@@ -5,5 +5,7 @@
     <Project Path="Journey_of_faith.Domain/Journey_of_faith.Domain.csproj" />
     <Project Path="Journey_of_faith.Infrastructure/Journey_of_faith.Infrastructure.csproj" />
   </Folder>
-  <Folder Name="/tests/" />
+  <Folder Name="/tests/">
+    <Project Path="UnitTesting/UnitTesting.csproj" Id="a6d18951-8be0-4f03-9081-e0e1b9c59683" />
+  </Folder>
 </Solution>

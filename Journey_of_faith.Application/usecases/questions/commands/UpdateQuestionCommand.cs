@@ -7,12 +7,15 @@ namespace Journey_of_faith.Application.usecases.questions.commands
 {
     public class UpdateQuestionCommand : IRequest<Unit>
     {
+        public int Id { get; set; }
         public int? LevelId { get; set; }
         public string? QuestionContent { get; set; } = string.Empty;
         public int? TypeId { get; set; }
         public int? CategoryId { get; set; }
         public string? ImageUrl { get; set; } = string.Empty;
+        public List<UpdateAnswerCommand> Answers { get; set; } = new();
     }
+
     public class UpdateAnswerCommand
     {
         public int Id { get; set; }

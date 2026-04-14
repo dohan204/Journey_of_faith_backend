@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Net.Mime;
 using Journey_of_faith.Application.common.interfaces;
+using Journey_of_faith.Domain.interfaces;
 
 namespace Journey_of_faith.Api.Controllers
 {
@@ -204,7 +205,36 @@ namespace Journey_of_faith.Api.Controllers
                 Data = command
             });
         }
+        [HttpGet("{Id}/details")]
+        [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetDetailsQuestion(int Id)
+        {
+            var data = await _mediator.Send(new GetDetailsQuestionQuery  { Id = Id });
+            if(data is null)
+            {
+                return NotFound(new ApiResponse<object>
+                {
+                    Message = "Không tìm thấy dữ liệu",
+                    Data = data,
+                });
+            }
+
+            return Ok(new ApiResponse<QuestionView>
+            {
+                Message = "Lấy dữ liệu thành công.",
+                Data = data,
+            });
+        }
+
+        [HttpPut]
+        [ProducesResponseType(statusCode: StatusCodes.Status204NoContent)]
+        public async Task<IActionResult> UpdateQuestion([FromBody] UpdateQuestionCommand command)
+        {
+            await _mediator.Send(command);
+            return NoContent();
+        }
         [HttpDelete("{Id}")]
+        [ProducesResponseType(statusCode: StatusCodes.Status204NoContent)]
         public async Task<IActionResult> DeleteQuestion(int Id)
         {
             await _mediator.Send(new DeleteQuestionCommand { Id = Id });

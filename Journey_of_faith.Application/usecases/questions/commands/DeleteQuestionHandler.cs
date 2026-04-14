@@ -1,4 +1,5 @@
-﻿using Journey_of_faith.Domain.interfaces;
+﻿using Journey_of_faith.Application.exceptions;
+using Journey_of_faith.Domain.interfaces;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -16,6 +17,11 @@ namespace Journey_of_faith.Application.usecases.questions.commands
 
         public async Task<bool> Handle(DeleteQuestionCommand command, CancellationToken cancellationToken)
         {
+
+            if(await _repo.GetDetailsQuestion(command.Id) is null)
+            {
+                throw new NotFoundException("Không tìm thấy câu hỏi.");
+            }
             return await _repo.DeleteQuestion(command.Id);
         }
     }

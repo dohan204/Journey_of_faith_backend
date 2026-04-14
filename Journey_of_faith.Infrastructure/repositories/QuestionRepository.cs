@@ -1,11 +1,14 @@
 ﻿using Dapper;
 using Journey_of_faith.Application.common.interfaces;
+using Journey_of_faith.Application.exceptions;
 using Journey_of_faith.Domain.entities.quiz;
 using Journey_of_faith.Domain.interfaces;
 using Journey_of_faith.Infrastructure.common;
 using Journey_of_faith.Infrastructure.context;
 using Journey_of_faith.Infrastructure.services;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
+using Microsoft.Identity.Client;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -117,19 +120,82 @@ namespace Journey_of_faith.Infrastructure.repositories
             var connection = _connection.CreateConnection();
             return await connection.ExecuteScalarAsync<int>($"Select Count(*) from [{_name.Schema}].[{TableQuestion.Question}]");
         }
-        //public async Task<Question?> GetDetailsQuestion(int id)
-        //{
-        //    using var connection = _connection.CreateConnection();
-        //    using(var multiLine = await connection.QueryMultipleAsync($@"Select * from [jcodepro_journey_of_faith].Question
-        //                            inner join Answer on [jcodepro_journey_of_faith].Question.Id = Answer.Id where Question.Id = @Id", new { Id = id}))
-        //    {
-        //        var question = await multiLine.ReadSingleOrDefaultAsync<Question>();
-        //        var answer = (await multiLine.ReadAsync<Answer>()).ToList();
+        public async Task<QuestionView?> GetDetailsQuestion(int id)
+        {
+            using var connection = _connection.CreateConnection();
+            var sql = @"
+                        SELECT * FROM [jcodepro_journey_of_faith].Question WHERE Id = @Id;
+                        SELECT * FROM Answer WHERE QuestionId = @Id";
+            using (var multiLine = await connection.QueryMultipleAsync(sql, new { Id = id }))
+            {
+                var question = await multiLine.ReadSingleOrDefaultAsync<QuestionView>();
+                if(question is not null)
+                {
+                    var answer = (await multiLine.ReadAsync<AnswerView>()).ToList();
 
-        //        question.Answers = answer;
-        //    }
-        //} 
+                    question?.Answers = answer.ToList();
+                }
 
+                return question;
+            }
+        }
+
+        public async Task<bool> UpdateQuestion(Question question)
+        {
+            using var connection = _connection.CreateConnection();
+            using var transaction = connection.BeginTransaction();
+
+            try
+            {
+
+                var affectedRows = await connection.ExecuteAsync(
+                    $@"Update [jcodepro_journey_of_faith].Question Set 
+                                    LevelId = Coalesce(@LevelId, LevelId),  
+                                    QuestionContent = Coalesce(@QuestionContent, QuestionContent),
+                                    TypeId = Coalesce(@TypeId, TypeId),
+                                    CategoryId = Coalesce(@CategoryId, CategoryId),
+                                    ImageUrl = Coalesce(@ImageUrl, ImageUrl)
+                                    where Id = @Id",
+                    new { 
+                        LevelId = question.LevelId, 
+                        QuestionContent = question.QuestionContent,
+                        TypeId = question.TypeId,
+                        CategoryId = question.CategoryId,
+                        ImageUrl = question.ImageUrl,
+                        Id = question.Id },
+                    transaction
+                );
+
+                if (affectedRows == 0)
+                    throw new NotFoundException($"Question {question.Id} not found.");
+                foreach (var answer in question.Answers)
+                {
+                    await connection.ExecuteAsync($@"
+                        UPdate [{_name.Schema}].[{TableQuestion.Answer}] SET
+                            Content = Coalesce(@Content, Content),
+                            IsCorrect = Coalesce(@IsCorrect, IsCorrect), 
+                            ImageUrl = CoaLesce(@ImageUrl, ImageUrl),
+                            Explanation = Coalesce(@Explanation, Explanation)
+                        where Id = @AnswerId
+                    ", new
+                    {
+                        Content = answer.Content,
+                        IsCorrect = answer.IsCorrect,
+                        ImageUrl = answer.ImageUrl,
+                        Explanation = answer.Explanation,
+                        Id = answer.Id,
+                    }, transaction);
+                }
+
+                transaction.Commit();
+                return true;
+            } catch
+            {
+                transaction.Rollback();
+                throw;
+            }
+
+        }
 
         public async Task<bool> DeleteQuestion(int id)
         {

@@ -15,11 +15,11 @@ namespace Journey_of_faith.Domain.interfaces
 
 
         Task<bool> CreateQuestionAsync(Question question);
-        //Task<Question?> GetDetailsQuestion(int id);
+        Task<QuestionView?> GetDetailsQuestion(int id);
         Task<int> GetCountQuestion();
         //Task<Question?> GetDetailsQuestion(int id);
         Task<bool> CheckUniqueName(string name);
-
+        Task<bool> UpdateQuestion(Question question);
         Task<bool> DeleteQuestion(int Id);
 
         Task<IEnumerable<QuizLevel>> GetLevelsAsync();
@@ -32,7 +32,29 @@ namespace Journey_of_faith.Domain.interfaces
         Task<QuestionCategory?> GetDetailsQuestionCategory(int Id);
 
         Task<bool> CheckValidId(int id, string table);
-        
 
+
+    }
+
+
+    public class QuestionView
+    {
+        public int Id { get; set; }
+        public int LevelId { get; set; }
+        public string QuestionContent { get; set; } = string.Empty;
+        public int TypeId { get; set; }
+        public int CategoryId { get; set; }
+        public string ImageUrl { get; set; } = string.Empty;
+
+        public List<AnswerView> Answers { get; set; } = new();
+    }
+    public class AnswerView
+    {
+        public int Id { get; set; }
+        public int QuestionId { get; set; }
+        public string Content { get; set; } = string.Empty;
+        public bool IsCorrect { get; set; }
+        public string ImageUrl { get; set; } = string.Empty;
+        public string Explanation { get; set; } = string.Empty;
     }
 }

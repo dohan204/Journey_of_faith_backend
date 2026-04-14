@@ -61,7 +61,19 @@ namespace Journey_of_faith.Domain.entities.quiz
             this.CreatedTime = DateTime.UtcNow;
             this._answers = new List<Answer>();
         }
+        public Question(int levelId, string questionContent, int typeId, int categoryId, string imageUrl, string id)
+        { 
+            this.LevelId = levelId;
+            this.QuestionContent = questionContent;
+            this.TypeId = typeId;
+            this.CategoryId = categoryId;
 
+            this.ImageUrl = imageUrl;
+
+            this.IsActive = true;
+            this.CreatedTime = DateTime.UtcNow;
+            this._answers = new List<Answer>();
+        }
         public static Question Create(int levelId, string questionContent, int typeId, int categoryId, string imageUrl)
             => new Question(levelId, questionContent, typeId, categoryId, imageUrl);
 
@@ -69,6 +81,13 @@ namespace Journey_of_faith.Domain.entities.quiz
         {
             var answer = Answer.Create(this.Id, content, isCorrect);
             _answers.Add(answer);
+        }
+
+        public static Question Update(int? LevelId, string? questionContent, int? typeId, int? categoryId, string? imageUrl, int Id)
+            => Update(LevelId, questionContent, typeId, categoryId, imageUrl, Id);
+        public void UpdateAnswer(Answer anser)
+        {
+            _answers.Add(anser);
         }
         public void AddAnswer(int questionId, string content, bool isCorrect,  string imageUrl, string explance)
         {

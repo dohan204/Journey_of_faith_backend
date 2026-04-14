@@ -35,13 +35,13 @@ namespace Journey_of_faith.Infrastructure.identity.services
             var user = await _userManager.FindByNameAsync(username);
             if(user is null)
             {
-                throw new NotFoundException("Tài khoản này chưa được tạo");
+                throw new NotFoundException("Tài khoản hoặc mật khẩu không chính xác");
             }
 
             var result = await _userManager.CheckPasswordAsync(user, passwrod);
             if(!result)
             {
-                throw new UnauthorizationException("Tên đăng nhập hoặc mật khẩu không đúng");
+                throw new UnauthorizationException("Tài khoản hoặc mật khẩu không chính xác");
             }
             var roles = await _userManager.GetRolesAsync(user);
 
@@ -61,7 +61,7 @@ namespace Journey_of_faith.Infrastructure.identity.services
 
             if(refresh is null || refresh.ExpiresOnUtc < DateTime.UtcNow)
             {
-                throw new UnauthorizationException("Refresh token đã hết hạn hoặc không hợp lệ");
+                throw new UnauthorizationException("Refresh token đã hết hạn hoặc không hợp lệ.");
             }
 
             var user = await _userManager.FindByIdAsync(refresh.UserId.ToString());
