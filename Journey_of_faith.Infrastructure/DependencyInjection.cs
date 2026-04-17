@@ -91,6 +91,7 @@ namespace Journey_of_faith.Infrastructure
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IFileStorageService, FileStorageQuestion>();
             services.AddScoped<IExamRepository,  ExamRepository>();
+            services.AddScoped<IChurchRepository, ChurchRepository>();
             return services;
         }
     }

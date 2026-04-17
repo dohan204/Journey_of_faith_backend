@@ -24,6 +24,7 @@ namespace Journey_of_faith.Infrastructure.repositories
     {
         private readonly IDbConnectionFactory _connection = factory;
         private readonly TableSchemaName _name = _options.Value;
+        #region another method with table relationship
         public async Task<bool> NameExistsAsync(string name, string table)
         {
             // tạo kết nối
@@ -76,6 +77,46 @@ namespace Journey_of_faith.Infrastructure.repositories
             return await categories.GetEntityDetails<QuestionCategory>(Id, "GetDetailsQuestionCategory");
         }
 
+        public async Task<IEnumerable<QuizLevel>> GetLevelsAsync()
+        {
+            using var connection = _connection.CreateConnection();
+            var levels = 
+                await connection.QueryAsync<QuizLevel>($"SELECT * FROM [{_name.Schema}].[{TableQuestion.QuizLevel}] ");
+            return levels;
+        }
+
+        public async Task<IEnumerable<QuestionType>> GetAllTypeQuestion()
+        {
+            var types = new GetRequestData<QuestionType>(factory: factory, _options);
+            return await types.GetAll<QuestionType>(TableQuestion.QuestionType);
+        }
+        
+        public async Task<IEnumerable<QuestionCategory>> GetAllCategoryQuestion()
+        {
+            var categories = new GetRequestData<QuestionCategory>(factory: factory, _options);
+            return await categories.GetAll<QuestionCategory>(table: TableQuestion.QuestionCategory);
+        }
+
+
+        public async Task<bool> CheckValidId(int id, string table)
+        {
+            var command = $@"IF EXISTS (SELECT 1 FROM [{_name.Schema}].[{table}] where Id = @Id)
+                                SELECT 1 ELSE SELECT 0";
+            using var connection = _connection.CreateConnection();
+            var result = await connection.ExecuteScalarAsync<int>(command, new { Id = id });
+            return result == 1;
+        }
+        private async Task<bool> InsertOnlyName(string table, object param)
+        {
+            string command = $"INSERT INTO [{_name.Schema}].[{table}] (Name) VALUES(@Name)";
+
+            using var connection = _connection.CreateConnection();
+            var result = await connection.ExecuteAsync(command, param);
+
+            return result > 0;
+        }
+        #endregion
+        #region questions
 
         public async Task<bool> CreateQuestionAsync(Question question) {
             string command = 
@@ -216,51 +257,9 @@ namespace Journey_of_faith.Infrastructure.repositories
             return rowsAffected > 0;
         }
 
-        public async Task<IEnumerable<QuizLevel>> GetLevelsAsync()
-        {
-            using var connection = _connection.CreateConnection();
-            var levels = 
-                await connection.QueryAsync<QuizLevel>($"SELECT * FROM [{_name.Schema}].[{TableQuestion.QuizLevel}] ");
-            return levels;
-        }
-
-        public async Task<IEnumerable<QuestionType>> GetAllTypeQuestion()
-        {
-            var types = new GetRequestData<QuestionType>(factory: factory, _options);
-            return await types.GetAll<QuestionType>(TableQuestion.QuestionType);
-        }
-        
-        public async Task<IEnumerable<QuestionCategory>> GetAllCategoryQuestion()
-        {
-            var categories = new GetRequestData<QuestionCategory>(factory: factory, _options);
-            return await categories.GetAll<QuestionCategory>(table: TableQuestion.QuestionCategory);
-        }
-
-
-        public async Task<bool> CheckValidId(int id, string table)
-        {
-            var command = $@"IF EXISTS (SELECT 1 FROM [{_name.Schema}].[{table}] where Id = @Id)
-                                SELECT 1 ELSE SELECT 0";
-            using var connection = _connection.CreateConnection();
-            var result = await connection.ExecuteScalarAsync<int>(command, new { Id = id });
-            return result == 1;
-        }
-        private async Task<bool> InsertOnlyName(string table, object param)
-        {
-            string command = $"INSERT INTO [{_name.Schema}].[{table}] (Name) VALUES(@Name)";
-
-            using var connection = _connection.CreateConnection();
-            var result = await connection.ExecuteAsync(command, param);
-
-            return result > 0;
-        }
+        #endregion
     }
-
-
-
-
-
-
+    #region Constants
     public static class TableQuestion
     {
         public const string Answer = "Answer";
@@ -269,7 +268,8 @@ namespace Journey_of_faith.Infrastructure.repositories
         public const string QuestionType = "QuestionType";
         public const string QuestionCategory = "QuestionCategory";
     }
-
+    #endregion
+    #region Get data generic
     public class GetRequestData<T>
     {
         private readonly IDbConnectionFactory _factory;
@@ -297,5 +297,6 @@ namespace Journey_of_faith.Infrastructure.repositories
                 );
             return data;
         }
-    } 
+    }
+    #endregion
 }
