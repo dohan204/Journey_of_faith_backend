@@ -3,6 +3,7 @@ using Journey_of_faith.Application.exceptions;
 using Journey_of_faith.Infrastructure.context;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 using Microsoft.Identity.Client;
 using System;
 using System.Collections.Generic;
@@ -37,8 +38,10 @@ namespace Journey_of_faith.Infrastructure.identity.services
 
             if(!result.Succeeded)
             {
-                var error = result.Errors.Select(e => e.Description);
-                throw new UnprocessableEntityException(error.ToString()!);
+                foreach(var error in result.Errors)
+                {
+                    throw new UnprocessableEntityException(error.Description);
+                }
             }
 
             string role = "user";

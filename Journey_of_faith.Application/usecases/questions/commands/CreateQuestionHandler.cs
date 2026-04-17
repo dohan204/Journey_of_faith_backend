@@ -5,6 +5,7 @@ using Journey_of_faith.Domain.interfaces;
 using MediatR;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Text;
 
 namespace Journey_of_faith.Application.usecases.questions.commands
@@ -60,7 +61,7 @@ namespace Journey_of_faith.Application.usecases.questions.commands
         }
     }
 
-    public class CreateQuestionHandler(IQuestionRepository question, IDbConnectionFactory connection, IFileStorageService file) 
+    public class CreateQuestionHandler(IQuestionRepository question, IDbConnectionFactory connection) 
         : IRequestHandler<CreateQuestionCommand, bool>
     {
         private readonly IQuestionRepository _question = question;
@@ -68,21 +69,21 @@ namespace Journey_of_faith.Application.usecases.questions.commands
 
         public async Task<bool> Handle(CreateQuestionCommand command, CancellationToken token)
         {
-            if(!await _question.CheckValidId(command.LevelId, "QuizLevel"))
-            {
-                throw new NotFoundException($"Level {command.LevelId} không tồn tại fen oie");
-            }
 
-            if (!await _question.CheckValidId(command.TypeId, "QuestionType"))
+            List<ValidateInput> metadata = new List<ValidateInput>()
             {
-                throw new NotFoundException($"Type {command.TypeId} không tồn tại fen oie");
-            }
+                new ValidateInput { Id = command.LevelId, TableName = "QuizLevel", ErrorMessage = "Cấp độ câu hỏi không tồn tại."},
+                new ValidateInput { Id = command.TypeId, TableName = "QuestionType", ErrorMessage = "Kiểu câu hỏi không tồn tại."},
+                new ValidateInput { Id = command.CategoryId, TableName = "QuestionCategory", ErrorMessage = "Kiểu câu hỏi không tồn tại."},
+            };
 
-            if (!await _question.CheckValidId(command.CategoryId, "QuestionCategory"))
+            foreach(var item in metadata)
             {
-                throw new NotFoundException($"Category {command.CategoryId} không tồn tại fen oie");
+                if(!await _question.CheckValidId(item.Id, item.TableName))
+                {
+                    throw new NotFoundException(item.ErrorMessage);
+                }
             }
-
             if(!command.Items.Any(e => e.IsCorrect))
             {
                 throw new BadRequestException("Phải có ít nhất một đáp án đúng");
@@ -106,9 +107,27 @@ namespace Journey_of_faith.Application.usecases.questions.commands
                    imageUrl: item.ImageUrl, explance: item.Explanation);
             }
             await _question.CreateQuestionAsync(question);
-
+            
             return true;
+        }
+
+    }
+    [AttributeUsage(AttributeTargets.Property)]
+    public class ValidateIdAttribute: Attribute
+    {
+        public string TableName { get; set; }
+        public string ErrorMessage { get; set; }
+        public ValidateIdAttribute(string tableName, string errorMessage)
+        {
+            TableName = tableName;
+            ErrorMessage = errorMessage;
         }
     }
 
+    public class ValidateInput
+    {
+        public int Id { get; set; }
+        public string TableName { get; set; }
+        public string ErrorMessage { get; set; }
+    }
 }
