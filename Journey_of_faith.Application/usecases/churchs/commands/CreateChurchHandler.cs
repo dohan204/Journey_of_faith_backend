@@ -25,13 +25,14 @@ namespace Journey_of_faith.Application.usecases.churchs.commands
             {
                 throw new UnauthorizationException("Người dùng không hợp lệ");
             }
-            if (!await _repo.GetDioceseExistsAsync(command.DioceseId)) {
+            if (!await _repo.GetDioceseExistsAsync(command.DioceseId))
+            {
                 throw new NotFoundException("Không có giáo phận mà nhà nhờ đăng ký.");
             }
-            var church = new Church(command.Name, command.Thumbnail, command.Website, command.Address, command.DioceseId, 
+            var church = new Church(command.Name, command.Thumbnail ?? string.Empty, command.Website ?? string.Empty, command.Address ?? string.Empty, command.DioceseId,
                                     command.Latitude, command.Longitude, userId, userId);
-            await _repo.CreateAsync(church);
-            return church.Id;
+            var churchId = await _repo.CreateAsync(church);
+            return churchId;
         }
     }
 }

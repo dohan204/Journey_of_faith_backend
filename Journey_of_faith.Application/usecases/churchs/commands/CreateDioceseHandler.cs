@@ -21,7 +21,7 @@ namespace Journey_of_faith.Application.usecases.churchs.commands
 
         public async Task<int> Handle(CreateDioceseCommand command, CancellationToken token)
         {
-            if(await _churchRepository.UniqueNameDiocese(command.Name))
+            if (await _churchRepository.UniqueNameDiocese(command.Name))
             {
                 throw new UnprocessableEntityException("Tên Giáo xữ đã tòn tại");
             }
@@ -29,9 +29,9 @@ namespace Journey_of_faith.Application.usecases.churchs.commands
             {
                 throw new UnauthorizationException("Người dùng không hợp lệ");
             }
-            var diocese = new Diocese(command.Name, command.Website, command.Address, command.Thumbnail, userId);
-            await _churchRepository.CreateAsync(diocese);
-            return 1;
+            var diocese = new Diocese(command.Name, command.Website, command.Address ?? string.Empty, command.Thumbnail ?? string.Empty, userId);
+            var dioceseId = await _churchRepository.CreateAsync(diocese);
+            return dioceseId;
         }
     }
 }
