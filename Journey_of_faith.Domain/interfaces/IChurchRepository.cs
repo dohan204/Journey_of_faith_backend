@@ -6,6 +6,43 @@ using System.Text;
 
 namespace Journey_of_faith.Domain.interfaces
 {
+    public class ChurchListItemView
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string? Thumbnail { get; set; }
+        public string? Website { get; set; }
+        public string? Address { get; set; }
+        public int? DioceseId { get; set; }
+        public string? DioceseName { get; set; }
+        public double? Latitude { get; set; }
+        public double? Longitude { get; set; }
+        public bool IsFollowed { get; set; }
+    }
+
+    public class PersonalizedMassScheduleView
+    {
+        public int MassScheduleId { get; set; }
+        public int ChurchId { get; set; }
+        public string ChurchName { get; set; } = string.Empty;
+        public string? ChurchAddress { get; set; }
+        public bool? IsFixed { get; set; }
+        public DateTime? Date { get; set; }
+        public DateTime? FromDate { get; set; }
+        public DateTime? ToDate { get; set; }
+        public TimeSpan Time { get; set; }
+        public int? MassTypeId { get; set; }
+        public string? MassTypeName { get; set; }
+    }
+
+    public class ReminderSettingView
+    {
+        public bool MassReminderEnabled { get; set; }
+        public int MinutesBefore { get; set; }
+        public string? SpeechGender { get; set; }
+        public double? SpeechSpeed { get; set; }
+    }
+
     public interface IChurchRepository
     {
         // MassTypye
@@ -26,5 +63,16 @@ namespace Journey_of_faith.Domain.interfaces
         Task<int> CreateAsync(Diocese diocese);
         Task<int> UpdateAsync(Diocese diocese);
         Task<int> DeleteDiocese(int id);
+
+        // Use cases: follow churches, personalized mass schedules, reminder settings
+        Task<IEnumerable<ChurchListItemView>> SearchChurchesAsync(string? keyword, int? dioceseId, Guid? userId);
+        Task<bool> ChurchExistsAsync(int churchId);
+        Task<bool> IsFollowingChurchAsync(Guid userId, int churchId);
+        Task<bool> FollowChurchAsync(Guid userId, int churchId);
+        Task<bool> UnfollowChurchAsync(Guid userId, int churchId);
+        Task<IEnumerable<ChurchListItemView>> GetFollowedChurchesAsync(Guid userId);
+        Task<IEnumerable<PersonalizedMassScheduleView>> GetPersonalizedMassSchedulesAsync(Guid userId, DateTime fromDate, DateTime toDate, int? churchId);
+        Task<ReminderSettingView> GetReminderSettingAsync(Guid userId);
+        Task<ReminderSettingView> SaveReminderSettingAsync(Guid userId, bool isEnabled, int minutesBefore, string? speechGender, double? speechSpeed);
     }
 }
