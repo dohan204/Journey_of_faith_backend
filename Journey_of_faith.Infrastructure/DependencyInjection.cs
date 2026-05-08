@@ -67,9 +67,9 @@ namespace Journey_of_faith.Infrastructure
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration.GetValue<string>("Token:Key") ?? string.Empty))
                     };
                 });
-            
+
             return service;
-        } 
+        }
     }
 
 
@@ -87,10 +87,11 @@ namespace Journey_of_faith.Infrastructure
             );
             services.AddScoped<IDbConnectionFactory, DbConnectionFactory>();
             services.AddScoped<IQuestionRepository, QuestionRepository>();
+            services.AddScoped<IEventRepository, EventRepository>();
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IFileStorageService, FileStorageQuestion>();
-            services.AddScoped<IExamRepository,  ExamRepository>();
+            services.AddScoped<IExamRepository, ExamRepository>();
             services.AddScoped<IChurchRepository, ChurchRepository>();
             return services;
         }
