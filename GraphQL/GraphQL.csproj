@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="HotChocolate.AspNetCore" Version="16.0.0" />
+    <PackageReference Include="HotChocolate.Data.EntityFramework" Version="16.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Journey_of_faith.Application\Journey_of_faith.Application.csproj" />
+    <ProjectReference Include="..\Journey_of_faith.Domain\Journey_of_faith.Domain.csproj" />
+    <ProjectReference Include="..\Journey_of_faith.Infrastructure\Journey_of_faith.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>

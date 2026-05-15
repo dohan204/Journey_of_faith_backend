@@ -29,21 +29,21 @@ namespace Journey_of_faith.Api.Controllers
         {
             if (file != null)
             {
-                var path = Path.Combine(Directory.GetCurrentDirectory(), "uploads", "churchs");
+                var path = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "uploads", "churchs");
                 if (!Directory.Exists(path))
                 {
                     Directory.CreateDirectory(path);
                 }
 
-                var uniqueFile = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
-                var fullPath = Path.Combine(path, uniqueFile);
+                var uniqueFile = $"{Guid.NewGuid()}{System.IO.Path.GetExtension(file.FileName)}";
+                var fullPath = System.IO.Path.Combine(path, uniqueFile);
 
                 using (var stream = new FileStream(fullPath, FileMode.Create))
                 {
                     await file.CopyToAsync(stream);
                 }
 
-                command.Thumbnail = Path.Combine("uploads", "churchs", uniqueFile);
+                command.Thumbnail = System.IO.Path.Combine("uploads", "churchs", uniqueFile);
             }
 
             var churchId = await _mediator.Send(command);
@@ -61,21 +61,21 @@ namespace Journey_of_faith.Api.Controllers
         {
             if (file != null)
             {
-                var path = Path.Combine(Directory.GetCurrentDirectory(), "uploads", "dioceses");
+                var path = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "uploads", "dioceses");
                 if (!Directory.Exists(path))
                 {
                     Directory.CreateDirectory(path);
                 }
 
-                var uniqueFile = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
-                var fullPath = Path.Combine(path, uniqueFile);
+                var uniqueFile = $"{Guid.NewGuid()}{System.IO.Path.GetExtension(file.FileName)}";
+                var fullPath = System.IO.Path.Combine(path, uniqueFile);
 
                 using (var stream = new FileStream(fullPath, FileMode.Create))
                 {
                     await file.CopyToAsync(stream);
                 }
 
-                command.Thumbnail = Path.Combine("uploads", "dioceses", uniqueFile);
+                command.Thumbnail = System.IO.Path.Combine("uploads", "dioceses", uniqueFile);
             }
 
             var dioceseId = await _mediator.Send(command);
