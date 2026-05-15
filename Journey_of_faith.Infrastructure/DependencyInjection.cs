@@ -4,6 +4,7 @@ using Journey_of_faith.Infrastructure.common;
 using Journey_of_faith.Infrastructure.context;
 using Journey_of_faith.Infrastructure.identity;
 using Journey_of_faith.Infrastructure.identity.services;
+using Journey_of_faith.Infrastructure.persistence.entities.location;
 using Journey_of_faith.Infrastructure.repositories;
 using Journey_of_faith.Infrastructure.services;
 using Microsoft.AspNetCore.Authentication;
@@ -25,7 +26,14 @@ namespace Journey_of_faith.Infrastructure
         {
             service.AddDbContext<ApplicationDbContext>(options =>
             {
-                options.UseSqlServer(configuration.GetConnectionString("Connection"));
+                options.UseSqlServer(configuration.GetConnectionString("Connection"), sqlServerOptionsAction: sqloption =>
+                {
+                    sqloption.EnableRetryOnFailure(
+                        maxRetryCount: 5,
+                        maxRetryDelay: TimeSpan.FromSeconds(20),
+                        errorNumbersToAdd: null
+                    );
+                });
             });
 
             service.AddIdentityCore<ApplicationUser>()
@@ -93,6 +101,28 @@ namespace Journey_of_faith.Infrastructure
             services.AddScoped<IFileStorageService, FileStorageQuestion>();
             services.AddScoped<IExamRepository, ExamRepository>();
             services.AddScoped<IChurchRepository, ChurchRepository>();
+
+            services.AddScoped<IUserRepository, UserRepository>();
+
+            services.AddScoped(typeof(IGetOneToOneData<,>), typeof(GetDataRepository<,>));
+            services.AddScoped(typeof(IGetOneToManyData<,>), typeof(GetDataRepository<,>));
+            return services;
+        }
+    }
+
+
+
+    public static class RegisterAutoMapper
+    {
+        public static IServiceCollection AddAutoMapperConfig(this IServiceCollection services)
+        {
+            services.AddAutoMapper(cfg =>
+            {
+                cfg.CreateMap<Journey_of_faith.Infrastructure.identity.ApplicationUser, Journey_of_faith.Domain.entities.User>().ReverseMap();
+                cfg.CreateMap<UserChurch, UserChurch>().ReverseMap();
+                cfg.CreateMap<Church, Church>().ReverseMap();
+            });
+
             return services;
         }
     }

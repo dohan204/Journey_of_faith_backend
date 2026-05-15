@@ -7,7 +7,7 @@ namespace Journey_of_faith.Domain.entities.notifications
     public class ReminderSetting
     {
         public int Id { get; set; }
-        public long UserId { get; set; }
+        public Guid UserId { get; set; }
         public int MinutesBefore { get; set; }
         public string? SpeechGender { get; set; }
         public float? SpeechSpeed { get; set; }

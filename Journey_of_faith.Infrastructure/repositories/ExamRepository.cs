@@ -82,7 +82,7 @@ namespace Journey_of_faith.Infrastructure.repositories
                 ", new CreateQuizAttempt
                 {
                     QuizId = quizAttempt.QuizId,
-                    UserId = quizAttempt.UserId,
+                    UserId = quizAttempt.UserId.ToString(),
                     StartTime = quizAttempt.StartTime,
                     EndTime = quizAttempt.EndTime,
                     Score = quizAttempt.Score,

@@ -15,6 +15,7 @@ namespace Journey_of_faith.Infrastructure.persistence.entities.location
         public int? DioceseId { get; set; }
         public double? Latitude { get; set; }
         public double? Longitude { get; set; }
+        public Guid UserId {get;set;}
 
         public Guid? CreatorUserId { get; set; }
         public DateTime? CreationTime { get; set; }

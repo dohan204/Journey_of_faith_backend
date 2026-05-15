@@ -9,7 +9,7 @@ namespace Journey_of_faith.Domain.entities.quiz
     {
         public long Id { get; set; }
         public int QuizId { get; set; }
-        public string UserId { get; set; }
+        public Guid UserId { get; set; }
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
         public int Score { get; set; }
