@@ -2,6 +2,7 @@ using Dapper;
 using Journey_of_faith.Api.cache;
 using Journey_of_faith.Api.middlewares;
 using Journey_of_faith.Api.types;
+using Journey_of_faith.Api.types.data;
 using Journey_of_faith.Api.types.extensions;
 using Journey_of_faith.Api.types.filter;
 using Journey_of_faith.Api.types.resolvers;
@@ -11,6 +12,8 @@ using Journey_of_faith.Infrastructure.persistence.entities.events;
 using Journey_of_faith.Infrastructure.persistence.entities.location;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.OpenApi;
+using Microsoft.Extensions.DependencyInjection;
+
 using System.Data;
 using static Microsoft.Extensions.DependencyInjection.SchemaRequestExecutorBuilderExtensions;
 var builder = WebApplication.CreateBuilder(args);
@@ -42,17 +45,26 @@ builder.Services.AddGraphQLServer()
     .AddQueryType<Query>()
     .AddTypeExtension<UserNode>()
     .AddTypeExtension<UserQueryResolver>()
+    .AddTypeExtension<ChurchNode>()
+    .AddTypeExtension<ChurchQueryResolver>()
     .AddDataLoader<UserCacheDataLoader>()
     .AddDataLoader<EventCommentByUserIdDataLoader>()
     .AddDataLoader<ReminderSettingByUserIdDataLoader>()
     .AddDataLoader<EventFollowerByUserIdDataLoader>()
     .AddDataLoader<QuizAttemptByUserIdDataLoader>()
     .AddDataLoader<PrayCommentByUserIdDataLoader>()
+    .AddDataLoader<ChurchCacheDataLoader>()
+    .AddDataLoader<GetDioceseByIdDataLoader>()
     .AddMutationType<Mutation>()
     .AddErrorFilter<GlobalErrorFilter>()
-    .UsePersistedOperationPipeline()
     .AddFiltering()
-    .AddHttpResponseFormatter<CustomHttpResponseFormatter>();
+    .UsePersistedOperationPipeline()
+    .AddFileSystemOperationDocumentStorage("./persisted_operations")
+
+    .AddHttpResponseFormatter<CustomHttpResponseFormatter>()
+    .AddHttpRequestInterceptor<CustomHttpRequestInterceptor>()
+    .ModifyRequestOptions(opt => opt.PersistedOperations.OnlyAllowPersistedDocuments = true);
+
 
 
 // builder.Services.AddScoped<CustomHttpResponseFormatter>();
@@ -88,10 +100,14 @@ app.UseStaticFiles(new StaticFileOptions
 
 if(app.Environment.IsDevelopment())
 {
-    app.MapGraphQL();
+
+app.MapNitroApp("/graphql/ui");
 }
 app.UseAuthentication();
 app.UseAuthorization();
+
+
+app.MapGraphQL();
 app.MapControllers();
 
 app.Run();

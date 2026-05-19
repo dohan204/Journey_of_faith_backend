@@ -49,8 +49,8 @@ namespace Journey_of_faith.Domain.interfaces
         Task<int> CreateAsync(MassType massType);
         Task<int> DeleteMassType(int id);
         // Church
-        Task<Church?> GetByIdAsync(int id);
-        Task<IEnumerable<Church>> GetAllAsync();
+        Task<Church?> GetByIdAsync(int id, CancellationToken cancellationTokenc);
+        Task<IEnumerable<Church>> GetAllAsync(string sortBy, CancellationToken cancellationToken);
         Task<int> CreateAsync(Church church);
         Task<int> UpdateAsync(Church church);
 

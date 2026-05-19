@@ -28,7 +28,7 @@ namespace Journey_of_faith.Infrastructure.repositories
                 Thumbnail = church.Thumbnail ?? "",
                 Website = church.Website ?? "",
                 Address = church.Address,
-                DioceseId = church.DioceseId ?? 0,
+                DioceseId = church.DioceseId,
                 Latitude = church.GeoLocation.Latitude,
                 Longitude = church.GeoLocation.Longitude,
                 CreatorUserId = church.CreatorUserId,
@@ -66,14 +66,15 @@ namespace Journey_of_faith.Infrastructure.repositories
             );
         }
 
-        public async Task<IEnumerable<Church>> GetAllAsync()
+        public async Task<IEnumerable<Church>> GetAllAsync(string sortBy, CancellationToken cancellationToken = default)
         {
             return await ExecuteAsync(async connection =>
             {
                 using var multiple = await connection.QueryMultipleAsync($@"
                     SELECT *
                     FROM [{_schemaName.Schema}].[{TableTopicChurch.Church}]
-                    WHERE IsDeleted = 0;
+                    WHERE IsDeleted = 0
+                    order by {sortBy};
 
                     SELECT *
                     FROM [{_schemaName.Schema}].[{TableTopicChurch.MassSchedule}]
@@ -92,7 +93,7 @@ namespace Journey_of_faith.Infrastructure.repositories
             });
         }
 
-        public async Task<Church?> GetByIdAsync(int id)
+        public async Task<Church?> GetByIdAsync(int id, CancellationToken cancellationToken)
         {
             return await ExecuteAsync(async connection =>
             {
