@@ -8,5 +8,4 @@
   <Folder Name="/tests/">
     <Project Path="UnitTesting/UnitTesting.csproj" Id="a6d18951-8be0-4f03-9081-e0e1b9c59683" />
   </Folder>
-  <Project Path="GraphQL/GraphQL.csproj" />
 </Solution>

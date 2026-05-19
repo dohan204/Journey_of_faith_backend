@@ -30,7 +30,6 @@ namespace Journey_of_faith.Infrastructure.identity.services
         {
             var user = new ApplicationUser
             {
-                Name = input.Name,
                 UserName = input.Username,
                 Email = input.Email,
             };

@@ -25,7 +25,7 @@ namespace Journey_of_faith.Application.usecases.users.commands
             }
 
             Console.WriteLine("ok!, tạo người dùng");
-            var user = User.Create(command.Username, command.Password, command.Name, command.Email);
+            var user = User.Create(command.Username, command.Password, command.Email);
 
             await _services.CreateAsync(user);
             Console.WriteLine("Tạo người dùng thành công.");

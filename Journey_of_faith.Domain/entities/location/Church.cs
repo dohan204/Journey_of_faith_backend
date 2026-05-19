@@ -12,7 +12,7 @@ namespace Journey_of_faith.Domain.entities.location
         public string? Thumbnail { get; private set; }
         public string? Website { get; private set; }
         public string? Address { get; private set; }
-        public int? DioceseId { get; private set; }
+        public int DioceseId { get; private set; }
         public GeoLocation GeoLocation { get; private set; }
 
         private readonly List<MassSchedule> _massSchedules = new();

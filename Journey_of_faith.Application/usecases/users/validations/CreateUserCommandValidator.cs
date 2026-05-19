@@ -18,8 +18,6 @@ namespace Journey_of_faith.Application.usecases.users.validations
                 .Matches(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$")
             .WithMessage("Mật khẩu phải ít nhất 8 ký tự, có chữ hoa, chữ thường và số.");
 
-            RuleFor(u => u.Name)
-                .NotEmpty().WithMessage("Tên không được bỏ trống");
 
             RuleFor(u => u.Email)
                 .NotEmpty().WithMessage("Email không được bỏ trống")
