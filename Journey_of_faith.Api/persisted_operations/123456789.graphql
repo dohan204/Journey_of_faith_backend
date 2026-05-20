@@ -1,0 +1,20 @@
+query Churches($first: Int, $after: String) {
+    churches(sortBy: "name", first: $first, after: $after) {
+        nodes {
+            id
+            name
+            address
+            website
+            thumbnail
+            massSchedules {
+                id
+                isFixed
+                fromDate
+                toDate
+                toDate
+                time
+                massTypeName
+            }
+        }
+    }
+}

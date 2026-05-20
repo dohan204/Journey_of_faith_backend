@@ -1,4 +1,5 @@
-﻿using Journey_of_faith.Application.usecases.users.commands;
+﻿using System.Net.Mime;
+using Journey_of_faith.Application.usecases.users.commands;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -15,6 +16,8 @@ namespace Journey_of_faith.Api.Controllers
             _mediator = mediator;
         }
         [HttpPost]
+        [Consumes(MediaTypeNames.Application.Json)]
+        [ProducesResponseType(statusCode: StatusCodes.Status201Created)]
         public async Task<IActionResult> Create([FromBody] CreateUserCommand command)
         {
             await _mediator.Send(command);

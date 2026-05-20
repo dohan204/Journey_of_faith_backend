@@ -182,21 +182,21 @@ namespace Journey_of_faith.Api.Controllers
         {
             if(file != null)
             {
-                var path = Path.Combine(Directory.GetCurrentDirectory(), "uploads", "question");
+                var path = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "uploads", "question");
                 if(!Directory.Exists(path))
                 {
                     Directory.CreateDirectory(path);
                 }
 
-                var UniquiFile = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
-                var filePath = Path.Combine(path, UniquiFile);
+                var UniquiFile = $"{Guid.NewGuid()}{System.IO.Path.GetExtension(file.FileName)}";
+                var filePath = System.IO.Path.Combine(path, UniquiFile);
 
                 using(var stream = new FileStream(filePath, FileMode.Create))
                 {
                     await file.CopyToAsync(stream);
                 }
 
-                command.ImageUrl = Path.Combine("uploads", "question", UniquiFile);
+                command.ImageUrl = System.IO.Path.Combine("uploads", "question", UniquiFile);
             }
             await _mediator.Send(command);
             return Ok(new ApiResponse<object>

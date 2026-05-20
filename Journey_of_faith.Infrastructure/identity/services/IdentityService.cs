@@ -3,33 +3,33 @@ using Journey_of_faith.Application.exceptions;
 using Journey_of_faith.Infrastructure.context;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Conventions;
-using Microsoft.Identity.Client;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using AutoMapper;
 
 namespace Journey_of_faith.Infrastructure.identity.services
 {
-    public record User (string username, string PasswordHash, string Name);
+    // public record User (string username, string PasswordHash, string Name);
     public class IdentityService : IIdentityService
     {
+        private readonly IMapper _mapper;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<ApplicationRole> roleManager;
         private readonly ApplicationDbContext _context;
         
-        public IdentityService(UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager, ApplicationDbContext applicationDbContext)
+        public IdentityService(UserManager<ApplicationUser> userManager, 
+            RoleManager<ApplicationRole> roleManager, 
+            ApplicationDbContext applicationDbContext,
+            IMapper mapper)
         {
             _userManager = userManager; 
             this.roleManager = roleManager;
             _context = applicationDbContext;
+            _mapper = mapper;
         }
 
         public async Task<bool> CreateAsync(Domain.entities.User input)
         {
             var user = new ApplicationUser
             {
-                Name = input.Name,
                 UserName = input.Username,
                 Email = input.Email,
             };
@@ -65,6 +65,15 @@ namespace Journey_of_faith.Infrastructure.identity.services
             if (user is null)
                 return false;
             return true;
+        }
+
+        public async Task<Journey_of_faith.Domain.entities.User?> GetUserByIdAsync(Guid id)
+        {
+            var user = await _userManager.Users
+                .FirstOrDefaultAsync(e => e.Id == id);
+
+            var userMapp = _mapper.Map<Journey_of_faith.Domain.entities.User>(user);
+            return userMapp;
         }
     }
 }

@@ -9,5 +9,7 @@ namespace Journey_of_faith.Application.common.interfaces
     {
         Task<bool> CreateAsync(User user);
         Task<bool> ExistsEmail(string email);
+
+        Task<User?> GetUserByIdAsync(Guid id);
     }
 }

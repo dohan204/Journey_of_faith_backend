@@ -10,8 +10,9 @@ using Journey_of_faith.Domain.entities.events;
 using System.Security.Cryptography.X509Certificates;
 namespace Journey_of_faith.Domain.entities
 {
-    public class User : AuditableEntity
+    public partial class User
     {
+        public Guid Id { get; set; }
         public string Name { get; private set; } = string.Empty;
         public string Username { get; private set; } = string.Empty;
         public string Email { get; private set; } = string.Empty;
@@ -22,6 +23,16 @@ namespace Journey_of_faith.Domain.entities
         public int? ChurchId { get; private set; }
         public int? ProvinceId { get; private set; }
         public int? SchoolId { get; private set; }
+        public Guid CreatorUserId { get; set; }
+        public DateTime? CreationTime { get; set; }
+
+        public Guid LastModifierUserId { get; set; }
+        public DateTime? LastModificationTime { get; set; }
+
+        public Guid DeleterUserId { get; set; }
+        public DateTime? DeletionTime { get; set; }
+
+        public bool? IsDeleted { get; set; }
 
         private readonly List<UserChurch> _userChurches = new();
         private readonly List<Friendship> _friendships = new();
@@ -49,7 +60,10 @@ namespace Journey_of_faith.Domain.entities
         public IReadOnlyCollection<ListeningHistory> ListeningHistories => _listeningHistories.AsReadOnly();
         public IReadOnlyCollection<UserEvent> UserEvents => _userEvents.AsReadOnly();
 
+        public User()
+        {
 
+        }
         public User(string name, string email, string username, string password, string? avatar)
         {
             Name = name;
@@ -58,7 +72,7 @@ namespace Journey_of_faith.Domain.entities
             Password = password;
             Avatar = avatar;
         }
-        public User(string username, string password, string name, string email)
+        public User(string username, string password, string email)
         {
             if(string.IsNullOrEmpty(username))
             {
@@ -66,11 +80,10 @@ namespace Journey_of_faith.Domain.entities
             }
             Username = username;
             Password = password;
-            Name = name;
             Email = email;
         }
-        public static User Create(string username, string password, string name, string email) 
-            => new User(username, password, name, email);
+        public static User Create(string username, string password, string email) 
+            => new User(username, password, email);
         public void AddUserChurch(UserChurch uc) => _userChurches.Add(uc);
         public void AddPlaylist(Playlist p) => _playlists.Add(p);
         public void AddFavoriteSong(UserFavoriteSong fs) => _favoriteSongs.Add(fs);

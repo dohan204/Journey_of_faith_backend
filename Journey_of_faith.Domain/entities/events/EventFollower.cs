@@ -8,7 +8,7 @@ namespace Journey_of_faith.Domain.entities.events
     {
         public int Id { get; set; }
         public int EventId { get; set; }
-        public long UserId { get; set; }
+        public Guid UserId { get; set; }
         public DateTime? FollowedTime { get; set; }
     }
 }

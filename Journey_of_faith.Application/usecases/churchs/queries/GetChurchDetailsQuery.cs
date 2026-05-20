@@ -20,7 +20,7 @@ namespace Journey_of_faith.Application.usecases.churchs.queries
 
         public async Task<Church?> Handle(GetChurchDetailsQuery request, CancellationToken cancellationToken)
         {
-            return await _churchRepository.GetByIdAsync(request.Id);
+            return await _churchRepository.GetByIdAsync(request.Id, cancellationToken);
         }
     }
 }
