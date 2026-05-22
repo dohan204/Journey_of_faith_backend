@@ -9,8 +9,9 @@
 
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="16.1.1" />
-    <PackageReference Include="HotChocolate.AspNetCore" Version="16.0.0" />
-    <PackageReference Include="HotChocolate.Data" Version="16.0.2" />
+    <PackageReference Include="GreenDonut.Data.EntityFramework" Version="16.0.5" />
+    <PackageReference Include="HotChocolate.AspNetCore" Version="16.0.5" />
+    <PackageReference Include="HotChocolate.Data" Version="16.0.9" />
     <PackageReference Include="HotChocolate.PersistedOperations.FileSystem" Version="16.0.3" />
     <PackageReference Include="HotChocolate.PersistedOperations.Redis" Version="16.0.3" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.1" />

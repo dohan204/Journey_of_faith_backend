@@ -6,9 +6,15 @@ namespace Journey_of_faith.Domain.entities.musics
 {
     public class ListeningHistory
     {
-        public int Id { get; set; }
-        public long UserId { get; set; }
-        public int SongId { get; set; }
-        public DateTime? ListenTime { get; set; }
+        public int Id { get;private set; }
+        public Guid UserId { get; private set; }
+        public int SongId { get; private set; }
+        public DateTime? ListenTime { get; private set; }
+        public ListeningHistory(Guid userId, int songId)
+        {
+            UserId = userId;
+            SongId = songId;
+            ListenTime = DateTime.UtcNow;
+        }
     }
 }
