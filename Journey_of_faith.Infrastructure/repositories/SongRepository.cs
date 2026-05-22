@@ -71,13 +71,21 @@ public class SongRepository : BaseRepository, ISongRepository
            return await connection.ExecuteAsync(sql: sql, new { Name = artist.Name, Description = artist.Description, ImageUrl = artist.ImageUrl});
         });
     }
-
+    public async Task<bool> ExitsArtistAsync(int id)
+    {
+        return await QueryAsync<bool>(async connection => 
+            await connection.ExecuteScalarAsync<int>
+            (@$"If exists (select top 1 from [{_schemaName.Schema}].[{SongRelationShip.Artist}] where Id = @Id)
+                    Select 1
+                Else 
+                    Select 0") > 0);
+    }
     public async Task<bool> ExitsNameArtistAsync(string name)
     {
         return await QueryAsync<bool>(async connection =>
         {
             return await connection.ExecuteScalarAsync<int>($@"
-                IF EXITS (SELECT 1 FROM [{_schemaName.Schema}].[{SongRelationShip.Artist}] where Name = @Name)
+                IF exists (SELECT 1 FROM [{_schemaName.Schema}].[{SongRelationShip.Artist}] where Name = @Name)
                     SELECT 1
                 ELSE 
                     SELECT 0)
@@ -137,6 +145,14 @@ public class SongRepository : BaseRepository, ISongRepository
         });
     }
 
+    public async Task<bool> ExitsAlbumAsync(int id)
+    {
+        return await QueryAsync<bool>(async connection =>
+            await connection.ExecuteScalarAsync<int>($@"if exists (Select top 1 from [{_schemaName.Schema}].[{SongRelationShip.Album}])
+                select 1
+                else 
+                select 0") > 0);
+    }
 
     public async Task<bool> DeleteAlbumAsync(int id, Guid userId, CancellationToken cancellationToken)
     {

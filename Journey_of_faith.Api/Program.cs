@@ -1,11 +1,6 @@
-using Dapper;
+﻿using Dapper;
 using Journey_of_faith.Api.cache;
 using Journey_of_faith.Api.middlewares;
-using Journey_of_faith.Api.types;
-using Journey_of_faith.Api.types.data;
-using Journey_of_faith.Api.types.extensions;
-using Journey_of_faith.Api.types.filter;
-using Journey_of_faith.Api.types.resolvers;
 using Journey_of_faith.Application;
 using Journey_of_faith.Infrastructure;
 using Journey_of_faith.Infrastructure.persistence.entities.events;
@@ -16,6 +11,8 @@ using Microsoft.Extensions.DependencyInjection;
 
 using System.Data;
 using static Microsoft.Extensions.DependencyInjection.SchemaRequestExecutorBuilderExtensions;
+using System.Diagnostics;
+using Journey_of_faith.Infrastructure.context;
 var builder = WebApplication.CreateBuilder(args);
 
 SqlMapper.AddTypeHandler(new GuidTypeHandler());
@@ -41,29 +38,33 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
-builder.Services.AddGraphQLServer()
-    .AddQueryType<Query>()
-    .AddTypeExtension<UserNode>()
-    .AddTypeExtension<UserQueryResolver>()
-    .AddTypeExtension<ChurchNode>()
-    .AddTypeExtension<ChurchQueryResolver>()
-    .AddDataLoader<UserCacheDataLoader>()
-    .AddDataLoader<EventCommentByUserIdDataLoader>()
-    .AddDataLoader<ReminderSettingByUserIdDataLoader>()
-    .AddDataLoader<EventFollowerByUserIdDataLoader>()
-    .AddDataLoader<QuizAttemptByUserIdDataLoader>()
-    .AddDataLoader<PrayCommentByUserIdDataLoader>()
-    .AddDataLoader<ChurchCacheDataLoader>()
-    .AddDataLoader<GetDioceseByIdDataLoader>()
-    .AddMutationType<Mutation>()
-    .AddErrorFilter<GlobalErrorFilter>()
-    .AddFiltering()
-    .UsePersistedOperationPipeline()
-    .AddFileSystemOperationDocumentStorage("./persisted_operations")
 
-    .AddHttpResponseFormatter<CustomHttpResponseFormatter>()
-    .AddHttpRequestInterceptor<CustomHttpRequestInterceptor>()
-    .ModifyRequestOptions(opt => opt.PersistedOperations.OnlyAllowPersistedDocuments = true);
+builder.Services.AddGraphQLExtension();
+// builder.Services.AddGraphQLServer()
+//     .AddQueryType<Query>()
+//     .AddTypeExtension<UserNode>()
+//     .AddTypeExtension<UserQueryResolver>()
+//     .AddTypeExtension<ChurchNode>()
+//     .AddTypeExtension<ChurchQueryResolver>()
+//     .AddTypeExtension<UserSongExtenstion>()
+//     .AddDataLoader<UserCacheDataLoader>()
+//     .AddDataLoader<EventCommentByUserIdDataLoader>()
+//     .AddDataLoader<ReminderSettingByUserIdDataLoader>()
+//     .AddDataLoader<EventFollowerByUserIdDataLoader>()
+//     .AddDataLoader<QuizAttemptByUserIdDataLoader>()
+//     .AddDataLoader<PrayCommentByUserIdDataLoader>()
+//     .AddDataLoader<ChurchCacheDataLoader>()
+//     .AddDataLoader<GetDioceseByIdDataLoader>()
+//     .AddDataLoader<SongByIdsDataLoader>()
+//     .AddMutationType<Mutation>()
+//     .AddErrorFilter<GlobalErrorFilter>()
+//     .AddFiltering()
+//     // .UsePersistedOperationPipeline()
+//     // .AddFileSystemOperationDocumentStorage("./persisted_operations")
+
+//     .AddHttpResponseFormatter<CustomHttpResponseFormatter>()
+//     .AddHttpRequestInterceptor<CustomHttpRequestInterceptor>();
+//     // .ModifyRequestOptions(opt => opt.PersistedOperations.OnlyAllowPersistedDocuments = true);
 
 
 
@@ -71,11 +72,26 @@ builder.Services.AddGraphQLServer()
 var app = builder.Build();
 
 
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+    // ĐOẠN ĐÚNG ĐÂY NHA M: Ép EF Core dựng trước bộ nhớ đệm Model cho TẤT CẢ các bảng
+    _ = dbContext.Model;
+
+    // Mồi thử kết nối vật lý tới DB luôn như cũ
+    await dbContext.Database.CanConnectAsync();
+}
+
 app.Use(async (context, next) =>
 {
-    Console.WriteLine(context.Request.Path);
+    var sw = Stopwatch.StartNew();
+
     await next();
-    Console.WriteLine(context.Response.StatusCode);
+
+    sw.Stop();
+
+    Console.WriteLine($"Request time: {sw.ElapsedMilliseconds}ms");
 });
 // Configure the HTTP request pipeline.
   app.MapOpenApi();

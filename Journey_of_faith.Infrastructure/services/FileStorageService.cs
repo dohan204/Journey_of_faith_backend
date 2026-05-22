@@ -13,7 +13,7 @@ namespace Journey_of_faith.Infrastructure.services
         public FileStorageQuestion(IWebHostEnvironment env)
         {
             var rootBase = env.ContentRootPath ?? env.WebRootPath;
-            _root = Path.Combine(rootBase, "uploads", "question");
+            _root = System.IO.Path.Combine(rootBase, "uploads", "question");
 
             if(!Directory.Exists(_root))
             {
@@ -28,8 +28,8 @@ namespace Journey_of_faith.Infrastructure.services
             if(fileName is null) { throw new ArgumentNullException("File Name null"); }
             if (_root is null) { throw new ArgumentNullException("root path is not intializated"); }
 
-            var uniueFileName = $"{Guid.NewGuid()}{Path.GetExtension(fileName)}";
-            var filePath = Path.Combine(_root, uniueFileName);
+            var uniueFileName = $"{Guid.NewGuid()}{System.IO.Path.GetExtension(fileName)}";
+            var filePath = System.IO.Path.Combine(_root, uniueFileName);
 
             using(var stream = new FileStream(filePath, FileMode.Create))
             {

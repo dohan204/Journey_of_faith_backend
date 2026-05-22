@@ -6,15 +6,15 @@ namespace Journey_of_faith.Domain.entities.musics
 {
     public class Song : AuditableEntity
     {
-        public string Title { get; set; } = string.Empty;
-        public int ArtistId { get; set; }
-        public int? AlbumId { get; set; }
-        public int? Duration { get; set; }
-        public string? AudioUrl { get; set; }
-        public string? CoverImageUrl { get; set; }
-        public string? Lyric { get; set; }
-        public int? PlayCount { get; set; }
-        public bool? IsActive { get; set; }
+        public string Title { get; private set; } = string.Empty;
+        public int ArtistId { get; private set; }
+        public int? AlbumId { get; private set; }
+        public int? Duration { get; private set; }
+        public string? AudioUrl { get; private set; }
+        public string? CoverImageUrl { get; private set; }
+        public string? Lyric { get; private set; }
+        public int? PlayCount { get; private set; }
+        public bool? IsActive { get; private set; }
 
         private readonly List<ListeningHistory> _listeningHistories = new();
         private readonly List<PlaylistSong> _playlistSongs = new();
@@ -25,5 +25,22 @@ namespace Journey_of_faith.Domain.entities.musics
         public IReadOnlyCollection<PlaylistSong> PlaylistSongs => _playlistSongs.AsReadOnly();
         public IReadOnlyCollection<UserFavoriteSong> UserFavoriteSongs => _userFavoriteSongs.AsReadOnly();
         public IReadOnlyCollection<SongCategoryMapping> CategoryMappings => _categoryMappings.AsReadOnly();
+
+        public Song() { }
+
+        public Song(string title, int artistId, int albumId, int duration, string? audio,
+        string? converImageUrl, string lyric, int playCount, bool isActive)
+        {
+            Title = title;
+            ArtistId = artistId;
+            AlbumId = albumId;
+            Duration = duration;
+            AudioUrl = audio;
+            CoverImageUrl = converImageUrl;
+            Lyric = lyric;
+            PlayCount = playCount;
+            IsActive = isActive;
+        }
+
     }
 }
