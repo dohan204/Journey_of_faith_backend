@@ -266,48 +266,7 @@ namespace Journey_of_faith.Infrastructure.repositories
         {
             return await ExecuteAsync(async connection =>
             {
-                using var multi = await connection.QueryMultipleAsync($@"
-                    SELECT
-                        e.Id,
-                        e.Title,
-                        e.Description,
-                        e.Location,
-                        e.StartDate,
-                        e.EndDate,
-                        e.ImageUrl,
-                        CASE
-                            WHEN @UserId IS NULL THEN CAST(0 AS bit)
-                            WHEN EXISTS (
-                                SELECT 1
-                                FROM [{_schemaName.Schema}].[{EventTables.UserEvent}] ue
-                                WHERE ue.EventId = e.Id
-                                  AND ue.UserId = @UserId
-                            ) THEN CAST(1 AS bit)
-                            ELSE CAST(0 AS bit)
-                        END AS IsFollowed,
-                        (
-                            SELECT COUNT(*)
-                            FROM [{_schemaName.Schema}].[{EventTables.EventFollower}] ef
-                            WHERE ef.EventId = e.Id
-                        ) AS FollowerCount,
-                        (
-                            SELECT COUNT(*)
-                            FROM [{_schemaName.Schema}].[{EventTables.EventParticipant}] ep
-                            WHERE ep.EventId = e.Id
-                        ) AS ParticipantCount
-                    FROM [{_schemaName.Schema}].[{EventTables.Event}] e
-                    WHERE e.Id = @EventId AND e.IsDeleted = 0;
-
-                    SELECT c.Id, c.Name
-                    FROM [{_schemaName.Schema}].[{EventTables.EventCategoryMapping}] ecm
-                    INNER JOIN [{_schemaName.Schema}].[{EventTables.EventCategory}] c
-                        ON c.Id = ecm.CategoryId
-                    WHERE ecm.EventId = @EventId;
-
-                    SELECT Id, ImageUrl
-                    FROM [{_schemaName.Schema}].[{EventTables.EventImage}]
-                    WHERE EventId = @EventId;
-                ", new { EventId = eventId, UserId = userId });
+                using var multi = await connection.QueryMultipleAsync("sp_GetEventDetails", new { EventId = eventId, UserId = userId }, commandType: CommandType.StoredProcedure);
 
                 var eventDetails = await multi.ReadSingleOrDefaultAsync<EventDetailsView>();
                 if (eventDetails is null)
@@ -327,69 +286,17 @@ namespace Journey_of_faith.Infrastructure.repositories
             {
                 var offset = (filter.PageIndex - 1) * filter.PageSize;
 
-                using var multi = await connection.QueryMultipleAsync($@"
-                    SELECT
-                        e.Id,
-                        e.Title,
-                        e.Description,
-                        e.Location,
-                        e.StartDate,
-                        e.EndDate,
-                        e.ImageUrl,
-                        CASE
-                            WHEN @UserId IS NULL THEN CAST(0 AS bit)
-                            WHEN EXISTS (
-                                SELECT 1
-                                FROM [{_schemaName.Schema}].[{EventTables.UserEvent}] ue
-                                WHERE ue.EventId = e.Id
-                                  AND ue.UserId = @UserId
-                            ) THEN CAST(1 AS bit)
-                            ELSE CAST(0 AS bit)
-                        END AS IsFollowed,
-                        (
-                            SELECT COUNT(*)
-                            FROM [{_schemaName.Schema}].[{EventTables.EventFollower}] ef
-                            WHERE ef.EventId = e.Id
-                        ) AS FollowerCount
-                    FROM [{_schemaName.Schema}].[{EventTables.Event}] e
-                    WHERE e.IsDeleted = 0
-                      AND (@Keyword IS NULL OR @Keyword = '' OR e.Title LIKE '%' + @Keyword + '%' OR e.Description LIKE '%' + @Keyword + '%')
-                      AND (@CategoryId IS NULL OR EXISTS (
-                            SELECT 1
-                            FROM [{_schemaName.Schema}].[{EventTables.EventCategoryMapping}] ecm
-                            WHERE ecm.EventId = e.Id
-                              AND ecm.CategoryId = @CategoryId
-                      ))
-                      AND (@StartFrom IS NULL OR e.StartDate >= @StartFrom)
-                      AND (@StartTo IS NULL OR e.StartDate <= @StartTo)
-                      AND (@OnlyUpcoming = 0 OR e.StartDate >= GETDATE())
-                    ORDER BY e.StartDate DESC
-                    OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
-
-                    SELECT COUNT(1)
-                    FROM [{_schemaName.Schema}].[{EventTables.Event}] e
-                    WHERE e.IsDeleted = 0
-                      AND (@Keyword IS NULL OR @Keyword = '' OR e.Title LIKE '%' + @Keyword + '%' OR e.Description LIKE '%' + @Keyword + '%')
-                      AND (@CategoryId IS NULL OR EXISTS (
-                            SELECT 1
-                            FROM [{_schemaName.Schema}].[{EventTables.EventCategoryMapping}] ecm
-                            WHERE ecm.EventId = e.Id
-                              AND ecm.CategoryId = @CategoryId
-                      ))
-                      AND (@StartFrom IS NULL OR e.StartDate >= @StartFrom)
-                      AND (@StartTo IS NULL OR e.StartDate <= @StartTo)
-                      AND (@OnlyUpcoming = 0 OR e.StartDate >= GETDATE());
-                ", new
+                using var multi = await connection.QueryMultipleAsync("sp_EventsPage", new
                 {
-                    filter.Keyword,
-                    filter.CategoryId,
-                    filter.StartFrom,
-                    filter.StartTo,
+                    Keyword = filter.Keyword,
+                    CategoryId = filter.CategoryId,
+                    StartFrom = filter.StartFrom,
+                    StartTo = filter.StartTo,
                     OnlyUpcoming = filter.OnlyUpcoming,
                     UserId = userId,
                     Offset = offset,
-                    filter.PageSize
-                });
+                    PageSize = filter.PageSize
+                }, commandType: CommandType.StoredProcedure);
 
                 var items = (await multi.ReadAsync<EventListItemView>()).ToList();
                 var totalCount = await multi.ReadSingleAsync<int>();
@@ -502,35 +409,12 @@ namespace Journey_of_faith.Infrastructure.repositories
         public async Task<IEnumerable<EventListItemView>> GetFollowedEventsAsync(Guid userId, DateTime? startFrom, DateTime? startTo)
         {
             return await ExecuteAsync(async connection =>
-                await connection.QueryAsync<EventListItemView>($@"
-                    SELECT
-                        e.Id,
-                        e.Title,
-                        e.Description,
-                        e.Location,
-                        e.StartDate,
-                        e.EndDate,
-                        e.ImageUrl,
-                        CAST(1 AS bit) AS IsFollowed,
-                        (
-                            SELECT COUNT(*)
-                            FROM [{_schemaName.Schema}].[{EventTables.EventFollower}] ef
-                            WHERE ef.EventId = e.Id
-                        ) AS FollowerCount
-                    FROM [{_schemaName.Schema}].[{EventTables.UserEvent}] ue
-                    INNER JOIN [{_schemaName.Schema}].[{EventTables.Event}] e
-                        ON e.Id = ue.EventId
-                       AND e.IsDeleted = 0
-                    WHERE ue.UserId = @UserId
-                      AND (@StartFrom IS NULL OR e.StartDate >= @StartFrom)
-                      AND (@StartTo IS NULL OR e.StartDate <= @StartTo)
-                    ORDER BY e.StartDate DESC
-                ", new
+                await connection.QueryAsync<EventListItemView>("sp_GetFollowedEvents", new
                 {
                     UserId = userId,
                     StartFrom = startFrom,
                     StartTo = startTo
-                })
+                }, commandType: CommandType.StoredProcedure)
             );
         }
     }
