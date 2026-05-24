@@ -12,10 +12,12 @@ public interface ISongRepository
 
     Task<int> CreateArtistAsync(Artist artist, CancellationToken cancellationToken);
     Task<bool> ExitsNameArtistAsync(string name);
+    Task<bool> ExitsArtistAsync(int id);
     Task<int> UpdateArtistAsync(int id, Artist artist, CancellationToken cancellationToken);
     Task<bool> DeleteArtistAsync(int id,Guid userid, CancellationToken cancellationToken);
 
     Task<int> CreateAlbumAsync(Album album, CancellationToken cancellationToken);
+    Task<bool> ExitsAlbumAsync(int id);
     Task<bool> DeleteAlbumAsync(int id, Guid userId, CancellationToken cancellationToken);
 
 

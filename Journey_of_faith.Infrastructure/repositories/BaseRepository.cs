@@ -30,5 +30,10 @@ namespace Journey_of_faith.Infrastructure.repositories
             using var connection = _dbConnection.CreateConnection();
             return await query(connection);
         }
+        protected async Task<Dictionary<TData, TResult>> QueryAsync<TData, TResult>(Func<IDbConnection, Task<Dictionary<TData, TResult>>> query) where TData : notnull
+        {
+            using var connection = _dbConnection.CreateConnection();
+            return await query(connection);
+        }
     }
 }
