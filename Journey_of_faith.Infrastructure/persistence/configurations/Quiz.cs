@@ -7,6 +7,17 @@ using System.Text;
 
 namespace Journey_of_faith.Infrastructure.persistence.configurations
 {
+    public class TopicConfiguration : IEntityTypeConfiguration<Topic>
+    {
+        public void Configure(EntityTypeBuilder<Topic> builder)
+        {
+            builder.ToTable("Topic");
+            builder.HasMany(e => e.Quizs)
+                .WithOne(e => e.Topic)
+                .HasForeignKey(e => e.TopicId);
+                //.OnDelete(DeleteBehavior.Cascade);
+        }
+    }
     public class QuizLevelConfiguration : IEntityTypeConfiguration<QuizLevel>
     {
         public void Configure(EntityTypeBuilder<QuizLevel> builder)

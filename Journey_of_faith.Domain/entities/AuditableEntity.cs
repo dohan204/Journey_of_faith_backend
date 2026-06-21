@@ -8,13 +8,13 @@ namespace Journey_of_faith.Domain.entities
     {
         public int Id { get; set; }
 
-        public Guid CreatorUserId { get; set; }
+        public Guid? CreatorUserId { get; set; }
         public DateTime? CreationTime { get; set; }
 
         public Guid LastModifierUserId { get; set; }
         public DateTime? LastModificationTime { get; set; }
 
-        public Guid DeleterUserId { get; set; }
+        public Guid? DeleterUserId { get; set; }
         public DateTime? DeletionTime { get; set; }
 
         public bool? IsDeleted { get; set; }

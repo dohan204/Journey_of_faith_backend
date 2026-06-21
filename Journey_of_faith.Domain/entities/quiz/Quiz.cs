@@ -13,6 +13,7 @@ namespace Journey_of_faith.Domain.entities.quiz
         public int? QuestionCount { get; set; }
         public int? TimeLimit { get; set; }
         public bool? IsDailyQuiz { get; set; }
+        public int TopicId { get; set; }
         public DateTime? CreatedTime { get; set; }
 
         private readonly List<QuizQuestion> _quizQuestions = new();
@@ -22,7 +23,7 @@ namespace Journey_of_faith.Domain.entities.quiz
         public IReadOnlyCollection<QuizAttempt> QuizAttempts => _quizAttempts.AsReadOnly();
 
         private Quiz () { }
-        public Quiz(string title, string description, int timeLimit, int questionCount)
+        public Quiz(string title,int topicId, string description, int timeLimit, int questionCount)
         {
             if(title is null)
             {
@@ -38,13 +39,14 @@ namespace Journey_of_faith.Domain.entities.quiz
                 throw new DomainException("thời gian Làm bài không hợp lệ");
             } 
             Title = title;
+            TopicId = topicId;
             Description = description;
             TimeLimit = timeLimit;
             CreatedTime = DateTime.UtcNow;
             QuestionCount = questionCount;
         }
-        public static Quiz Create(string title, string description, int timeLimit, int questionCount)
-            => new Quiz(title, description, timeLimit, questionCount);
+        public static Quiz Create(string title, int topicid, string description, int timeLimit, int questionCount)
+            => new Quiz(title,topicid, description, timeLimit, questionCount);
         public void SetDailyQuiz()
         {
             IsDailyQuiz = true;

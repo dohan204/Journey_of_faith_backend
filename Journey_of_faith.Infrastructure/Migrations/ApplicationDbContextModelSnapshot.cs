@@ -177,7 +177,6 @@ namespace Journey_of_faith.Infrastructure.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Token")
-                        .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
@@ -187,7 +186,8 @@ namespace Journey_of_faith.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("Token")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[Token] IS NOT NULL");
 
                     b.HasIndex("UserId");
 
@@ -1027,6 +1027,9 @@ namespace Journey_of_faith.Infrastructure.Migrations
                     b.Property<string>("Thumbnail")
                         .HasMaxLength(300)
                         .HasColumnType("nvarchar(300)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Website")
                         .HasMaxLength(500)
@@ -1877,7 +1880,12 @@ namespace Journey_of_faith.Infrastructure.Migrations
                         .HasMaxLength(300)
                         .HasColumnType("nvarchar(300)");
 
+                    b.Property<int?>("TopicId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("TopicId");
 
                     b.ToTable("Quiz", (string)null);
                 });
@@ -1956,6 +1964,40 @@ namespace Journey_of_faith.Infrastructure.Migrations
                     b.HasIndex("QuizId");
 
                     b.ToTable("QuizQuestion", (string)null);
+                });
+
+            modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.quiz.Topic", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreationTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("QuizCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TopicName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Topic", (string)null);
                 });
 
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.social.Friendship", b =>
@@ -2751,6 +2793,15 @@ namespace Journey_of_faith.Infrastructure.Migrations
                     b.Navigation("Type");
                 });
 
+            modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.quiz.Quiz", b =>
+                {
+                    b.HasOne("Journey_of_faith.Infrastructure.persistence.entities.quiz.Topic", "Topic")
+                        .WithMany("Quizs")
+                        .HasForeignKey("TopicId");
+
+                    b.Navigation("Topic");
+                });
+
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.quiz.QuizAttempt", b =>
                 {
                     b.HasOne("Journey_of_faith.Infrastructure.persistence.entities.quiz.Quiz", "Quiz")
@@ -3069,6 +3120,11 @@ namespace Journey_of_faith.Infrastructure.Migrations
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.quiz.QuizLevel", b =>
                 {
                     b.Navigation("Questions");
+                });
+
+            modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.quiz.Topic", b =>
+                {
+                    b.Navigation("Quizs");
                 });
 
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.social.Group", b =>

@@ -30,9 +30,9 @@ namespace Journey_of_faith.Infrastructure.identity.services
             this.configuration = configuration;
         }
 
-        public async Task<LoginUserResponse> Login(string username, string passwrod)
+        public async Task<LoginUserResponse> Login(string email, string passwrod)
         {
-            var user = await _userManager.FindByNameAsync(username);
+            var user = await _userManager.FindByEmailAsync(email);
             if(user is null)
             {
                 throw new NotFoundException("Tài khoản hoặc mật khẩu không chính xác");

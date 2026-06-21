@@ -27,7 +27,7 @@ builder.Services.AddCors(options =>
 });
 // Add services to the container.
 
-
+builder.Services.AddFirebaseService(builder.Configuration);
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddRegisterService(builder.Configuration);
 builder.Services.AddApplication();
@@ -76,10 +76,8 @@ using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-    // ĐOẠN ĐÚNG ĐÂY NHA M: Ép EF Core dựng trước bộ nhớ đệm Model cho TẤT CẢ các bảng
     _ = dbContext.Model;
 
-    // Mồi thử kết nối vật lý tới DB luôn như cũ
     await dbContext.Database.CanConnectAsync();
 }
 

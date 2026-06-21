@@ -1,4 +1,5 @@
 ﻿using Journey_of_faith.Application.behaviors;
+using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
@@ -16,8 +17,11 @@ namespace Journey_of_faith.Application
                 cfg.RegisterServicesFromAssemblies(typeof(ApplicationAssembly).Assembly);
                 cfg.AddOpenBehavior(typeof(LoggingRequestBehavior<,>));
                 cfg.AddOpenBehavior(typeof(ValidationBehaviors<,>));
+                cfg.AddOpenBehavior(typeof(CacheBehavior<,>));
+                cfg.AddOpenBehavior(typeof(CacheInvalidBehavior<,>));
             });
 
+            services.AddMemoryCache();
             return services;
         }
     }

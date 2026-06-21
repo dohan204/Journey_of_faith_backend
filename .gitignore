@@ -5,7 +5,7 @@
 
 # dotenv files
 .env
-
+Journey_of_faith.Api/serviceAccountKey.json
 # User-specific files
 *.rsuser
 *.suo

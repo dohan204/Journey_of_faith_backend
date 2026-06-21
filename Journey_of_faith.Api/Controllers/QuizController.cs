@@ -75,5 +75,24 @@ namespace Journey_of_faith.Api.Controllers
             await _mediator.Send(new DeleteQuizCommand { Id = id });
             return NoContent();
         }
+
+
+        [HttpPost("topics")]
+        [ProducesResponseType(statusCode: StatusCodes.Status201Created)]
+        public async Task<IActionResult> CreateTopicAsync([FromBody] CreateTopicCommand command)
+        {
+            await _mediator.Send(command);
+            return StatusCode(statusCode: StatusCodes.Status201Created, new
+            {
+                Message = "Tạo mới chủ đề thành công."
+            });
+        }
+        [HttpDelete("topics")]
+        [ProducesResponseType(statusCode: StatusCodes.Status204NoContent)]
+        public async Task<IActionResult> DeleteTopic([FromBody] int id)
+        {
+            await _mediator.Send(new DeleteTopicCommand { Id = id });
+            return NoContent();
+        }
     }
 }

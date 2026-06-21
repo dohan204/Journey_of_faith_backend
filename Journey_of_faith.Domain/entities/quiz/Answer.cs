@@ -13,6 +13,7 @@ namespace Journey_of_faith.Domain.entities.quiz
         public string? ImageUrl { get; private set; }
         public string? Explanation { get; private set; }
 
+        public Answer() { }
         public Answer(int questionId, string content, bool IsCorrect)
         {
             this.QuestionId = questionId;

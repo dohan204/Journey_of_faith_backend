@@ -9,7 +9,7 @@ namespace Journey_of_faith.Application.usecases.auth.queries
     public record UserLoginResponse(bool success, string token, string refreshToken, int expiry);
     public class UserLoginQuery : IRequest<UserLoginResponse>
     {
-        public string Username { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
     }
 
@@ -18,7 +18,7 @@ namespace Journey_of_faith.Application.usecases.auth.queries
     {
         public UserLoginQueryValidation()
         {
-            RuleFor(e => e.Username)
+            RuleFor(e => e.Email)
                 .MinimumLength(5).WithMessage("Tên đăng nhập không hợp lệ")
                 .NotEmpty().WithMessage("Tên đăng nhập không được bỏ trống");
 

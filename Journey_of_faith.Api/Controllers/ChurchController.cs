@@ -2,6 +2,7 @@ using Journey_of_faith.Api.dtos;
 using Journey_of_faith.Application.usecases.churchs.commands;
 using Journey_of_faith.Application.usecases.churchs.dtos;
 using Journey_of_faith.Application.usecases.churchs.queries;
+using Journey_of_faith.Domain.entities.catholic;
 using Journey_of_faith.Domain.entities.location;
 using Journey_of_faith.Domain.interfaces;
 using MediatR;
@@ -22,6 +23,17 @@ namespace Journey_of_faith.Api.Controllers
             _mediator = mediator;
         }
 
+
+        [HttpGet]
+        public async Task<IActionResult> GetAllChurch(string orderBy)
+        {
+            var churches = await _mediator.Send(new GetChurchWithMassScheduleQueries { Orderby = orderBy });
+            return Ok(new ApiResponse<IEnumerable<Church>>
+            {
+                Message = "Lay du lieu thanh cong.",
+                Data = churches
+            });
+        }
         [HttpPost]
         [Consumes("multipart/form-data")]
         [ProducesResponseType(statusCode: StatusCodes.Status201Created)]
@@ -199,6 +211,38 @@ namespace Journey_of_faith.Api.Controllers
             {
                 Message = "Cập nhật cấu hình nhắc lễ thành công.",
                 Data = result
+            });
+        }
+
+
+        [HttpPost("dailyWords")]
+        [Consumes(MediaTypeNames.Application.Json)]
+        [ProducesResponseType(statusCode: StatusCodes.Status201Created)]
+        public async Task<IActionResult> CreateDailyWord([FromBody] CreateDailyWordCommand command)
+        {
+            await _mediator.Send(command);
+            return StatusCode(StatusCodes.Status201Created, new
+            {
+                Message = "Create Success."
+            });
+        }
+        [HttpGet("dailyWords/search")]
+        [Consumes(MediaTypeNames.Application.Json)]
+        [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetDailyWord([FromQuery] GetDailyWordCommand command)
+        {
+            var daily = await _mediator.Send(command);
+
+            if(daily is null) 
+                return Ok(new
+                {
+                    Message = "Not found.",
+                    Data = ""
+                });
+            return Ok(new ApiResponse<DailyWord>
+            {
+                Message = "Get success.",
+                Data = daily
             });
         }
     }

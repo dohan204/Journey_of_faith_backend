@@ -12,11 +12,13 @@ namespace Journey_of_faith.Domain.interfaces
         public int PageIndex { get; set; } = 1;
         public int PageSize { get; set; } = 10;
     }
-
     public class EventCategoryView
     {
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
+        public string? Events { get; set; } = string.Empty;
+
+        public List<Event> EventsList { get; set; }
     }
 
     public class EventImageView

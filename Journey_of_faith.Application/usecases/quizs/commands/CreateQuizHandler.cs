@@ -26,7 +26,7 @@ namespace Journey_of_faith.Application.usecases.quizs.commands
             {
                 throw new BadRequestException("Không đủ số câu hỏi để tạo đề thi");
             }
-            var quiz = Quiz.Create(command.Title, command.Description, command.TimeLimit, command.QuestionCount);
+            var quiz = Quiz.Create(command.Title, command.TopicId, command.Description, command.TimeLimit, command.QuestionCount);
             var result = await _examRepository.CreateQuiz(quiz, command.HardQuestion, command.MediumQuestion, EasyQuestion: command.EasyQuestion);
             return result;
         }

@@ -9,6 +9,7 @@ using System.Net.Mime;
 using Journey_of_faith.Application.common.interfaces;
 using Journey_of_faith.Domain.interfaces;
 
+#nullable disable
 namespace Journey_of_faith.Api.Controllers
 {
     [ApiController]

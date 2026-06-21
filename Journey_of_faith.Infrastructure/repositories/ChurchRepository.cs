@@ -1,6 +1,7 @@
 using Dapper;
 using Journey_of_faith.Application.common.interfaces;
 using Journey_of_faith.Application.usecases.churchs.dtos;
+using Journey_of_faith.Domain.entities.catholic;
 using Journey_of_faith.Domain.entities.location;
 using Journey_of_faith.Domain.entities.masslive;
 using Journey_of_faith.Domain.interfaces;
@@ -31,7 +32,7 @@ namespace Journey_of_faith.Infrastructure.repositories
                 DioceseId = church.DioceseId,
                 Latitude = church.GeoLocation.Latitude,
                 Longitude = church.GeoLocation.Longitude,
-                CreatorUserId = church.CreatorUserId,
+                CreatorUserId = (Guid)church.CreatorUserId,
                 LastModifierUserId = church.LastModifierUserId
             };
 
@@ -83,6 +84,7 @@ namespace Journey_of_faith.Infrastructure.repositories
 
                 var churches = (await multiple.ReadAsync<Church>()).ToList();
                 var massSchedules = (await multiple.ReadAsync<MassSchedule>()).ToList();
+
 
                 foreach (var church in churches)
                 {
@@ -159,7 +161,7 @@ namespace Journey_of_faith.Infrastructure.repositories
                 Website = diocese.Website ?? "",
                 Address = diocese.Address ?? "",
                 Thumbnail = diocese.Thumbnail ?? "",
-                CreatorUserId = diocese.CreatorUserId,
+                CreatorUserId = (Guid)diocese.CreatorUserId,
                 LastModifierUserId = diocese.LastModifierUserId
             };
 
@@ -698,6 +700,31 @@ namespace Journey_of_faith.Infrastructure.repositories
             });
         }
         #endregion
+
+        public async Task<bool> CreateDailyWorld(DailyWord dailyWord)
+        {
+            return await QueryAsync<bool>(async connection =>
+            {
+                CommandDefinition command = new CommandDefinition("sp_CreateDailyWord", new
+                {
+                    Date = dailyWord.Date,
+                    Title = dailyWord.Title,
+                    BibleContent = dailyWord.BibleContent,
+                    Gospel = dailyWord.Gospel
+                }, commandType: CommandType.StoredProcedure);
+                return await connection.ExecuteScalarAsync<bool>(command);
+            });
+        }
+
+        public async Task<DailyWord?> GetDailyWorldAsync(DateTime dateTime)
+        {
+            return await QueryAsync<DailyWord>(async connection =>
+            {
+                var command = new CommandDefinition("sp_GetDailyWordByDate", new {Date = dateTime}, commandType: CommandType.StoredProcedure);
+               return 
+                    await connection.QueryFirstOrDefaultAsync<DailyWord>(command); 
+            });
+        }
     }
 
     public static class TableTopicChurch

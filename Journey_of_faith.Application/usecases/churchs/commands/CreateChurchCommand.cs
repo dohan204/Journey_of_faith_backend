@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using Journey_of_faith.Application.common.interfaces;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -6,7 +7,7 @@ using System.Text;
 
 namespace Journey_of_faith.Application.usecases.churchs.commands
 {
-    public class CreateChurchCommand : IRequest<int>
+    public class CreateChurchCommand : IRequest<int>, ICacheInvalidCommand
     {
         public string Name { get; set; } = string.Empty;
         public string? Thumbnail { get; set; }
@@ -17,6 +18,8 @@ namespace Journey_of_faith.Application.usecases.churchs.commands
         public double Longitude { get; set; }
         public Guid CreatorUser { get; set; }
         public Guid LastModifierUserId { get; set; }
+
+        public string[] CacheKeys => ["churches-name"];
     }
 
 

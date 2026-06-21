@@ -17,6 +17,14 @@ namespace Journey_of_faith.Infrastructure.context
     public class ApplicationDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, Guid>
     {
 
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+
+            optionsBuilder.EnableDetailedErrors(); // hiển thị chi teiets lôi từ db.
+            optionsBuilder.EnableSensitiveDataLogging(); // hiển thị ra kiểu dữ liệu nếu có trường nào bị lỗi
+            base.OnConfiguring(optionsBuilder);
+        }
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
         public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
         // ── Location ──────────────────────────────────────────────────────
@@ -64,6 +72,7 @@ namespace Journey_of_faith.Infrastructure.context
         public DbSet<UserEvent> UserEvents => Set<UserEvent>();
 
         // ── Quiz ──────────────────────────────────────────────────────────
+        public DbSet<Topic> Topics => Set<Topic>();
         public DbSet<QuizLevel> QuizLevels => Set<QuizLevel>();
         public DbSet<QuestionType> QuestionTypes => Set<QuestionType>();
         public DbSet<QuestionCategory> QuestionCategories => Set<QuestionCategory>();

@@ -292,7 +292,7 @@ namespace Journey_of_faith.Infrastructure.repositories
             DynamicParameters param = new DynamicParameters();
             param.Add("Id", Id);
 
-            var data = await connection.QuerySingleOrDefaultAsync<T>(
+            var data = await connection.QueryFirstOrDefaultAsync<T>(
                     StoredProcedure, param, commandType: System.Data.CommandType.StoredProcedure
                 );
             return data;
