@@ -27,7 +27,7 @@ builder.Services.AddCors(options =>
 });
 // Add services to the container.
 
-builder.Services.AddFirebaseService(builder.Configuration);
+// builder.Services.AddFirebaseService(builder.Configuration);
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddRegisterService(builder.Configuration);
 builder.Services.AddApplication();
@@ -92,17 +92,18 @@ app.Use(async (context, next) =>
     Console.WriteLine($"Request time: {sw.ElapsedMilliseconds}ms");
 });
 // Configure the HTTP request pipeline.
-  app.MapOpenApi();
-    app.UseSwaggerUI(options => {
-        options.SwaggerEndpoint("/openapi/v1.json", "v1");
-    });
+app.MapOpenApi();
+app.UseSwaggerUI(options =>
+{
+    options.SwaggerEndpoint("/openapi/v1.json", "v1");
+});
 
 
 app.UseCors("allowFrontend");
 app.UseExceptionHandler();
 app.UseHttpsRedirection();
 var currentDirectoryFile = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "uploads");
-if(!Directory.Exists(currentDirectoryFile))
+if (!Directory.Exists(currentDirectoryFile))
 {
     Directory.CreateDirectory(currentDirectoryFile);
 }
@@ -112,10 +113,10 @@ app.UseStaticFiles(new StaticFileOptions
     RequestPath = "/uploads"
 });
 
-if(app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment())
 {
 
-app.MapNitroApp("/graphql/ui");
+    app.MapNitroApp("/graphql/ui");
 }
 app.UseAuthentication();
 app.UseAuthorization();
