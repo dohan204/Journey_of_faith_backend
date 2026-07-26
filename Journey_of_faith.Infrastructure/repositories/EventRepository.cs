@@ -1,9 +1,11 @@
 using Dapper;
 using Journey_of_faith.Application.common.interfaces;
+using Journey_of_faith.Domain.entities.events;
 using Journey_of_faith.Domain.interfaces;
 using Journey_of_faith.Infrastructure.common;
 using Microsoft.Extensions.Options;
 using System.Data;
+using System.Text.Json;
 
 namespace Journey_of_faith.Infrastructure.repositories
 {
@@ -67,12 +69,27 @@ namespace Journey_of_faith.Infrastructure.repositories
         public async Task<IEnumerable<EventCategoryView>> GetCategoriesAsync()
         {
             return await ExecuteAsync(async connection =>
-                await connection.QueryAsync<EventCategoryView>($@"
-                    SELECT Id, Name
-                    FROM [{_schemaName.Schema}].[{EventTables.EventCategory}]
-                    ORDER BY Name ASC
-                ")
-            );
+            {
+                var command = new CommandDefinition("sp_GetCategoryEvent", commandType: CommandType.StoredProcedure);
+                var events = await connection.QueryAsync<EventCategoryView>(command);
+                var jsonOptions = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true,
+                };
+
+
+                foreach(var e in events)
+                {
+                    if(!string.IsNullOrWhiteSpace(e.Events))
+                    {
+                        e.EventsList = JsonSerializer.Deserialize<List<Event>>(e.Events, jsonOptions);
+                    } else
+                    {
+                        e.EventsList = new List<Event>();
+                    }
+                }
+                return events;
+            });
         }
 
         public async Task<int> CreateEventAsync(CreateEventPayload payload)
@@ -247,18 +264,16 @@ namespace Journey_of_faith.Infrastructure.repositories
             });
         }
 
-        public async Task<bool> DeleteEventAsync(int eventId, Guid deleterUserId)
+        public async Task<bool> DeleteEventAsync(int eventId)
         {
             return await ExecuteAsync(async connection =>
                 await connection.ExecuteAsync($@"
                     UPDATE [{_schemaName.Schema}].[{EventTables.Event}] SET
                         IsDeleted = 1,
-                        DeleterUserId = @DeleterUserId,
                         DeletionTime = GETDATE(),
-                        LastModifierUserId = @DeleterUserId,
                         LastModificationTime = GETDATE()
                     WHERE Id = @EventId AND IsDeleted = 0
-                ", new { EventId = eventId, DeleterUserId = deleterUserId }) > 0
+                ", new { EventId = eventId }) > 0
             );
         }
 

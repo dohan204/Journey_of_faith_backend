@@ -15,6 +15,8 @@ namespace Journey_of_faith.Infrastructure.persistence.entities.quiz
         public DateTime? CreatedTime { get; set; }
         public bool IsDeleted { get; set; } = false;
         public DateTimeOffset? DeletedAt { get; set; }
+        public int? TopicId { get; set; }
+        public Topic Topic { get; set; }
         public ICollection<QuizQuestion> QuizQuestions { get; set; } = [];
         public ICollection<QuizAttempt> Attempts { get; set; } = [];
     }

@@ -16,7 +16,7 @@ namespace Journey_of_faith.Infrastructure.graphql.types.churches
             CancellationToken cancellation
         )
         {
-            return await massSchedulesDataLoader.LoadAsync(church.Id, cancellation);
+            return await massSchedulesDataLoader.LoadAsync(church.Id, cancellation)  ?? [];
         }
     }
 }

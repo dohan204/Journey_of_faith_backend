@@ -7,7 +7,7 @@ namespace Journey_of_faith.Application.common.interfaces
 {
     public interface IIdentityService
     {
-        Task<bool> CreateAsync(User user);
+        Task<bool> CreateAsync(User user, string? roleName);
         Task<bool> ExistsEmail(string email);
 
         Task<User?> GetUserByIdAsync(Guid id);

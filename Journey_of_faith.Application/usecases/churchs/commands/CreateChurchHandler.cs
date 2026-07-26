@@ -29,8 +29,10 @@ namespace Journey_of_faith.Application.usecases.churchs.commands
             {
                 throw new NotFoundException("Không có giáo phận mà nhà nhờ đăng ký.");
             }
-            var church = new Church(command.Name, command.Thumbnail ?? string.Empty, command.Website ?? string.Empty, command.Address ?? string.Empty, command.DioceseId,
-                                    command.Latitude, command.Longitude, userId, userId);
+            var church = new Church(command.Name, command.Thumbnail ?? string.Empty, 
+                                    command.Website ?? string.Empty, command.Address ?? string.Empty, command.DioceseId,
+                                    command.Latitude, command.Longitude, userId, userId, command.Boss ?? string.Empty,
+                                    command.Description ?? string.Empty);
             var churchId = await _repo.CreateAsync(church);
             return churchId;
         }

@@ -18,6 +18,7 @@ namespace Journey_of_faith.Domain.entities
         public string Email { get; private set; } = string.Empty;
         public string Password { get; private set; } = string.Empty;
         public string? Avatar { get; private set; }
+        public string Role {get; set;}
         public string PasswordHash { get; private set; } = string.Empty;
         public int? RoleId { get; private set; }
         public int? ChurchId { get; private set; }

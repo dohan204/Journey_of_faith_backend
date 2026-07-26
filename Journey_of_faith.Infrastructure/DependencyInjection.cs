@@ -1,34 +1,33 @@
-﻿using Journey_of_faith.Application.common.interfaces;
+﻿using HotChocolate.Execution;
+using Journey_of_faith.Application.common.interfaces;
 using Journey_of_faith.Domain.interfaces;
 using Journey_of_faith.Infrastructure.common;
 using Journey_of_faith.Infrastructure.context;
 using Journey_of_faith.Infrastructure.graphql;
+using Journey_of_faith.Infrastructure.graphql.DataLoaders.churches;
+using Journey_of_faith.Infrastructure.graphql.DataLoaders.quizes;
+using Journey_of_faith.Infrastructure.graphql.DataLoaders.songs;
+using Journey_of_faith.Infrastructure.graphql.DataLoaders.users;
+using Journey_of_faith.Infrastructure.graphql.Resolvers;
 using Journey_of_faith.Infrastructure.graphql.types;
+using Journey_of_faith.Infrastructure.graphql.types.churches;
+using Journey_of_faith.Infrastructure.graphql.types.quizes;
+using Journey_of_faith.Infrastructure.graphql.types.songs;
+using Journey_of_faith.Infrastructure.graphql.types.users;
 using Journey_of_faith.Infrastructure.identity;
 using Journey_of_faith.Infrastructure.identity.services;
 using Journey_of_faith.Infrastructure.persistence.entities.location;
 using Journey_of_faith.Infrastructure.repositories;
 using Journey_of_faith.Infrastructure.services;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
-using System;
-using System.Collections.Generic;
+using FirebaseAdmin;
 using System.Text;
-using Journey_of_faith.Infrastructure.graphql.Resolvers;
-using Journey_of_faith.Infrastructure.graphql.DataLoaders;
-using System.Diagnostics;
-using Journey_of_faith.Infrastructure.persistence.entities.music;
-using Journey_of_faith.Domain.entities.musics;
-using HotChocolate.Execution;
-using Journey_of_faith.Infrastructure.graphql.types.songs;
-using Journey_of_faith.Infrastructure.graphql.DataLoaders.songs;
-using Journey_of_faith.Infrastructure.graphql.types.churches;
-using Journey_of_faith.Infrastructure.graphql.DataLoaders.churches;
+using Google.Apis.Auth.OAuth2;
 
 namespace Journey_of_faith.Infrastructure
 {
@@ -44,7 +43,7 @@ namespace Journey_of_faith.Infrastructure
                         maxRetryCount: 5,
                         maxRetryDelay: TimeSpan.FromSeconds(20),
                         errorNumbersToAdd: null
-                        
+
                     );
                 });
             });
@@ -120,6 +119,10 @@ namespace Journey_of_faith.Infrastructure
             services.AddScoped<ISongRepository, SongRepository>();
             services.AddScoped(typeof(IGetOneToOneData<,>), typeof(GetDataRepository<,>));
             services.AddScoped(typeof(IGetOneToManyData<,>), typeof(GetDataRepository<,>));
+            services.AddScoped<IRoleRepository, RoleRepository>();
+
+            services.AddScoped<IFirebaseAuthService, FirebaseAuthService>();
+            services.AddScoped<IFirebaseNotification, FirebaseNotification>();
             return services;
         }
     }
@@ -138,6 +141,8 @@ namespace Journey_of_faith.Infrastructure
                 cfg.CreateMap<Church, Domain.entities.location.Church>().ReverseMap();
                 cfg.CreateMap<persistence.entities.music.Song, Domain.entities.musics.Song>().ReverseMap();
                 cfg.CreateMap<persistence.entities.music.Artist, Domain.entities.musics.Artist>().ReverseMap();
+                cfg.CreateMap<persistence.entities.quiz.Quiz, Domain.entities.quiz.Quiz>().ReverseMap();
+                cfg.CreateMap<persistence.entities.quiz.Topic, Domain.entities.quiz.Topic>().ReverseMap();
             });
 
             return services;
@@ -150,8 +155,21 @@ namespace Journey_of_faith.Infrastructure
         public static IServiceCollection AddGraphQLExtension(this IServiceCollection services)
         {
             services.AddGraphQLServer()
+
+
                 .AddQueryType(typeof(Query))
                 .AddTypeExtension(typeof(UserNodeResolver))
+                .AddTypeExtension(typeof(UserChurches))
+                .AddDataLoader<IChurchsByUserIdDataLoader, ChurchsByUserIdDataLoader>()
+                .AddTypeExtension(typeof(TopicNodeResolver))
+                .AddTypeExtension(typeof(QuizNodeResovler))
+                .AddTypeExtension(typeof(QuizQueryExtension))
+                .AddTypeExtension(typeof(QuestionQueryExtension))
+                .AddTypeExtension(typeof(AnswerQueryExtension))
+                .AddDataLoader<IQuestionByQuizDataLoader, QuestionByQuizDataLoader>()
+                .AddDataLoader<IAnswerByQuestionDataLoader, AnswerByQuestionDataLoader>()
+                .AddDataLoader<IQuizByTopicDataLoader, QuizByTopicDataLoader>()
+
 
                 .AddTypeExtension(typeof(SongNodeResolver))
                 .AddTypeExtension(typeof(ArtistNodeResolver))
@@ -170,6 +188,7 @@ namespace Journey_of_faith.Infrastructure
                 .AddTypeExtension(typeof(MassScheduleQueryExtension))
                 .AddTypeExtension(typeof(UserChurchQueryExtension))
 
+
                 .AddDataLoader<ISongsByUserIdDataLoader, SongsByUserIdDataLoader>()
                 .AddDataLoader<IAlbumDataLoader, AlbumDataLoader>()
                 .AddDataLoader<IArtistDataLoader, ArtistDataLoader>()
@@ -177,20 +196,49 @@ namespace Journey_of_faith.Infrastructure
                 .AddDataLoader<ISongByArtistDataLoader, SongByArtistDataLoader>()
                 .AddDataLoader<ISongByCategoryDataLoader, SongByCategoryDataLoader>()
                 .AddDataLoader<IMassSchedulesDataLoader, MassSchedulesDataLoader>()
-                .AddDataLoader<IDioceseByChurchDataLoader,  DioceseByChurchDataLoader>()
+                .AddDataLoader<IDioceseByChurchDataLoader, DioceseByChurchDataLoader>()
                 .AddDataLoader<IUserChurchByMappingDataLoader, UserChurchByMappingDataLoader>()
                 .AddDataLoader<IChurchesDataLoader, ChurchesDataLoader>()
+
+
                 .AddFiltering()
                 .AddSorting()
                 .AddCacheControl()
                 .AddWarmupTask(async (executor, cancellationToken) =>
                 {
                     var request = OperationRequestBuilder.New()
-                        .SetDocument("{ __typename }") 
+                        .SetDocument("{ __typename }")
                         .MarkAsWarmupRequest()
                         .Build();
                     await executor.ExecuteAsync(request, cancellationToken: cancellationToken);
                 });
+            return services;
+        }
+    }
+
+    public static class RegisterFirebase
+    {
+        public static IServiceCollection AddFirebaseService(this IServiceCollection services, IConfiguration configuration)
+        {
+            var credentialPath = configuration.GetValue<string>("Firebase:CredentialFilePath");
+            if (!string.IsNullOrEmpty(credentialPath))
+            {
+                var fullPath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), credentialPath);
+                if (!File.Exists(fullPath))
+                {
+                    throw new FileNotFoundException($"Firebase credential file not found at: {fullPath}");
+                }
+                if (FirebaseApp.DefaultInstance == null)
+                {
+                    var credential = CredentialFactory
+                        .FromFile<ServiceAccountCredential>(fullPath)
+                        .ToGoogleCredential();
+                    FirebaseApp.Create(new AppOptions()
+                    {
+                        Credential = credential
+                    });
+                }
+            }
             return services;
         }
     }

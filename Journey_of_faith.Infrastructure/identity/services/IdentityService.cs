@@ -26,7 +26,7 @@ namespace Journey_of_faith.Infrastructure.identity.services
             _mapper = mapper;
         }
 
-        public async Task<bool> CreateAsync(Domain.entities.User input)
+        public async Task<bool> CreateAsync(Domain.entities.User input, string? roleName)
         {
             var user = new ApplicationUser
             {
@@ -35,7 +35,6 @@ namespace Journey_of_faith.Infrastructure.identity.services
             };
 
             var result = await _userManager.CreateAsync(user, input.Password);
-
             if(!result.Succeeded)
             {
                 foreach(var error in result.Errors)
@@ -44,7 +43,12 @@ namespace Journey_of_faith.Infrastructure.identity.services
                 }
             }
 
-            string role = "user";
+            string role =null;
+            if(!string.IsNullOrEmpty(roleName)) {
+                role = roleName;
+            } else {
+                role = "user";
+            }
             if(!await roleManager.RoleExistsAsync(role))
             {
                 var newRole = new ApplicationRole

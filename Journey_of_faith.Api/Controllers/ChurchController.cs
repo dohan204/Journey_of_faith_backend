@@ -2,6 +2,7 @@ using Journey_of_faith.Api.dtos;
 using Journey_of_faith.Application.usecases.churchs.commands;
 using Journey_of_faith.Application.usecases.churchs.dtos;
 using Journey_of_faith.Application.usecases.churchs.queries;
+using Journey_of_faith.Domain.entities.catholic;
 using Journey_of_faith.Domain.entities.location;
 using Journey_of_faith.Domain.interfaces;
 using MediatR;
@@ -12,7 +13,7 @@ using System.Net.Mime;
 namespace Journey_of_faith.Api.Controllers
 {
     [ApiController]
-    [Route("Journey_of_faith/[controller]")]
+    [Route("api/[controller]")]
     public class ChurchController : ControllerBase
     {
         private readonly IMediator _mediator;
@@ -199,6 +200,38 @@ namespace Journey_of_faith.Api.Controllers
             {
                 Message = "Cập nhật cấu hình nhắc lễ thành công.",
                 Data = result
+            });
+        }
+
+
+        [HttpPost("dailyWords")]
+        [Consumes(MediaTypeNames.Application.Json)]
+        [ProducesResponseType(statusCode: StatusCodes.Status201Created)]
+        public async Task<IActionResult> CreateDailyWord([FromBody] CreateDailyWordCommand command)
+        {
+            await _mediator.Send(command);
+            return StatusCode(StatusCodes.Status201Created, new
+            {
+                Message = "Create Success."
+            });
+        }
+        [HttpGet("dailyWords/search")]
+        [Consumes(MediaTypeNames.Application.Json)]
+        [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetDailyWord([FromQuery] GetDailyWordCommand command)
+        {
+            var daily = await _mediator.Send(command);
+
+            if(daily is null) 
+                return Ok(new
+                {
+                    Message = "Not found.",
+                    Data = ""
+                });
+            return Ok(new ApiResponse<DailyWord>
+            {
+                Message = "Get success.",
+                Data = daily
             });
         }
     }

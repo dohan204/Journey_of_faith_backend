@@ -1,6 +1,7 @@
 using Dapper;
 using Journey_of_faith.Application.common.interfaces;
 using Journey_of_faith.Application.usecases.churchs.dtos;
+using Journey_of_faith.Domain.entities.catholic;
 using Journey_of_faith.Domain.entities.location;
 using Journey_of_faith.Domain.entities.masslive;
 using Journey_of_faith.Domain.interfaces;
@@ -26,13 +27,15 @@ namespace Journey_of_faith.Infrastructure.repositories
             {
                 Name = church.Name,
                 Thumbnail = church.Thumbnail ?? "",
-                Website = church.Website ?? "",
+                Email = church.Email ?? "",
                 Address = church.Address,
                 DioceseId = church.DioceseId,
                 Latitude = church.GeoLocation.Latitude,
                 Longitude = church.GeoLocation.Longitude,
-                CreatorUserId = church.CreatorUserId,
-                LastModifierUserId = church.LastModifierUserId
+                CreatorUserId = (Guid)church.CreatorUserId,
+                LastModifierUserId = church.LastModifierUserId,
+                Boss = church.Boss,
+                Description = church.Description,
             };
 
             return await ExecuteAsync(async connection =>
@@ -41,7 +44,7 @@ namespace Journey_of_faith.Infrastructure.repositories
                     (
                         Name,
                         Thumbnail,
-                        Website,
+                        Email,
                         Address,
                         DioceseId,
                         Latitude,
@@ -54,7 +57,7 @@ namespace Journey_of_faith.Infrastructure.repositories
                     (
                         @Name,
                         @Thumbnail,
-                        @Website,
+                        @Email,
                         @Address,
                         @DioceseId,
                         @Latitude,
@@ -73,7 +76,7 @@ namespace Journey_of_faith.Infrastructure.repositories
                 using var multiple = await connection.QueryMultipleAsync($@"
                     SELECT *
                     FROM [{_schemaName.Schema}].[{TableTopicChurch.Church}]
-                    WHERE IsDeleted = 0
+                    WHERE IsDeleted = 0 and churchLevel = 'gh'
                     order by {sortBy};
 
                     SELECT *
@@ -83,6 +86,7 @@ namespace Journey_of_faith.Infrastructure.repositories
 
                 var churches = (await multiple.ReadAsync<Church>()).ToList();
                 var massSchedules = (await multiple.ReadAsync<MassSchedule>()).ToList();
+
 
                 foreach (var church in churches)
                 {
@@ -126,7 +130,7 @@ namespace Journey_of_faith.Infrastructure.repositories
                 Id = church.Id,
                 Name = church.Name,
                 Thumbnail = church.Thumbnail,
-                Website = church.Website,
+                Email = church.Email,
                 Address = church.Address,
                 DioceseId = church.DioceseId,
                 Latitude = church.GeoLocation.Latitude,
@@ -138,7 +142,7 @@ namespace Journey_of_faith.Infrastructure.repositories
                     UPDATE [{_schemaName.Schema}].[{TableTopicChurch.Church}] SET
                         Name = COALESCE(@Name, Name),
                         Thumbnail = COALESCE(@Thumbnail, Thumbnail),
-                        Website = COALESCE(@Website, Website),
+                        Email = COALESCE(@Email, Email),
                         Address = COALESCE(@Address, Address),
                         DioceseId = COALESCE(@DioceseId, DioceseId),
                         Latitude = COALESCE(@Latitude, Latitude),
@@ -159,7 +163,7 @@ namespace Journey_of_faith.Infrastructure.repositories
                 Website = diocese.Website ?? "",
                 Address = diocese.Address ?? "",
                 Thumbnail = diocese.Thumbnail ?? "",
-                CreatorUserId = diocese.CreatorUserId,
+                CreatorUserId = (Guid)diocese.CreatorUserId,
                 LastModifierUserId = diocese.LastModifierUserId
             };
 
@@ -168,7 +172,7 @@ namespace Journey_of_faith.Infrastructure.repositories
                     INSERT INTO [{_schemaName.Schema}].[{TableTopicChurch.Diocese}]
                     (
                         Name,
-                        Website,
+                        Email,
                         Address,
                         Thumbnail,
                         CreatorUserId,
@@ -178,7 +182,7 @@ namespace Journey_of_faith.Infrastructure.repositories
                     VALUES
                     (
                         @Name,
-                        @Website,
+                        @Email,
                         @Address,
                         @Thumbnail,
                         @CreatorUserId,
@@ -246,7 +250,7 @@ namespace Journey_of_faith.Infrastructure.repositories
                 await connection.ExecuteAsync($@"
                     UPDATE [{_schemaName.Schema}].[{TableTopicChurch.Diocese}] SET
                         Name = COALESCE(@Name, Name),
-                        Website = COALESCE(@Website, Website),
+                        Email = COALESCE(@Email, Email),
                         Address = COALESCE(@Address, Address),
                         Thumbnail = COALESCE(@Thumbnail, Thumbnail),
                         LastModifierUserId = @LastModifierUserId,
@@ -362,7 +366,7 @@ namespace Journey_of_faith.Infrastructure.repositories
                         c.Id,
                         c.Name,
                         c.Thumbnail,
-                        c.Website,
+                        c.Email,
                         c.Address,
                         c.DioceseId,
                         d.Name AS DioceseName,
@@ -462,7 +466,7 @@ namespace Journey_of_faith.Infrastructure.repositories
                         c.Id,
                         c.Name,
                         c.Thumbnail,
-                        c.Website,
+                        c.Email,
                         c.Address,
                         c.DioceseId,
                         d.Name AS DioceseName,
@@ -698,6 +702,31 @@ namespace Journey_of_faith.Infrastructure.repositories
             });
         }
         #endregion
+
+        public async Task<bool> CreateDailyWorld(DailyWord dailyWord)
+        {
+            return await QueryAsync<bool>(async connection =>
+            {
+                CommandDefinition command = new CommandDefinition("sp_CreateDailyWord", new
+                {
+                    Date = dailyWord.Date,
+                    Title = dailyWord.Title,
+                    BibleContent = dailyWord.BibleContent,
+                    Gospel = dailyWord.Gospel
+                }, commandType: CommandType.StoredProcedure);
+                return await connection.ExecuteScalarAsync<bool>(command);
+            });
+        }
+
+        public async Task<DailyWord?> GetDailyWorldAsync(DateTime dateTime)
+        {
+            return await QueryAsync<DailyWord>(async connection =>
+            {
+                var command = new CommandDefinition("sp_GetDailyWordByDate", new {Date = dateTime}, commandType: CommandType.StoredProcedure);
+               return 
+                    await connection.QueryFirstOrDefaultAsync<DailyWord>(command); 
+            });
+        }
     }
 
     public static class TableTopicChurch

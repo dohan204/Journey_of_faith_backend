@@ -1,10 +1,4 @@
-﻿using Journey_of_faith.Infrastructure.interfaces;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.VisualBasic;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics.Tracing;
-using System.Text;
+﻿using Microsoft.AspNetCore.Identity;
 using Journey_of_faith.Infrastructure.persistence.entities.events;
 using Journey_of_faith.Infrastructure.persistence.entities.quiz;
 using Journey_of_faith.Infrastructure.persistence.entities.location;
@@ -59,5 +53,6 @@ namespace Journey_of_faith.Infrastructure.identity
         public ICollection<ConversationParticipant> ConversationParticipants { get; set; } = [];
         public ICollection<Message> SentMessages { get; set; } = [];
         public ICollection<MessageReaction> MessageReactions { get; set; } = [];
+        public ICollection<UserActive> userActives{ get; set; } = [];
     }
 }

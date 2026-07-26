@@ -25,6 +25,7 @@ namespace Journey_of_faith.Infrastructure.repositories
             {
                 var Id = await connection.ExecuteScalarAsync<int>("CreateQuiz", new {
                     quiz.Title, 
+                    quiz.TopicId,
                     quiz.Description,
                     quiz.TimeLimit,
                     quiz.QuestionCount,
@@ -122,6 +123,41 @@ namespace Journey_of_faith.Infrastructure.repositories
 
             return isDelete > 0;
         }
+
+
+        #region Topic
+        public async Task<int> CreateTopicAsync(Topic topic)
+        {
+            using var connection = _factory.CreateConnection();
+            return await connection.ExecuteScalarAsync<int>(@$"
+                insert into [{name.Schema}].[{QuizTalbe.Topic}] (TopicName, QuizCount, CreationTime)
+                values (@TopicName, @QuizCount, Getdate())
+            ", new { TopicName = topic.TopicName, QuizCount = topic.QuizCount });
+        }
+
+
+        public async Task<int> DeleteTopicAsync(int id)
+        {
+            using var connection = _factory.CreateConnection();
+            return await connection.ExecuteScalarAsync<int>($@"
+                UPDATE [{name.Schema}].[{QuizTalbe.Topic}] Set
+                    DeletedAt = GETDATE(),
+                    IsDeleted = 1
+                Where Id = @id
+            ", new { id = id });
+        }
+
+        public async Task<bool> ExistsNameAsync(string nameTop)
+        {
+            using var connection = _factory.CreateConnection();
+            return await connection.ExecuteScalarAsync<int>($@"
+                 IF EXISTS (Select 1 from [{name.Schema}].[{QuizTalbe.Topic}] where TopicName = @name)
+                     Select 1
+                 ELSE 
+                    Select 0
+            ", new { name = nameTop }) > 0;
+        }
+        #endregion
     }
     public static class QuizTalbe
     {
@@ -129,6 +165,7 @@ namespace Journey_of_faith.Infrastructure.repositories
         public const string QuizQuestion = "QuizQuestion";
         public const string QuizAttempt = "QuizAttempt";
         public const string AttemptAnswer = "AttemptAnswer";
+        public const string Topic = "Topic";
     }
 
     

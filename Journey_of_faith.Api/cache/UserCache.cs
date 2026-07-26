@@ -22,6 +22,6 @@ public class UserCacheDataLoader : CacheDataLoader<Guid, User>
     {
         await using var scope = _serviceProvider.CreateAsyncScope();
         var repo = scope.ServiceProvider.GetRequiredService<IUserRepository>();
-        return await repo.GetUserByIdAsync(userId, cancellationToken);
+        return await repo.GetUserAsync(userId);
     }
 }

@@ -6,7 +6,8 @@ namespace Journey_of_faith.Domain.entities
 {
     public class Role
     {
-        public int Id { get; set; }
+        public string Id { get; set; }
         public string Name { get; set; } = string.Empty;
+        public string Descriptions {get; set;}
     }
 }

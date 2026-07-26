@@ -11,6 +11,7 @@ namespace Journey_of_faith.Application.usecases.quizs.commands
     public class CreateQuizCommand : IRequest<int>
     {
         public string Title { get; set; } = string.Empty;
+        public int TopicId { get; set; }
         public string Description { get; set; } = string.Empty;
         public int TimeLimit { get; set;  }
         public bool IsDaily { get; set; } = true;

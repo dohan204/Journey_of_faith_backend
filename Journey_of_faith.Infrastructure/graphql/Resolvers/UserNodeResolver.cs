@@ -30,7 +30,7 @@ public static partial class UserNodeResolver
         CancellationToken cancellation
         )
     {
-        return await userRepository.GetUserByIdAsync(Guid.Parse(userId), cancellation) 
+        return await userRepository.GetUserAsync(Guid.Parse(userId)) 
             ?? throw new GraphQLException("User not found");
     }
 }

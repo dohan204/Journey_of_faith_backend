@@ -21,7 +21,7 @@ public class GetUserDetailsHandler : IRequestHandler<GetUserDetailsQuery, User?>
     {
         try
         {
-            return await _userRepo.GetUserByIdAsync(query.Id, token);
+            return await _userRepo.GetUserAsync(query.Id);
         } catch (TimeoutException ex)
         {
             _logger.LogError(ex, "Request timeout to server.");
