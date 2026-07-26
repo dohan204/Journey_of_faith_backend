@@ -10,5 +10,8 @@ public interface IRoleRepository
     Task<string> CreateAsync(Role role, CancellationToken cancellationToken);
     Task<Dictionary<string, int>> GetTotalUserRole();
     Task<bool> AddPermissionForRole(string roleName, List<string> permissions);
+    Task<List<object>> GetPermissionForRole();
+
+    Task<bool> DeleteRoleAsync(string roleName);
     Task<bool> NameExists(string name);
 }

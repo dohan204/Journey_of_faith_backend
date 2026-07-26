@@ -80,6 +80,23 @@ namespace Journey_of_faith.Api.Controllers
             });
         }
 
+        [HttpGet("roles/get-permissions")]
+        public async Task<IActionResult> GetPermission()
+        {
+            var result = await _me.Send(new GetPermissionsQuery());
+            return Ok(new ApiResponse<List<object>>
+            {
+                Message = "Lay quuyen thanfh cong",
+                Data = result
+            });
+        }
 
+
+        [HttpDelete("roles/{Name}")]
+        public async Task<IActionResult> Delete([FromRoute] string Name)
+        {
+            await _me.Send(new DeleteRoleCommand { RoleName = Name});
+            return NoContent();
+        }
     }
 }

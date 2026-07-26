@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Security.Claims;
 using Dapper;
+using HotChocolate.Execution.Processing;
 using Journey_of_faith.Application.common.interfaces;
 using Journey_of_faith.Application.exceptions;
 using Journey_of_faith.Domain.dtos;
@@ -107,5 +108,34 @@ public class RoleRepository : BaseRepository, IRoleRepository
         return true;
     }
 
+    public async Task<List<object>> GetPermissionForRole()
+    {
+        return await QueryAsync<List<object>>(async connection =>
+        {
+           var sql = @"select a.Id, a.Name, c.ClaimType, c.ClaimValue from jcodepro_journey_of_faith.AspNetRoles a
+            inner join jcodepro_journey_of_faith.AspNetRoleClaims c
+            on a.Id = c.RoleId" ;
+
+            var permissions = await connection.QueryAsync<object>(sql);
+            return permissions.ToList();
+        });
+    }
+
+    public async Task<bool> DeleteRoleAsync(string roleName)
+    {
+        var role = await _roleManager.FindByNameAsync(roleName);
+        if(role == null)
+        {
+            throw new NotFoundException($"Role '{roleName}' invalid.");
+        }
+        var result = await _roleManager.DeleteAsync(role);
+        if(!result.Succeeded)
+        {
+           var error = string.Join(", ", result.Errors.Select(e => e.Description) );
+           throw new BadRequestException($"Don't delete {roleName}: {error}"); 
+        }
+
+        return result.Succeeded;
+    }
     public async Task<bool> NameExists(string name) => await _dbContext.Roles.AnyAsync(e => e.Name == name);
 }
