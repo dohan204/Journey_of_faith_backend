@@ -28,6 +28,7 @@ public class CreateRoleHandler : IRequestHandler<CreateRoleCommand, string>
         var role = new Role
         {
             Name = command.Name,
+            Descriptions = command.Description,
         };
         return await roleRepository.CreateAsync(role, cancellationToken);
     }
