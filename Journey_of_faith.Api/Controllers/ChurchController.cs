@@ -13,7 +13,7 @@ using System.Net.Mime;
 namespace Journey_of_faith.Api.Controllers
 {
     [ApiController]
-    [Route("Journey_of_faith/[controller]")]
+    [Route("api/[controller]")]
     public class ChurchController : ControllerBase
     {
         private readonly IMediator _mediator;
@@ -23,17 +23,6 @@ namespace Journey_of_faith.Api.Controllers
             _mediator = mediator;
         }
 
-
-        [HttpGet]
-        public async Task<IActionResult> GetAllChurch(string orderBy)
-        {
-            var churches = await _mediator.Send(new GetChurchWithMassScheduleQueries { Orderby = orderBy });
-            return Ok(new ApiResponse<IEnumerable<Church>>
-            {
-                Message = "Lay du lieu thanh cong.",
-                Data = churches
-            });
-        }
         [HttpPost]
         [Consumes("multipart/form-data")]
         [ProducesResponseType(statusCode: StatusCodes.Status201Created)]

@@ -119,7 +119,7 @@ namespace Journey_of_faith.Infrastructure
             services.AddScoped<ISongRepository, SongRepository>();
             services.AddScoped(typeof(IGetOneToOneData<,>), typeof(GetDataRepository<,>));
             services.AddScoped(typeof(IGetOneToManyData<,>), typeof(GetDataRepository<,>));
-
+            services.AddScoped<IRoleRepository, RoleRepository>();
 
             services.AddScoped<IFirebaseAuthService, FirebaseAuthService>();
             services.AddScoped<IFirebaseNotification, FirebaseNotification>();

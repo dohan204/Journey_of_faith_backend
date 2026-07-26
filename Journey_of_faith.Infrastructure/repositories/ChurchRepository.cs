@@ -27,13 +27,15 @@ namespace Journey_of_faith.Infrastructure.repositories
             {
                 Name = church.Name,
                 Thumbnail = church.Thumbnail ?? "",
-                Website = church.Website ?? "",
+                Email = church.Email ?? "",
                 Address = church.Address,
                 DioceseId = church.DioceseId,
                 Latitude = church.GeoLocation.Latitude,
                 Longitude = church.GeoLocation.Longitude,
                 CreatorUserId = (Guid)church.CreatorUserId,
-                LastModifierUserId = church.LastModifierUserId
+                LastModifierUserId = church.LastModifierUserId,
+                Boss = church.Boss,
+                Description = church.Description,
             };
 
             return await ExecuteAsync(async connection =>
@@ -42,7 +44,7 @@ namespace Journey_of_faith.Infrastructure.repositories
                     (
                         Name,
                         Thumbnail,
-                        Website,
+                        Email,
                         Address,
                         DioceseId,
                         Latitude,
@@ -55,7 +57,7 @@ namespace Journey_of_faith.Infrastructure.repositories
                     (
                         @Name,
                         @Thumbnail,
-                        @Website,
+                        @Email,
                         @Address,
                         @DioceseId,
                         @Latitude,
@@ -74,7 +76,7 @@ namespace Journey_of_faith.Infrastructure.repositories
                 using var multiple = await connection.QueryMultipleAsync($@"
                     SELECT *
                     FROM [{_schemaName.Schema}].[{TableTopicChurch.Church}]
-                    WHERE IsDeleted = 0
+                    WHERE IsDeleted = 0 and churchLevel = 'gh'
                     order by {sortBy};
 
                     SELECT *
@@ -128,7 +130,7 @@ namespace Journey_of_faith.Infrastructure.repositories
                 Id = church.Id,
                 Name = church.Name,
                 Thumbnail = church.Thumbnail,
-                Website = church.Website,
+                Email = church.Email,
                 Address = church.Address,
                 DioceseId = church.DioceseId,
                 Latitude = church.GeoLocation.Latitude,
@@ -140,7 +142,7 @@ namespace Journey_of_faith.Infrastructure.repositories
                     UPDATE [{_schemaName.Schema}].[{TableTopicChurch.Church}] SET
                         Name = COALESCE(@Name, Name),
                         Thumbnail = COALESCE(@Thumbnail, Thumbnail),
-                        Website = COALESCE(@Website, Website),
+                        Email = COALESCE(@Email, Email),
                         Address = COALESCE(@Address, Address),
                         DioceseId = COALESCE(@DioceseId, DioceseId),
                         Latitude = COALESCE(@Latitude, Latitude),
@@ -170,7 +172,7 @@ namespace Journey_of_faith.Infrastructure.repositories
                     INSERT INTO [{_schemaName.Schema}].[{TableTopicChurch.Diocese}]
                     (
                         Name,
-                        Website,
+                        Email,
                         Address,
                         Thumbnail,
                         CreatorUserId,
@@ -180,7 +182,7 @@ namespace Journey_of_faith.Infrastructure.repositories
                     VALUES
                     (
                         @Name,
-                        @Website,
+                        @Email,
                         @Address,
                         @Thumbnail,
                         @CreatorUserId,
@@ -248,7 +250,7 @@ namespace Journey_of_faith.Infrastructure.repositories
                 await connection.ExecuteAsync($@"
                     UPDATE [{_schemaName.Schema}].[{TableTopicChurch.Diocese}] SET
                         Name = COALESCE(@Name, Name),
-                        Website = COALESCE(@Website, Website),
+                        Email = COALESCE(@Email, Email),
                         Address = COALESCE(@Address, Address),
                         Thumbnail = COALESCE(@Thumbnail, Thumbnail),
                         LastModifierUserId = @LastModifierUserId,
@@ -364,7 +366,7 @@ namespace Journey_of_faith.Infrastructure.repositories
                         c.Id,
                         c.Name,
                         c.Thumbnail,
-                        c.Website,
+                        c.Email,
                         c.Address,
                         c.DioceseId,
                         d.Name AS DioceseName,
@@ -464,7 +466,7 @@ namespace Journey_of_faith.Infrastructure.repositories
                         c.Id,
                         c.Name,
                         c.Thumbnail,
-                        c.Website,
+                        c.Email,
                         c.Address,
                         c.DioceseId,
                         d.Name AS DioceseName,

@@ -93,7 +93,7 @@ namespace Journey_of_faith.Domain.interfaces
 
         Task<int> CreateEventAsync(CreateEventPayload payload);
         Task<bool> UpdateEventAsync(UpdateEventPayload payload);
-        Task<bool> DeleteEventAsync(int eventId, Guid deleterUserId);
+        Task<bool> DeleteEventAsync(int eventId);
 
         Task<EventDetailsView?> GetEventDetailsAsync(int eventId, Guid? userId);
         Task<EventPagedResult> GetEventsAsync(EventListFilter filter, Guid? userId);

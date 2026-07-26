@@ -12,7 +12,7 @@ using System.Net.Mime;
 namespace Journey_of_faith.Api.Controllers
 {
     [ApiController]
-    [Route("Journey_of_faith/[controller]")]
+    [Route("api/[controller]")]
     [Authorize]
     public class QuizController : ControllerBase
     {

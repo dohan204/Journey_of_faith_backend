@@ -264,18 +264,16 @@ namespace Journey_of_faith.Infrastructure.repositories
             });
         }
 
-        public async Task<bool> DeleteEventAsync(int eventId, Guid deleterUserId)
+        public async Task<bool> DeleteEventAsync(int eventId)
         {
             return await ExecuteAsync(async connection =>
                 await connection.ExecuteAsync($@"
                     UPDATE [{_schemaName.Schema}].[{EventTables.Event}] SET
                         IsDeleted = 1,
-                        DeleterUserId = @DeleterUserId,
                         DeletionTime = GETDATE(),
-                        LastModifierUserId = @DeleterUserId,
                         LastModificationTime = GETDATE()
                     WHERE Id = @EventId AND IsDeleted = 0
-                ", new { EventId = eventId, DeleterUserId = deleterUserId }) > 0
+                ", new { EventId = eventId }) > 0
             );
         }
 

@@ -10,7 +10,7 @@ using System.Net.Mime;
 namespace Journey_of_faith.Api.Controllers
 {
     [ApiController]
-    [Route("Journey_of_faith/[controller]")]
+    [Route("api/[controller]")]
     public class EventController : ControllerBase
     {
         private readonly IMediator _mediator;
@@ -76,7 +76,7 @@ namespace Journey_of_faith.Api.Controllers
         }
 
         [HttpDelete("{id:int}")]
-        [Authorize]
+        // [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> DeleteEvent([FromRoute] int id)
         {

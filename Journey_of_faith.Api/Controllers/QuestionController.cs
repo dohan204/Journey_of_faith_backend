@@ -13,7 +13,7 @@ using Journey_of_faith.Domain.interfaces;
 namespace Journey_of_faith.Api.Controllers
 {
     [ApiController]
-    [Route("Journey_of_faith/[controller]")]
+    [Route("api/[controller]")]
     public sealed class QuestionController(IMediator mediator, IFileStorageService service) : ControllerBase
     {
         private readonly IMediator _mediator = mediator;

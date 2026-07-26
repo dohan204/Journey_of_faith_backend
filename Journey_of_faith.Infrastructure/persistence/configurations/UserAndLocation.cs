@@ -146,4 +146,15 @@ namespace Journey_of_faith.Infrastructure.persistence.configurations
         }
     }
 
+    public class UserActiveConfiguration : IEntityTypeConfiguration<UserActive>
+    {
+        public void Configure(EntityTypeBuilder<UserActive> build)
+        {
+            build.HasKey(e => e.Id);
+
+            build.HasOne(e => e.ApplicationUser)
+                .WithMany(e => e.userActives)
+                .HasForeignKey(e => e.ApplicationUserId);
+        }
+    }
 }

@@ -10,9 +10,11 @@ namespace Journey_of_faith.Domain.entities.location
     {
         public string Name { get; private set; } = string.Empty;
         public string? Thumbnail { get; private set; }
-        public string? Website { get; private set; }
+        public string? Email { get; private set; }
         public string? Address { get; private set; }
         public int DioceseId { get; private set; }
+        public string Boss {get; private set;}
+        public string? Description {get; private set;}
         public GeoLocation GeoLocation { get; private set; }
 
         private readonly List<MassSchedule> _massSchedules = new();
@@ -27,7 +29,8 @@ namespace Journey_of_faith.Domain.entities.location
 
         private Church() { }
         public Church(string name, string thumbnail, 
-            string website, string address, int discoceId, double latitude, double longtitude, Guid Userid, Guid modifier)
+            string website, string address, int discoceId, double latitude, 
+            double longtitude, Guid Userid, Guid modifier, string boss, string description)
         {
             if(string.IsNullOrEmpty(name))
             {
@@ -44,7 +47,7 @@ namespace Journey_of_faith.Domain.entities.location
             }
             Name = name;
             Thumbnail = thumbnail;
-            Website = website;
+            Email = website;
             Address = address;
             DioceseId = discoceId;
             
@@ -52,6 +55,8 @@ namespace Journey_of_faith.Domain.entities.location
 
             CreatorUserId = Userid;
             LastModifierUserId = modifier;
+            Boss = boss;
+            Description = description;
         }
 
         public Church(string name, string address, int discoceId, double latitude, double longtitude)

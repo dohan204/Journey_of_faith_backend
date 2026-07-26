@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Journey_of_faith.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260527110219_topic3")]
-    partial class topic3
+    [Migration("20260710095607_addEntity")]
+    partial class addEntity
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -1177,6 +1177,33 @@ namespace Journey_of_faith.Infrastructure.Migrations
                     b.ToTable("SchoolLevel", (string)null);
                 });
 
+            modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.location.UserActive", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ActiveLocation")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("ApplicationUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("Status")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("Timespan")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApplicationUserId");
+
+                    b.ToTable("UserActive");
+                });
+
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.location.UserChurch", b =>
                 {
                     b.Property<Guid>("UserId")
@@ -1980,16 +2007,16 @@ namespace Journey_of_faith.Infrastructure.Migrations
                     b.Property<string>("CreatedBy")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("CreationTime")
+                    b.Property<DateTime?>("CreationTime")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("DeletedAt")
+                    b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("DeletedBy")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("IsDeleted")
+                    b.Property<bool?>("IsDeleted")
                         .HasColumnType("bit");
 
                     b.Property<int?>("QuizCount")
@@ -2506,6 +2533,17 @@ namespace Journey_of_faith.Infrastructure.Migrations
                     b.Navigation("Level");
                 });
 
+            modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.location.UserActive", b =>
+                {
+                    b.HasOne("Journey_of_faith.Infrastructure.identity.ApplicationUser", "ApplicationUser")
+                        .WithMany("userActives")
+                        .HasForeignKey("ApplicationUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ApplicationUser");
+                });
+
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.location.UserChurch", b =>
                 {
                     b.HasOne("Journey_of_faith.Infrastructure.persistence.entities.location.Church", "Church")
@@ -2975,6 +3013,8 @@ namespace Journey_of_faith.Infrastructure.Migrations
                     b.Navigation("UserChurches");
 
                     b.Navigation("UserEvents");
+
+                    b.Navigation("userActives");
                 });
 
             modelBuilder.Entity("Journey_of_faith.Infrastructure.persistence.entities.events.Event", b =>

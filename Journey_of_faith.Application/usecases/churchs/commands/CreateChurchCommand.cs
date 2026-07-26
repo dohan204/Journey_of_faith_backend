@@ -11,6 +11,7 @@ namespace Journey_of_faith.Application.usecases.churchs.commands
     {
         public string Name { get; set; } = string.Empty;
         public string? Thumbnail { get; set; }
+        public string? Boss {get; set;}
         public string? Website { get; set; }
         public string? Address { get; set; }
         public int DioceseId { get; set; }
@@ -18,6 +19,8 @@ namespace Journey_of_faith.Application.usecases.churchs.commands
         public double Longitude { get; set; }
         public Guid CreatorUser { get; set; }
         public Guid LastModifierUserId { get; set; }
+
+        public string? Description {get; set;}
 
         public string[] CacheKeys => ["churches-name"];
     }
