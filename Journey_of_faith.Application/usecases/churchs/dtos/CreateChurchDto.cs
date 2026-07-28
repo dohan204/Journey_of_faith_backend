@@ -11,8 +11,8 @@ namespace Journey_of_faith.Application.usecases.churchs.dtos
         public string? Email { get; set; }
         public string? Address { get; set; }
         public int DioceseId { get; set; }
-        public double Latitude { get; set; }
-        public double Longitude { get; set; }
+        public double? Latitude { get; set; }
+        public double? Longitude { get; set; }
         public Guid CreatorUserId { get; set; }
         public Guid LastModifierUserId { get; set; }
         public string? Boss {get; set;}

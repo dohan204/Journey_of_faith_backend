@@ -30,7 +30,9 @@ namespace Journey_of_faith.Domain.entities.location
         private Church() { }
         public Church(string name, string thumbnail, 
             string website, string address, int discoceId, double latitude, 
-            double longtitude, Guid Userid, Guid modifier, string boss, string description)
+            double longtitude, Guid Userid, Guid modifier, string boss, string description, 
+            List<MassSchedule> massSchedules
+            )
         {
             if(string.IsNullOrEmpty(name))
             {
@@ -57,6 +59,7 @@ namespace Journey_of_faith.Domain.entities.location
             LastModifierUserId = modifier;
             Boss = boss;
             Description = description;
+            _massSchedules = massSchedules;
         }
 
         public Church(string name, string address, int discoceId, double latitude, double longtitude)
