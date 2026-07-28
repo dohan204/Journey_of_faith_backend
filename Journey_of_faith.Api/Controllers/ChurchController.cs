@@ -8,25 +8,26 @@ using Journey_of_faith.Domain.interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Formatters;
 using System.Net.Mime;
 
 namespace Journey_of_faith.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class ChurchController : ControllerBase
+    public class ChurchesController : ControllerBase
     {
         private readonly IMediator _mediator;
 
-        public ChurchController(IMediator mediator)
+        public ChurchesController(IMediator mediator)
         {
             _mediator = mediator;
         }
 
         [HttpPost]
-        [Consumes("multipart/form-data")]
+        [Consumes(MediaTypeNames.Application.Json)]
         [ProducesResponseType(statusCode: StatusCodes.Status201Created)]
-        public async Task<IActionResult> CreateChurch([FromForm] CreateChurchCommand command, IFormFile? file)
+        public async Task<IActionResult> CreateChurch([FromBody] CreateChurchCommand command, IFormFile? file)
         {
             if (file != null)
             {
@@ -55,7 +56,7 @@ namespace Journey_of_faith.Api.Controllers
             });
         }
 
-        [HttpPost("diocese")]
+        [HttpPost("dioceses")]
         [Consumes("multipart/form-data")]
         [ProducesResponseType(statusCode: StatusCodes.Status201Created)]
         public async Task<IActionResult> CreateDiocese([FromForm] CreateDioceseCommand command, IFormFile? file)
@@ -86,7 +87,14 @@ namespace Journey_of_faith.Api.Controllers
                 Data = dioceseId
             });
         }
-
+        [HttpGet("dioceses")]
+        public async Task<IActionResult> GetDiocese() {
+            var result = await _mediator.Send(new GetDioceseQuery());
+            return Ok(new ApiResponse<IEnumerable<Diocese>> {
+                Message = "Lấy dữ liệu thành công.",
+                Data = result
+            });
+        }
         [HttpGet("search")]
         [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
         public async Task<IActionResult> SearchChurches([FromQuery] SearchChurchQuery query)

@@ -8,6 +8,7 @@ using Journey_of_faith.Domain.interfaces;
 using Journey_of_faith.Infrastructure.common;
 using Microsoft.Extensions.Options;
 using System.Data;
+using Z.Dapper.Plus;
 
 namespace Journey_of_faith.Infrastructure.repositories
 {
@@ -23,50 +24,47 @@ namespace Journey_of_faith.Infrastructure.repositories
         #region Crud church
         public async Task<int> CreateAsync(Church church)
         {
-            var churchDto = new CreateChurchDto
-            {
-                Name = church.Name,
-                Thumbnail = church.Thumbnail ?? "",
-                Email = church.Email ?? "",
-                Address = church.Address,
-                DioceseId = church.DioceseId,
-                Latitude = church.GeoLocation.Latitude,
-                Longitude = church.GeoLocation.Longitude,
-                CreatorUserId = (Guid)church.CreatorUserId,
-                LastModifierUserId = church.LastModifierUserId,
-                Boss = church.Boss,
-                Description = church.Description,
-            };
-
             return await ExecuteAsync(async connection =>
-                await connection.ExecuteScalarAsync<int>($@"
-                    INSERT INTO [{_schemaName.Schema}].[{TableTopicChurch.Church}]
-                    (
-                        Name,
-                        Thumbnail,
-                        Email,
-                        Address,
-                        DioceseId,
-                        Latitude,
-                        Longitude,
-                        CreatorUserId,
-                        LastModifierUserId
-                    )
-                    OUTPUT inserted.Id
-                    VALUES
-                    (
-                        @Name,
-                        @Thumbnail,
-                        @Email,
-                        @Address,
-                        @DioceseId,
-                        @Latitude,
-                        @Longitude,
-                        @CreatorUserId,
-                        @LastModifierUserId
-                    )
-                ", churchDto)
-            );
+            {
+                using var transaction = connection.BeginTransaction();
+                try
+                {
+                    var churchId = await connection.ExecuteScalarAsync<int>("spCreateChurchAndMassSchedule", new
+                    {
+                        Name = church.Name,
+                        Thumbnail = church.Thumbnail,
+                        Email = church.Email,
+                        Address = church.Address,
+                        Longitude = church.GeoLocation.Longitude,
+                        Latitude = church.GeoLocation.Latitude,
+                        CreatorUserId = (Guid)church.CreatorUserId,
+                        Boss = church.Boss,
+                        Description = church.Description
+                    }, commandType: CommandType.StoredProcedure);
+
+                    Console.WriteLine(churchId);
+                    if (churchId == 0) return 0;
+                    var massSchedules = church.MassSchedules.Select(e => new MassSchedule
+                    {
+                        ChurchId = churchId,
+                        Name = e.Name,
+                        Time = e.Time,
+                        MassTypeId = 1,
+                        CreationTime = DateTime.Now,
+                        CreatorUserId = church.CreatorUserId,
+                    });
+
+
+                    await connection.BulkInsertAsync<MassSchedule>(massSchedules);
+                    transaction.Commit();
+                    return churchId;
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+                    throw;
+                }
+            });
         }
 
         public async Task<IEnumerable<Church>> GetAllAsync(string sortBy, CancellationToken cancellationToken = default)
@@ -722,9 +720,9 @@ namespace Journey_of_faith.Infrastructure.repositories
         {
             return await QueryAsync<DailyWord>(async connection =>
             {
-                var command = new CommandDefinition("sp_GetDailyWordByDate", new {Date = dateTime}, commandType: CommandType.StoredProcedure);
-               return 
-                    await connection.QueryFirstOrDefaultAsync<DailyWord>(command); 
+                var command = new CommandDefinition("sp_GetDailyWordByDate", new { Date = dateTime }, commandType: CommandType.StoredProcedure);
+                return
+                     await connection.QueryFirstOrDefaultAsync<DailyWord>(command);
             });
         }
     }
