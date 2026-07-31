@@ -6,6 +6,7 @@ namespace Journey_of_faith.Domain.entities.masslive
 {
     public class MassSchedule : AuditableEntity
     {
+        public override int? Id {get; set;}
         public bool? IsFixed { get; set; }
         public int ChurchId { get; set; }
         public DateTime? FromDate { get; set; }

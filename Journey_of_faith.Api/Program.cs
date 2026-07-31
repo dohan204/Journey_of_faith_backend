@@ -40,7 +40,7 @@ builder.Services.AddOpenApi();
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
-builder.Services.AddGraphQLExtension();
+// builder.Services.AddGraphQLExtension();
 // builder.Services.AddGraphQLServer()
 //     .AddQueryType<Query>()
 //     .AddTypeExtension<UserNode>()
@@ -124,13 +124,13 @@ app.UseStaticFiles(new StaticFileOptions
 if (app.Environment.IsDevelopment())
 {
 
-    app.MapNitroApp("/graphql/ui");
+    // app.MapNitroApp("/graphql/ui");
 }
 app.UseAuthentication();
 app.UseAuthorization();
 
 
-app.MapGraphQL();
+// app.MapGraphQL();
 app.MapControllers();
 
 app.Run();

@@ -6,7 +6,7 @@ namespace Journey_of_faith.Domain.entities
 {
     public abstract class AuditableEntity
     {
-        public int Id { get; set; }
+        public virtual int? Id { get; set; }
 
         public Guid? CreatorUserId { get; set; }
         public DateTime? CreationTime { get; set; }

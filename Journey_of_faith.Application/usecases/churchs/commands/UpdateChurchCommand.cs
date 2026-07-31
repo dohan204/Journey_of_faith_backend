@@ -20,8 +20,8 @@ public class UpdateChurchCommand : IRequest<int>
 
 public class UpdateMassScheduleCommand
 {
-    public int Id {get; set;}
+    public int? Id {get; set;}
     public string? Name {get; set;}
     public string? Time {get; set;}
-    public int MassTypeId {get; set;}
+    // public int MassTypeId {get; set;}
 }

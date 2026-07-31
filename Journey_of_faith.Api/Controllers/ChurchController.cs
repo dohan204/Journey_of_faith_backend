@@ -102,7 +102,12 @@ namespace Journey_of_faith.Api.Controllers
             var result = await _mediator.Send(new GetChurchWithMassScheduleQueries { Page = page, PageSize = pageSize, Search = search});
             return Ok(result);
         }
-
+        [HttpPut("{Id}")]
+        public async Task<IActionResult> UpdateChurch([FromBody] UpdateChurchCommand command, [FromRoute] int Id)
+        {
+            await _mediator.Send(command);
+            return NoContent();
+        }
         [HttpDelete("{Id}")]
         public async Task<IActionResult> DeleteChurch([FromRoute] int Id, [FromQuery] bool? force)
         {

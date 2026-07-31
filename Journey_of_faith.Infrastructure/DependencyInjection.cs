@@ -10,9 +10,9 @@ using Journey_of_faith.Infrastructure.graphql.DataLoaders.songs;
 using Journey_of_faith.Infrastructure.graphql.DataLoaders.users;
 using Journey_of_faith.Infrastructure.graphql.Resolvers;
 using Journey_of_faith.Infrastructure.graphql.types;
-using Journey_of_faith.Infrastructure.graphql.types.churches;
+// using Journey_of_faith.Infrastructure.graphql.types.churches;
 using Journey_of_faith.Infrastructure.graphql.types.quizes;
-using Journey_of_faith.Infrastructure.graphql.types.songs;
+// using Journey_of_faith.Infrastructure.graphql.types.songs;
 using Journey_of_faith.Infrastructure.graphql.types.users;
 using Journey_of_faith.Infrastructure.identity;
 using Journey_of_faith.Infrastructure.identity.services;
@@ -114,7 +114,7 @@ namespace Journey_of_faith.Infrastructure
             services.AddScoped<IChurchRepository, ChurchRepository>();
 
             services.AddScoped<IUserRepository, UserRepository>();
-
+            services.AddScoped<IDashboardRepository, DashboardRepository>();
             services.AddScoped<ISongRepository, SongRepository>();
             services.AddScoped(typeof(IGetOneToOneData<,>), typeof(GetDataRepository<,>));
             services.AddScoped(typeof(IGetOneToManyData<,>), typeof(GetDataRepository<,>));
@@ -149,71 +149,71 @@ namespace Journey_of_faith.Infrastructure
     }
 
 
-    public static class RegisterGraphQL
-    {
-        public static IServiceCollection AddGraphQLExtension(this IServiceCollection services)
-        {
-            services.AddGraphQLServer()
+    // public static class RegisterGraphQL
+    // {
+    //     public static IServiceCollection AddGraphQLExtension(this IServiceCollection services)
+    //     {
+    //         services.AddGraphQLServer()
 
 
-                .AddQueryType(typeof(Query))
-                .AddTypeExtension(typeof(UserNodeResolver))
-                .AddTypeExtension(typeof(UserChurches))
-                .AddDataLoader<IChurchsByUserIdDataLoader, ChurchsByUserIdDataLoader>()
-                .AddTypeExtension(typeof(TopicNodeResolver))
-                .AddTypeExtension(typeof(QuizNodeResovler))
-                .AddTypeExtension(typeof(QuizQueryExtension))
-                .AddTypeExtension(typeof(QuestionQueryExtension))
-                .AddTypeExtension(typeof(AnswerQueryExtension))
-                .AddDataLoader<IQuestionByQuizDataLoader, QuestionByQuizDataLoader>()
-                .AddDataLoader<IAnswerByQuestionDataLoader, AnswerByQuestionDataLoader>()
-                .AddDataLoader<IQuizByTopicDataLoader, QuizByTopicDataLoader>()
+    //             .AddQueryType(typeof(Query))
+    //             .AddTypeExtension(typeof(UserNodeResolver))
+    //             .AddTypeExtension(typeof(UserChurches))
+    //             .AddDataLoader<IChurchsByUserIdDataLoader, ChurchsByUserIdDataLoader>()
+    //             .AddTypeExtension(typeof(TopicNodeResolver))
+    //             .AddTypeExtension(typeof(QuizNodeResovler))
+    //             .AddTypeExtension(typeof(QuizQueryExtension))
+    //             .AddTypeExtension(typeof(QuestionQueryExtension))
+    //             .AddTypeExtension(typeof(AnswerQueryExtension))
+    //             .AddDataLoader<IQuestionByQuizDataLoader, QuestionByQuizDataLoader>()
+    //             .AddDataLoader<IAnswerByQuestionDataLoader, AnswerByQuestionDataLoader>()
+    //             .AddDataLoader<IQuizByTopicDataLoader, QuizByTopicDataLoader>()
 
 
-                .AddTypeExtension(typeof(SongNodeResolver))
-                .AddTypeExtension(typeof(ArtistNodeResolver))
-                .AddTypeExtension(typeof(ArtistExtension))
-                .AddTypeExtension(typeof(SongCategoryExtension))
-                .AddTypeExtension(typeof(UserSongAysnc))
-                .AddTypeExtension(typeof(AlbumQueryExtension))
-                .AddTypeExtension(typeof(ArtistQueryExtension))
-                .AddTypeExtension(typeof(SongCategoryExtension))
+    //             .AddTypeExtension(typeof(SongNodeResolver))
+    //             .AddTypeExtension(typeof(ArtistNodeResolver))
+    //             .AddTypeExtension(typeof(ArtistExtension))
+    //             .AddTypeExtension(typeof(SongCategoryExtension))
+    //             .AddTypeExtension(typeof(UserSongAysnc))
+    //             .AddTypeExtension(typeof(AlbumQueryExtension))
+    //             .AddTypeExtension(typeof(ArtistQueryExtension))
+    //             .AddTypeExtension(typeof(SongCategoryExtension))
 
 
-                .AddTypeExtension(typeof(ChurchNodeResolver))
-                .AddTypeExtension(typeof(DioceseNodeResolver))
-                .AddTypeExtension(typeof(DioceseQueryExtension))
-                .AddTypeExtension(typeof(ChurchQueryExtension))
-                .AddTypeExtension(typeof(MassScheduleQueryExtension))
-                .AddTypeExtension(typeof(UserChurchQueryExtension))
+    //             .AddTypeExtension(typeof(ChurchNodeResolver))
+    //             .AddTypeExtension(typeof(DioceseNodeResolver))
+    //             .AddTypeExtension(typeof(DioceseQueryExtension))
+    //             .AddTypeExtension(typeof(ChurchQueryExtension))
+    //             .AddTypeExtension(typeof(MassScheduleQueryExtension))
+    //             .AddTypeExtension(typeof(UserChurchQueryExtension))
 
 
-                .AddDataLoader<ISongsByUserIdDataLoader, SongsByUserIdDataLoader>()
-                .AddDataLoader<IAlbumDataLoader, AlbumDataLoader>()
-                .AddDataLoader<IArtistDataLoader, ArtistDataLoader>()
-                .AddDataLoader<ICategoryByIdDataLoader, CategoryByIdDataLoader>()
-                .AddDataLoader<ISongByArtistDataLoader, SongByArtistDataLoader>()
-                .AddDataLoader<ISongByCategoryDataLoader, SongByCategoryDataLoader>()
-                .AddDataLoader<IMassSchedulesDataLoader, MassSchedulesDataLoader>()
-                .AddDataLoader<IDioceseByChurchDataLoader, DioceseByChurchDataLoader>()
-                .AddDataLoader<IUserChurchByMappingDataLoader, UserChurchByMappingDataLoader>()
-                .AddDataLoader<IChurchesDataLoader, ChurchesDataLoader>()
+    //             .AddDataLoader<ISongsByUserIdDataLoader, SongsByUserIdDataLoader>()
+    //             .AddDataLoader<IAlbumDataLoader, AlbumDataLoader>()
+    //             .AddDataLoader<IArtistDataLoader, ArtistDataLoader>()
+    //             .AddDataLoader<ICategoryByIdDataLoader, CategoryByIdDataLoader>()
+    //             .AddDataLoader<ISongByArtistDataLoader, SongByArtistDataLoader>()
+    //             .AddDataLoader<ISongByCategoryDataLoader, SongByCategoryDataLoader>()
+    //             .AddDataLoader<IMassSchedulesDataLoader, MassSchedulesDataLoader>()
+    //             .AddDataLoader<IDioceseByChurchDataLoader, DioceseByChurchDataLoader>()
+    //             .AddDataLoader<IUserChurchByMappingDataLoader, UserChurchByMappingDataLoader>()
+    //             .AddDataLoader<IChurchesDataLoader, ChurchesDataLoader>()
 
 
-                .AddFiltering()
-                .AddSorting()
-                .AddCacheControl()
-                .AddWarmupTask(async (executor, cancellationToken) =>
-                {
-                    var request = OperationRequestBuilder.New()
-                        .SetDocument("{ __typename }")
-                        .MarkAsWarmupRequest()
-                        .Build();
-                    await executor.ExecuteAsync(request, cancellationToken: cancellationToken);
-                });
-            return services;
-        }
-    }
+    //             .AddFiltering()
+    //             .AddSorting()
+    //             .AddCacheControl()
+    //             .AddWarmupTask(async (executor, cancellationToken) =>
+    //             {
+    //                 var request = OperationRequestBuilder.New()
+    //                     .SetDocument("{ __typename }")
+    //                     .MarkAsWarmupRequest()
+    //                     .Build();
+    //                 await executor.ExecuteAsync(request, cancellationToken: cancellationToken);
+    //             });
+    //         return services;
+    //     }
+    // }
 
     public static class RegisterFirebase
     {
