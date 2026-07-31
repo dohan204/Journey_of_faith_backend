@@ -1,4 +1,4 @@
-﻿using Journey_of_faith.Application.common.interfaces;
+using Journey_of_faith.Application.common.interfaces;
 using Journey_of_faith.Application.exceptions;
 using Journey_of_faith.Application.usecases.users.commands;
 using Journey_of_faith.Application.usecases.users.validations;
@@ -29,11 +29,11 @@ namespace UnitTesting.HandlerTests.users
             {
                 Username = "testuser",
                 Password = "Test@1234",
-                Name = "Test User",
-                Email = "dohan@gmail.com"
+                Email = "dohan@gmail.com",
+                RoleName = "User"
             };
 
-            _service.Setup(s => s.CreateAsync(It.IsAny<User>()))
+            _service.Setup(s => s.CreateAsync(It.IsAny<User>(), It.IsAny<string?>()))
                 .ReturnsAsync(true);
 
 
@@ -42,7 +42,7 @@ namespace UnitTesting.HandlerTests.users
 
             Assert.True(result);
 
-            _service.Verify(s => s.CreateAsync(It.IsAny<User>()), Times.Once);
+            _service.Verify(s => s.CreateAsync(It.IsAny<User>(), "User"), Times.Once);
         }
         [Fact]
         public async Task Handle_ShouldCreateUser_WhenEmailNotExists()
@@ -52,7 +52,7 @@ namespace UnitTesting.HandlerTests.users
                 .ReturnsAsync(false);
 
 
-            _service.Setup(e => e.CreateAsync(It.IsAny<User>()))
+            _service.Setup(e => e.CreateAsync(It.IsAny<User>(), It.IsAny<string?>()))
                 .ReturnsAsync(true);
 
 
@@ -60,8 +60,8 @@ namespace UnitTesting.HandlerTests.users
             {
                 Username = "testuser",
                 Password = "Test@1234",
-                Name = "Test User",
-                Email = "dohan@gmail.com"
+                Email = "dohan@gmail.com",
+                RoleName = "User"
             };
 
             // act
@@ -70,7 +70,7 @@ namespace UnitTesting.HandlerTests.users
             // assert
             Assert.True(result);
 
-            _service.Verify(s => s.CreateAsync(It.IsAny<User>()), Times.Once);
+            _service.Verify(s => s.CreateAsync(It.IsAny<User>(), "User"), Times.Once);
         }
         [Fact]
         public async Task Handle_ShouldThrowConflictException_WhenEmailExists()
@@ -84,7 +84,6 @@ namespace UnitTesting.HandlerTests.users
             {
                 Username = "testuser",
                 Password = "Test@1234",
-                Name = "Test User",
                 Email = "Test@gmail.com"
             };
 
@@ -92,7 +91,7 @@ namespace UnitTesting.HandlerTests.users
             await Assert.ThrowsAsync<ConfictException>(
                 () => _handler.Handle(command, CancellationToken.None));
 
-            _service.Verify(s => s.CreateAsync(It.IsAny<User>()), Times.Never);
+            _service.Verify(s => s.CreateAsync(It.IsAny<User>(), It.IsAny<string?>()), Times.Never);
         }
 
 

@@ -1,4 +1,5 @@
-﻿using Journey_of_faith.Domain.entities.catholic;
+﻿using Journey_of_faith.Domain.dtos;
+using Journey_of_faith.Domain.entities.catholic;
 using Journey_of_faith.Domain.entities.location;
 using Journey_of_faith.Domain.entities.masslive;
 using System;
@@ -50,12 +51,12 @@ namespace Journey_of_faith.Domain.interfaces
         Task<int> CreateAsync(MassType massType);
         Task<int> DeleteMassType(int id);
         // Church
-        Task<Church?> GetByIdAsync(int id, CancellationToken cancellationTokenc);
-        Task<IEnumerable<Church>> GetAllAsync(string sortBy, CancellationToken cancellationToken);
+        Task<Church?> GetChurchByIdAsync(int id, CancellationToken cancellationTokenc);
+        Task<PagedResult<Church>> GetChurchesAsync(int page, int pageSize, string? search);
         Task<int> CreateAsync(Church church);
-        Task<int> UpdateAsync(Church church);
-
-
+        Task<int> UpdateAsync(Church church, Guid UserId);
+        Task<bool> DeleteChurchAsync(int id, bool? force = false);
+        // Task<bool> UpdateChurchAsync(int id)
         // Dicosce
         Task<bool> GetDioceseExistsAsync(int dioceseId);
         Task<bool> UniqueNameDiocese(string name);

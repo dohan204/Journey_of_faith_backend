@@ -1,4 +1,4 @@
-﻿using FluentValidation.TestHelper;
+using FluentValidation.TestHelper;
 using Journey_of_faith.Application.usecases.users.commands;
 using Journey_of_faith.Application.usecases.users.validations;
 using System;
@@ -58,14 +58,6 @@ namespace UnitTesting.ValidatorTests.users
             var user = new CreateUserCommand { Password = "P1a" };
             var result = _validator.TestValidate(user);
             result.ShouldHaveValidationErrorFor(e => e.Password);
-        }
-
-        [Fact]
-        public void Should_Have_Error_When_Name_Is_Empty()
-        {
-            var user = new CreateUserCommand { Name = "" };
-            var result = _validator.TestValidate(user);
-            result.ShouldHaveValidationErrorFor(e => e.Name);
         }
 
         [Fact]

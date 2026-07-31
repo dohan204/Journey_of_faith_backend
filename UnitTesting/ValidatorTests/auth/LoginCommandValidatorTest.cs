@@ -1,4 +1,4 @@
-﻿using FluentValidation.TestHelper;
+using FluentValidation.TestHelper;
 using Journey_of_faith.Application.usecases.auth.queries;
 using System;
 using System.Collections.Generic;
@@ -16,20 +16,20 @@ namespace UnitTesting.ValidatorTests.auth
 
 
         [Fact]
-        public void Should_Have_Error_When_Username_Is_Empty()
+        public void Should_Have_Error_When_Email_Is_Empty()
         {
-            var command = new UserLoginQuery { Username = "" };
+            var command = new UserLoginQuery { Email = "" };
             var result = _validator.TestValidate(command);
-            result.ShouldHaveValidationErrorFor(e => e.Username);
+            result.ShouldHaveValidationErrorFor(e => e.Email);
         }
 
 
         [Fact]
-        public void Should_Have_Error_When_Username_Is_Short()
+        public void Should_Have_Error_When_Email_Is_Short()
         {
-            var command = new UserLoginQuery { Username = "abc" };
+            var command = new UserLoginQuery { Email = "abc" };
             var result = _validator.TestValidate(command);
-            result.ShouldHaveValidationErrorFor(e => e.Username);
+            result.ShouldHaveValidationErrorFor(e => e.Email);
         }
 
         [Fact]

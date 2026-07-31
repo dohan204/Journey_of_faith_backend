@@ -61,7 +61,18 @@ namespace Journey_of_faith.Domain.entities.location
             Description = description;
             _massSchedules = massSchedules;
         }
-
+        public Church(int id, string name, string email, string address, int discoceId, string boss, string description, Guid lastModifier, List<MassSchedule> massSchedules)
+        {
+            Id = id;
+            Name = name;
+            Email = email;
+            Address = address;
+            DioceseId = discoceId;
+            Boss = boss;
+            Description = description;
+            LastModifierUserId = lastModifier;
+            _massSchedules = massSchedules;
+        }
         public Church(string name, string address, int discoceId, double latitude, double longtitude)
         {
             if (string.IsNullOrEmpty(name))

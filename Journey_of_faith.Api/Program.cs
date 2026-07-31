@@ -16,6 +16,7 @@ using Journey_of_faith.Infrastructure.context;
 var builder = WebApplication.CreateBuilder(args);
 
 SqlMapper.AddTypeHandler(new GuidTypeHandler());
+builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddCors(options =>
 {
@@ -84,25 +85,33 @@ using (var scope = app.Services.CreateScope())
 app.Use(async (context, next) =>
 {
     var sw = Stopwatch.StartNew();
-
-    await next();
+    Console.WriteLine(context.Request.Headers.Authorization);
+    // string tokenConvert = context.Request.Headers.Authorization;
+    // if (tokenConvert != null)
+    // {
+    //     string tokenConcat = tokenConvert.Substring(6);
+    //     Console.WriteLine("Token convert: {0}", tokenConcat);
+    //     context.Request.Headers.Authorization = tokenConcat;
+    // }
+    await next(context);
 
     sw.Stop();
 
     Console.WriteLine($"Request time: {sw.ElapsedMilliseconds}ms");
 });
 // Configure the HTTP request pipeline.
-  app.MapOpenApi();
-    app.UseSwaggerUI(options => {
-        options.SwaggerEndpoint("/openapi/v1.json", "v1");
-    });
+app.MapOpenApi();
+app.UseSwaggerUI(options =>
+{
+    options.SwaggerEndpoint("/openapi/v1.json", "v1");
+});
 
 
 app.UseCors("allowFrontend");
 app.UseExceptionHandler();
 app.UseHttpsRedirection();
 var currentDirectoryFile = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "uploads");
-if(!Directory.Exists(currentDirectoryFile))
+if (!Directory.Exists(currentDirectoryFile))
 {
     Directory.CreateDirectory(currentDirectoryFile);
 }
@@ -112,10 +121,10 @@ app.UseStaticFiles(new StaticFileOptions
     RequestPath = "/uploads"
 });
 
-if(app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment())
 {
 
-app.MapNitroApp("/graphql/ui");
+    app.MapNitroApp("/graphql/ui");
 }
 app.UseAuthentication();
 app.UseAuthorization();
@@ -140,3 +149,5 @@ public class GuidTypeHandler : SqlMapper.TypeHandler<Guid>
         return Guid.Parse(value.ToString()!);
     }
 }
+
+public partial class Program { }

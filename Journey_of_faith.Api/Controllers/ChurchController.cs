@@ -95,16 +95,19 @@ namespace Journey_of_faith.Api.Controllers
                 Data = result
             });
         }
-        [HttpGet("search")]
+        [HttpGet]
         [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
-        public async Task<IActionResult> SearchChurches([FromQuery] SearchChurchQuery query)
+        public async Task<IActionResult> SearchChurches([FromQuery] int page, [FromQuery] int pageSize, [FromQuery] string? search)
         {
-            var result = await _mediator.Send(query);
-            return Ok(new ApiResponse<IEnumerable<ChurchListItemView>>
-            {
-                Message = result.Any() ? "Lấy danh sách nhà thờ thành công." : "Không có nhà thờ phù hợp.",
-                Data = result
-            });
+            var result = await _mediator.Send(new GetChurchWithMassScheduleQueries { Page = page, PageSize = pageSize, Search = search});
+            return Ok(result);
+        }
+
+        [HttpDelete("{Id}")]
+        public async Task<IActionResult> DeleteChurch([FromRoute] int Id, [FromQuery] bool? force)
+        {
+            var result = await _mediator.Send(new DeleteChurchCommand { Id = Id, Force = force });
+            return Ok(result);
         }
 
         [HttpGet("{id:int}")]

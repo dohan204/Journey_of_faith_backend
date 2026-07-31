@@ -1,6 +1,7 @@
 using Dapper;
 using Journey_of_faith.Application.common.interfaces;
 using Journey_of_faith.Application.usecases.churchs.dtos;
+using Journey_of_faith.Domain.dtos;
 using Journey_of_faith.Domain.entities.catholic;
 using Journey_of_faith.Domain.entities.location;
 using Journey_of_faith.Domain.entities.masslive;
@@ -26,17 +27,14 @@ namespace Journey_of_faith.Infrastructure.repositories
         {
             return await ExecuteAsync(async connection =>
             {
-                using var transaction = connection.BeginTransaction();
                 try
                 {
                     var churchId = await connection.ExecuteScalarAsync<int>("spCreateChurchAndMassSchedule", new
                     {
                         Name = church.Name,
-                        Thumbnail = church.Thumbnail,
+                        DioceseId = church.DioceseId,
                         Email = church.Email,
                         Address = church.Address,
-                        Longitude = church.GeoLocation.Longitude,
-                        Latitude = church.GeoLocation.Latitude,
                         CreatorUserId = (Guid)church.CreatorUserId,
                         Boss = church.Boss,
                         Description = church.Description
@@ -56,46 +54,49 @@ namespace Journey_of_faith.Infrastructure.repositories
 
 
                     await connection.BulkInsertAsync<MassSchedule>(massSchedules);
-                    transaction.Commit();
                     return churchId;
                 }
                 catch (Exception ex)
                 {
-                    transaction.Rollback();
+                    Console.WriteLine(ex);
                     throw;
                 }
             });
         }
 
-        public async Task<IEnumerable<Church>> GetAllAsync(string sortBy, CancellationToken cancellationToken = default)
+        public async Task<PagedResult<Church>> GetChurchesAsync(int page, int pageSize, string? search)
         {
             return await ExecuteAsync(async connection =>
             {
-                using var multiple = await connection.QueryMultipleAsync($@"
-                    SELECT *
-                    FROM [{_schemaName.Schema}].[{TableTopicChurch.Church}]
-                    WHERE IsDeleted = 0 and churchLevel = 'gh'
-                    order by {sortBy};
-
-                    SELECT *
-                    FROM [{_schemaName.Schema}].[{TableTopicChurch.MassSchedule}]
-                    WHERE IsDeleted = 0;
-                ");
-
-                var churches = (await multiple.ReadAsync<Church>()).ToList();
-                var massSchedules = (await multiple.ReadAsync<MassSchedule>()).ToList();
-
+                int ignoreRecord = (page - 1) * pageSize;
+                var churches = await connection.QueryAsync<Church>(@$"
+                    SELECT Name, Email, Address, DioceseId, Id, Boss FROM [jcodepro_journey_of_faith].[Church]
+                    ORDER BY Id
+                    OFFSET @ignore rows
+                    FETCH NEXT  @pageSize rows only
+                ", new { ignore = ignoreRecord, pageSize });
+                var churcheIds = churches.Select(e => e.Id);
+                var countChurch = await connection.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM [jcodepro_journey_of_faith].[Church]");
+                var massSchedules = await connection.QueryAsync<MassSchedule>(@$"
+                    SELECT Name, Time FROM [jcodepro_journey_of_faith].[MassSchedule]
+                    WHERE ChurchId in @ChurchIds
+                ", new { ChurchIds = churcheIds });
 
                 foreach (var church in churches)
                 {
                     church.SetMassSchedule(massSchedules.Where(ms => ms.ChurchId == church.Id).ToList());
                 }
-
-                return churches;
+                return new PagedResult<Church>
+                {
+                    TotalCount = countChurch,
+                    Page = page,
+                    PageSize = pageSize,
+                    Data = churches.ToList()
+                };
             });
         }
 
-        public async Task<Church?> GetByIdAsync(int id, CancellationToken cancellationToken)
+        public async Task<Church?> GetChurchByIdAsync(int id, CancellationToken cancellationToken)
         {
             return await ExecuteAsync(async connection =>
             {
@@ -121,34 +122,75 @@ namespace Journey_of_faith.Infrastructure.repositories
             });
         }
 
-        public async Task<int> UpdateAsync(Church church)
+        public async Task<int> UpdateAsync(Church church, Guid userId)
         {
-            var updateChurchDto = new ChurchUpdateDto
-            {
-                Id = church.Id,
-                Name = church.Name,
-                Thumbnail = church.Thumbnail,
-                Email = church.Email,
-                Address = church.Address,
-                DioceseId = church.DioceseId,
-                Latitude = church.GeoLocation.Latitude,
-                Longitude = church.GeoLocation.Longitude
-            };
-
             return await ExecuteAsync(async connection =>
-                await connection.ExecuteAsync($@"
-                    UPDATE [{_schemaName.Schema}].[{TableTopicChurch.Church}] SET
-                        Name = COALESCE(@Name, Name),
-                        Thumbnail = COALESCE(@Thumbnail, Thumbnail),
-                        Email = COALESCE(@Email, Email),
-                        Address = COALESCE(@Address, Address),
-                        DioceseId = COALESCE(@DioceseId, DioceseId),
-                        Latitude = COALESCE(@Latitude, Latitude),
-                        Longitude = COALESCE(@Longitude, Longitude),
-                        LastModificationTime = GETDATE()
-                    WHERE Id = @Id AND IsDeleted = 0
-                ", updateChurchDto)
-            );
+            {
+                DataTable massScheduleTable = new DataTable(); 
+                massScheduleTable.Columns.Add("Id", typeof(int));
+                massScheduleTable.Columns.Add("Name", typeof(string));
+                massScheduleTable.Columns.Add("Time", typeof(string));
+                massScheduleTable.Columns.Add("MassTypeId", typeof(int));
+
+                foreach(var schedule in church.MassSchedules)
+                {
+                    massScheduleTable.Rows.Add(
+                        (object)schedule.Id ?? DBNull.Value,
+                        schedule.Name,
+                        schedule.Time,
+                        schedule.MassTypeId
+                    );
+                }
+
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@Id", church.Id);
+                parameters.Add("@Name", church.Name);
+                parameters.Add("@Email", church.Email);
+                parameters.Add("@Address", church.Address);
+                parameters.Add("@DioceseId", church.DioceseId);
+                parameters.Add("@Longitude", church.GeoLocation.Longitude);
+                parameters.Add("@Latitude", church.GeoLocation.Latitude);
+                parameters.Add("@Boss", church.Boss);
+                parameters.Add("@Description", church.Description);
+                parameters.Add("@LastModifierUserId", userId);
+                parameters.Add("@MassSchedules", massScheduleTable.AsTableValuedParameter("[jcodepro_journey_of_faith].[MassScheduleType]"));
+
+                return await connection.ExecuteAsync(
+                    "[dbo].[spUpdateChurch]",
+                    parameters,
+                    commandType: CommandType.StoredProcedure
+                );
+            });
+        }
+        public async Task<bool> DeleteChurchAsync(int Id, bool? force)
+        {
+            return await QueryAsync<bool>(async connection =>
+            {
+                var church = await connection.QuerySingleOrDefaultAsync<Church>(@"
+                    SELECT * FROM [jcodepro_journey_of_faith].[Church]
+                    WHERE Id = @Id
+                ", new { Id = Id });
+
+                if (church is null)
+                    return false;
+
+                // kiểm tra xem có xóa khi có còn tồn tại lịch lễ hay không 
+                if (force is true)
+                {
+                    // xóa lịch lễ theo nhà thờ trước
+                    await connection
+                        .ExecuteAsync(@"
+                            DELETE FROM [jcodepro_journey_of_faith].[MassSchedule] WHERE ChurchId = @ChurchId",
+                        new { ChurchId = church.Id });
+                }
+
+                // tiến hành xóa nhà thờ
+                var result = await connection.ExecuteAsync(
+                    @"DELETE FROM [jcodepro_journey_of_faith].[Church] WHERE Id = @Id", new { Id = church.Id }
+                );
+                return result > 0;
+            });
         }
         #endregion
 
