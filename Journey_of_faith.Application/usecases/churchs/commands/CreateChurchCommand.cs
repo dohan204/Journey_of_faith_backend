@@ -16,8 +16,8 @@ namespace Journey_of_faith.Application.usecases.churchs.commands
         public string? Website { get; set; }
         public string? Address { get; set; }
         public int DioceseId { get; set; }
-        public double Latitude { get; set; }
-        public double Longitude { get; set; }
+        public float Latitude { get; set; }
+        public float Longitude { get; set; }
         public Guid CreatorUser { get; set; }
         public Guid LastModifierUserId { get; set; }
         public List<MassSchedule>? MassSchedules {get; set;}

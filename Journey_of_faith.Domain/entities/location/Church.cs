@@ -17,8 +17,8 @@ namespace Journey_of_faith.Domain.entities.location
         public string? Description {get; private set;}
         public GeoLocation GeoLocation { get; private set; }
 
-        private readonly List<MassSchedule> _massSchedules = new();
-        private readonly List<LiveStream> _liveStreams = new();
+        private List<MassSchedule> _massSchedules = new();
+        private List<LiveStream> _liveStreams = new();
         private readonly List<User> _users = new();
         private readonly List<UserChurch> _userChurches = new();
 
@@ -29,8 +29,8 @@ namespace Journey_of_faith.Domain.entities.location
 
         private Church() { }
         public Church(string name, string thumbnail, 
-            string website, string address, int discoceId, double latitude, 
-            double longtitude, Guid Userid, Guid modifier, string boss, string description, 
+            string website, string address, int discoceId, float latitude, 
+            float longtitude, Guid Userid, Guid modifier, string boss, string description, 
             List<MassSchedule> massSchedules
             )
         {
@@ -73,7 +73,7 @@ namespace Journey_of_faith.Domain.entities.location
             LastModifierUserId = lastModifier;
             _massSchedules = massSchedules;
         }
-        public Church(string name, string address, int discoceId, double latitude, double longtitude)
+        public Church(string name, string address, int discoceId, float latitude, float longtitude)
         {
             if (string.IsNullOrEmpty(name))
             {
@@ -96,7 +96,7 @@ namespace Journey_of_faith.Domain.entities.location
             GeoLocation = GeoLocation.FromCoordinates(latitude, longtitude);
         }
 
-        public void SetLocation(double latitude, double longtitude)
+        public void SetLocation(float latitude, float longtitude)
         {
             GeoLocation = GeoLocation.FromCoordinates(latitude, longtitude);
         }
@@ -112,11 +112,6 @@ namespace Journey_of_faith.Domain.entities.location
 
         public void SetMassSchedule(List<MassSchedule> massSchedules)
         {
-            if (massSchedules == null)
-            {
-                throw new ArgumentNullException(nameof(massSchedules), "MassSchedules không được null");
-            }
-            _massSchedules.Clear();
             _massSchedules.AddRange(massSchedules);
         }
 

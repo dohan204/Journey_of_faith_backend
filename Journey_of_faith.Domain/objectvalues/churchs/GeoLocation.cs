@@ -6,16 +6,16 @@ namespace Journey_of_faith.Domain.objectvalues.churchs
 {
     public class GeoLocation
     {
-        public double Latitude { get; }
-        public double Longitude { get; }
+        public float Latitude { get; }
+        public float Longitude { get; }
 
-        public GeoLocation(double latitude, double longtitude)
+        public GeoLocation(float latitude, float longtitude)
         {
             Latitude = latitude;
             Longitude = longtitude;
         }
 
-        public static GeoLocation FromCoordinates(double latitude, double longitude)
+        public static GeoLocation FromCoordinates(float latitude, float longitude)
         {
             if (latitude < -90 || latitude > 90)
             {
