@@ -101,7 +101,6 @@ namespace Journey_of_faith.Infrastructure
             services.AddScoped<IIdentityService, IdentityService>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<ICurrentUserService, CurrentUserService>();
-            services.AddHttpContextAccessor();
             services.Configure<TableSchemaName>(
                 configuration.GetSection("Db")
             );

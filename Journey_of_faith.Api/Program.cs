@@ -16,6 +16,7 @@ using Journey_of_faith.Infrastructure.context;
 var builder = WebApplication.CreateBuilder(args);
 
 SqlMapper.AddTypeHandler(new GuidTypeHandler());
+builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddCors(options =>
 {
@@ -84,8 +85,15 @@ using (var scope = app.Services.CreateScope())
 app.Use(async (context, next) =>
 {
     var sw = Stopwatch.StartNew();
-
-    await next();
+    Console.WriteLine(context.Request.Headers.Authorization);
+    // string tokenConvert = context.Request.Headers.Authorization;
+    // if (tokenConvert != null)
+    // {
+    //     string tokenConcat = tokenConvert.Substring(6);
+    //     Console.WriteLine("Token convert: {0}", tokenConcat);
+    //     context.Request.Headers.Authorization = tokenConcat;
+    // }
+    await next(context);
 
     sw.Stop();
 
@@ -141,3 +149,5 @@ public class GuidTypeHandler : SqlMapper.TypeHandler<Guid>
         return Guid.Parse(value.ToString()!);
     }
 }
+
+public partial class Program { }

@@ -18,6 +18,6 @@ public class ChurchCacheDataLoader : CacheDataLoader<int, Church>
     {
         await using var scope = _serviceProvider.CreateAsyncScope();
         var repo = _serviceProvider.GetRequiredService<IChurchRepository>();
-        return await repo.GetByIdAsync(id, cancellationToken);
+        return await repo.GetChurchByIdAsync(id, cancellationToken);
     }
 }

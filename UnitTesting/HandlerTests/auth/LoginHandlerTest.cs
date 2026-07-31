@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using Journey_of_faith.Application.common.interfaces;
 using Journey_of_faith.Application.usecases.auth.queries;
 using Journey_of_faith.Application.exceptions;
@@ -26,7 +26,7 @@ namespace UnitTesting.HandlerTests.auth
             // Arrange 
             var query = new UserLoginQuery
             {
-                Username = "validUser",
+                Email = "validUser@example.com",
                 Password = "validPassword"
             };
 
@@ -34,7 +34,7 @@ namespace UnitTesting.HandlerTests.auth
             var refreshToken = "mockedRefreshToken";
             int expiryDate = 60 * 60;
 
-            _authServiceMock.Setup(s => s.Login(query.Username, query.Password))
+            _authServiceMock.Setup(s => s.Login(query.Email, query.Password))
                 .ReturnsAsync(new LoginUserResponse(
                         true,
                         token,
@@ -54,7 +54,7 @@ namespace UnitTesting.HandlerTests.auth
 
             Assert.Equal(expiryDate, result.expiry);
 
-            _authServiceMock.Verify(s => s.Login(query.Username, query.Password), Times.Once);
+            _authServiceMock.Verify(s => s.Login(query.Email, query.Password), Times.Once);
         }
 
 
@@ -64,11 +64,11 @@ namespace UnitTesting.HandlerTests.auth
             // arrange
             var query = new UserLoginQuery
             {
-                Username = "invalidUser",
+                Email = "invalidUser@example.com",
                 Password = "invalidPassword"
             };
 
-            _authServiceMock.Setup(e => e.Login(query.Username, query.Password))
+            _authServiceMock.Setup(e => e.Login(query.Email, query.Password))
                 .ThrowsAsync(new NotFoundException("Tài khoản hoặc mật khẩu không chính xác"));
 
             // act 
@@ -79,7 +79,7 @@ namespace UnitTesting.HandlerTests.auth
             Assert.NotNull(result);
             Assert.Equal("Tài khoản hoặc mật khẩu không chính xác", result.Message);
 
-            _authServiceMock.Verify(e => e.Login(query.Username, query.Password), Times.Once);
+            _authServiceMock.Verify(e => e.Login(query.Email, query.Password), Times.Once);
         }
 
 
@@ -89,11 +89,11 @@ namespace UnitTesting.HandlerTests.auth
             // Arrange 
             var query = new UserLoginQuery
             {
-                Username = "validUser",
+                Email = "validUser@example.com",
                 Password = "invalidPassword"
             };
 
-            _authServiceMock.Setup(e => e.Login(query.Username, query.Password))
+            _authServiceMock.Setup(e => e.Login(query.Email, query.Password))
                 .ThrowsAsync(new UnauthorizationException("Tài khoản hoặc mật khẩu không chính xác"));
 
 
@@ -104,7 +104,7 @@ namespace UnitTesting.HandlerTests.auth
             Assert.NotNull(act);
             Assert.Equal("Tài khoản hoặc mật khẩu không chính xác", exception.Message);
 
-            _authServiceMock.Verify(e => e.Login(query.Username, query.Password), Times.Once);
+            _authServiceMock.Verify(e => e.Login(query.Email, query.Password), Times.Once);
 
         }
     }

@@ -1,4 +1,4 @@
-﻿using FluentValidation.TestHelper;
+using FluentValidation.TestHelper;
 using Journey_of_faith.Application.common.interfaces;
 using Journey_of_faith.Application.usecases.quizs.commands;
 using Journey_of_faith.Domain.interfaces;
@@ -22,27 +22,27 @@ namespace UnitTesting.ValidatorTests
         }
 
         [Fact]
-        public void Should_Have_Error_When_Title_Is_Empty()
+        public async Task Should_Have_Error_When_Title_Is_Empty()
         {
             var createQuizCommand = new CreateQuizCommand
             {
                 Title = string.Empty,
             };
 
-            var result = _command.TestValidate(createQuizCommand);
+            var result = await _command.TestValidateAsync(createQuizCommand);
             result.ShouldHaveValidationErrorFor(e => e.Title);
         }
 
 
         [Fact]
-        public void Should_HaveError_When_Question_Is_Empty()
+        public async Task Should_HaveError_When_Question_Is_Empty()
         {
             var createQuizCommnad = new CreateQuizCommand
             {
                 Description = string.Empty,
             };
 
-            var result = _command.TestValidate(createQuizCommnad);
+            var result = await _command.TestValidateAsync(createQuizCommnad);
             result.ShouldHaveValidationErrorFor(e => e.Description);
         }
     }
