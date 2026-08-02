@@ -20,7 +20,7 @@ namespace Journey_of_faith.Application.usecases.questions.commands
             {
                 throw new ConfictException("Tên Cấp độ đã tồn tại không thể thực hiện tạo thêm");
             }
-            var quiz = new QuizLevel(command.Name);
+            var quiz = new QuizLevel(command.Name, command.Code, command?.Score ?? 1);
             await _questionRepository.CreateQuizLevel(quiz);
             Console.WriteLine("Tạo Cấp độ thành công.");
             return quiz.Id > 0;
@@ -37,7 +37,7 @@ namespace Journey_of_faith.Application.usecases.questions.commands
             {
                 throw new ConfictException("Tên Kiêu câu hỏi đã tồn tại không thể thực hiện tạo thêm");
             }
-            var questionType = new QuestionType(command.Name);
+            var questionType = new QuestionType(command.Name, command.Code, command?.Description ?? string.Empty);
             await _question.CreateQuestionType(questionType);
             Console.WriteLine("Tạo Kiểu câu hỏi thành công");
             return questionType.Id > 0;
@@ -54,9 +54,9 @@ namespace Journey_of_faith.Application.usecases.questions.commands
             {
                 throw new ConfictException("Tên Chủ đề đã tồn tại không thể thực hiện tạo thêm");
             }
-            var questionType = new QuestionCategory(command.Name);
+            var questionType = new QuestionCategory(command.Name, command.Code, command?.Description ?? string.Empty);
             await _questions.CreateQuestionCategory(questionType);
-            Console.WriteLine("Tạo Kiểu câu hỏi thành công");
+            Console.WriteLine("Tạo Chủ đề câu hỏi thành công");
             return questionType.Id > 0;
         }
     }

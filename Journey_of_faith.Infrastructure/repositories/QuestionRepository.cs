@@ -7,23 +7,28 @@ using Journey_of_faith.Infrastructure.common;
 using Journey_of_faith.Infrastructure.context;
 using Journey_of_faith.Infrastructure.services;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Options;
 using Microsoft.Identity.Client;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Text;
 
 namespace Journey_of_faith.Infrastructure.repositories
 {
     public record InsertQuestionDto(int LevelId, string QuestionContent, int? TypeId, int? CategoryId, string? ImageUrl);
     public record InsertAnswerDto(int questionId,string Content, bool isCorrect, string? ImageUrl, string? Explanation);
-    public sealed class QuestionRepository(
-        IOptions<TableSchemaName> _options,
-        IDbConnectionFactory factory
-    ) : IQuestionRepository
+    public sealed class QuestionRepository :  DataHandlerRequest,IQuestionRepository
     {
-        private readonly IDbConnectionFactory _connection = factory;
-        private readonly TableSchemaName _name = _options.Value;
+        private readonly IDbConnectionFactory _connection;
+        private readonly TableSchemaName _name;
+
+        public QuestionRepository(IDbConnectionFactory factory, IOptions<TableSchemaName> _options) : base(factory, _options)
+        {
+            _connection = factory;
+            _name = _options.Value;
+        }
         #region another method with table relationship
         public async Task<bool> NameExistsAsync(string name, string table)
         {
@@ -43,14 +48,15 @@ namespace Journey_of_faith.Infrastructure.repositories
         }
 
 
+         // tao moi tao level bai thi moi
         public async Task<bool> CreateQuizLevel(QuizLevel quizLevel)
         {
-            return await InsertOnlyName(TableQuestion.QuizLevel, new { Name = quizLevel.Name });
+            return await InsertOnlyName(TableQuestion.QuizLevel, new { Name = quizLevel.Name, Code = quizLevel.Code, Score = quizLevel.Score });
         }
         public async Task<QuizLevel?> GetDetailQuizLevel(int Id)
         {
-            var categories = new GetRequestData<QuizLevel>(factory: factory, _options);
-            return await categories.GetEntityDetails<QuizLevel>(Id, "GetDetailsQuestionLevel");
+            var quizLevel = await GetEntityDetailsAsync<QuizLevel>(Id, "GetDetailsQuestionLevel");
+            return quizLevel;
         }
         public async Task<int> GetCountQuestionByLevel(string name)
         {
@@ -58,23 +64,26 @@ namespace Journey_of_faith.Infrastructure.repositories
             return await connection.ExecuteScalarAsync<int>
                 ("GetCountQuestionLevel", new { Name = name }, commandType: System.Data.CommandType.StoredProcedure);
         }
+
+        // tao kieu cau hoi moi
         public async Task<bool> CreateQuestionType(QuestionType questionType)
         {
-            return await InsertOnlyName(TableQuestion.QuestionType, new { Name = questionType.Name });
+            return await InsertOnlyName(TableQuestion.QuestionType, new { Name = questionType.Name, Code = questionType.Code, Description = questionType.Description });
         }
         public async Task<QuestionType?> GetDetailsQuestionType(int Id)
         {
-            var types = new GetRequestData<QuestionType>(factory: factory, _options);
-            return await types.GetEntityDetails<QuestionType>(Id, "GetDetailsQuestionType");
+            return await  GetEntityDetailsAsync<QuestionType>(Id, "GetDetailsQuestionType");
         }
+
+
+        // tao danh muc cau hoi moi
         public async Task<bool> CreateQuestionCategory(QuestionCategory questionCategory)
         {
-            return await InsertOnlyName(TableQuestion.QuestionCategory, new { Name = questionCategory.Name });
+            return await InsertOnlyName(TableQuestion.QuestionCategory, new { Name = questionCategory.Name, Code = questionCategory.Code, Description = questionCategory.Description });
         }
         public async Task<QuestionCategory?> GetDetailsQuestionCategory(int Id)
         {
-            var categories = new GetRequestData<QuestionCategory>(factory: factory, _options);
-            return await categories.GetEntityDetails<QuestionCategory>(Id, "GetDetailsQuestionCategory");
+            return await GetEntityDetailsAsync<QuestionCategory>(Id, "GetDetailsQuestionCategory");
         }
 
         public async Task<IEnumerable<QuizLevel>> GetLevelsAsync()
@@ -87,16 +96,13 @@ namespace Journey_of_faith.Infrastructure.repositories
 
         public async Task<IEnumerable<QuestionType>> GetAllTypeQuestion()
         {
-            var types = new GetRequestData<QuestionType>(factory: factory, _options);
-            return await types.GetAll<QuestionType>(TableQuestion.QuestionType);
-        }
-        
-        public async Task<IEnumerable<QuestionCategory>> GetAllCategoryQuestion()
-        {
-            var categories = new GetRequestData<QuestionCategory>(factory: factory, _options);
-            return await categories.GetAll<QuestionCategory>(table: TableQuestion.QuestionCategory);
+            return await GetAllEntityAsync<QuestionType>(TableQuestion.QuestionType);
         }
 
+        public async Task<IEnumerable<QuestionCategory>> GetAllCategoryQuestion()
+        {
+            return await GetAllEntityAsync<QuestionCategory>(TableQuestion.QuestionCategory);
+        }
 
         public async Task<bool> CheckValidId(int id, string table)
         {
@@ -106,41 +112,42 @@ namespace Journey_of_faith.Infrastructure.repositories
             var result = await connection.ExecuteScalarAsync<int>(command, new { Id = id });
             return result == 1;
         }
-        private async Task<bool> InsertOnlyName(string table, object param)
-        {
-            string command = $"INSERT INTO [{_name.Schema}].[{table}] (Name) VALUES(@Name)";
-
-            using var connection = _connection.CreateConnection();
-            var result = await connection.ExecuteAsync(command, param);
-
-            return result > 0;
-        }
+        
         #endregion
         #region questions
 
         public async Task<bool> CreateQuestionAsync(Question question) {
-            string command = 
-                $"INSERT INTO [{_name.Schema}].[{TableQuestion.Question}] (LevelId, QuestionContent, TypeId, CategoryId, ImageUrl) " +
-                $"VALUES(@LevelId, @QuestionContent, @TypeId, @CategoryId, @ImageUrl) ";
-            using var connection = _connection.CreateConnection();
-            connection.Open();
-            var result = await connection.ExecuteAsync(command,
-                new InsertQuestionDto(question.LevelId, question.QuestionContent, question.TypeId, question.CategoryId, question.ImageUrl));
-
-            var questionId = await connection
-                .ExecuteScalarAsync<int>($"select Id from [{_name.Schema}].[{TableQuestion.Question}] where QuestionContent = @QuestionContent"
-                , new { QuestionContent = question.QuestionContent });
-
-            foreach(var answer in question.Answers)
+            try
             {
-                await connection
-                    .ExecuteAsync($@"INSERT INTO [{_name.Schema}].[{TableQuestion.Answer}] 
-                            (QuestionId, Content, IsCorrect, ImageUrl, Explanation)
-                            VALUES(@QuestionId, @Content, @IsCorrect, @ImageUrl, @Explanation)",
-                            new InsertAnswerDto(questionId,Content: answer.Content,
-                            isCorrect: answer.IsCorrect, ImageUrl: answer.ImageUrl, Explanation: answer.Explanation));
+                using var connection = _connection.CreateConnection();
+                DataTable answers = new DataTable();
+                answers.Columns.Add("Content", typeof(string));
+                answers.Columns.Add("IsCorrect", typeof(bool));
+                answers.Columns.Add("ImageUrl", typeof(string));
+                answers.Columns.Add("Explanation", typeof(string));
+
+
+                foreach (var answer in question.Answers)
+                {
+                    answers.Rows.Add(answer.Content, answer.IsCorrect, answer.ImageUrl, answer.Explanation);
+                }
+
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@LevelId", question.LevelId);
+                parameters.Add("@QuestionContent", question.QuestionContent);
+                parameters.Add("@TypeId", question.TypeId);
+                parameters.Add("@CategoryId", question.CategoryId);
+                parameters.Add("@ImageUrl", question.ImageUrl);
+                parameters.Add("@Answers", answers.AsTableValuedParameter("[dbo].[QuestionAnswerType]"));
+
+
+                var result = await connection.ExecuteAsync("spCreateQuestionWithAnswert", parameters, commandType: CommandType.StoredProcedure);
+                return result > 0;
+            } catch (SqlException ex)
+            {
+                throw new InvalidOperationException("An error occurred while creating the question.", ex);
             }
-            return result > 0;
         }
         public async Task<bool> CheckUniqueName(string name)
         {
@@ -270,23 +277,23 @@ namespace Journey_of_faith.Infrastructure.repositories
     }
     #endregion
     #region Get data generic
-    public class GetRequestData<T>
+    public abstract class DataHandlerRequest
     {
         private readonly IDbConnectionFactory _factory;
         private readonly TableSchemaName _schemaName;
-        public GetRequestData(IDbConnectionFactory factory, IOptions<TableSchemaName> _options)
+        public DataHandlerRequest(IDbConnectionFactory factory, IOptions<TableSchemaName> _options)
         {
             _factory = factory;
             _schemaName = _options.Value;
         }
 
-        public async Task<IEnumerable<T>> GetAll<T>(string table)
+        public async Task<IEnumerable<T>> GetAllEntityAsync<T>(string table)
         {
             var connection = _factory.CreateConnection();
             return await connection.QueryAsync<T>($"Select * from [{_schemaName.Schema}].[{table}]");
         }
 
-        public async Task<T?> GetEntityDetails<T>(int Id, string StoredProcedure)
+        public async Task<T?> GetEntityDetailsAsync<T>(int Id, string StoredProcedure)
         {
             var connection = _factory.CreateConnection();
             DynamicParameters param = new DynamicParameters();
@@ -296,6 +303,19 @@ namespace Journey_of_faith.Infrastructure.repositories
                     StoredProcedure, param, commandType: System.Data.CommandType.StoredProcedure
                 );
             return data;
+        }
+
+        public async Task<bool> InsertOnlyName(string table, object param)
+        {
+            string command = $"INSERT INTO [{_schemaName.Schema}].[{table}] (Name, Code, Description) VALUES(@Name, @Code, @Description)";
+            if(table == TableQuestion.QuizLevel)
+            {
+                command = $"INSERT INTO [{_schemaName.Schema}].[{table}] (Name, Code, Score) VALUES(@Name, @Code, @Score)";
+            }
+            using var connection = _factory.CreateConnection();
+            var result = await connection.ExecuteAsync(command, param);
+
+            return result > 0;
         }
     }
     #endregion
