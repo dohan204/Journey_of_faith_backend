@@ -18,10 +18,16 @@ namespace Journey_of_faith.Api.Controllers
     {
         private readonly IMediator _mediator = mediator;
         private readonly IFileStorageService _fileStorageService = service;
-        [HttpPost("quiz")]
+
+        /// <summary>
+        /// quizLevel => questionLevel
+        /// </summary>
+        /// <param name="command"></param>
+        /// <returns></returns>
+        [HttpPost("question-levels")]
         [Consumes(MediaTypeNames.Application.Json)]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public async Task<IActionResult> Quiz([FromBody] CreateQuizLevelCommand command)
+        public async Task<IActionResult> LevelCreate([FromBody] CreateQuizLevelCommand command)
         {
             var status = await _mediator.Send(command);
             return StatusCode(StatusCodes.Status201Created, new
@@ -31,7 +37,7 @@ namespace Journey_of_faith.Api.Controllers
             });
         }
 
-        [HttpGet("quiz")]
+        [HttpGet("question-levels")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAllLevel()
         {
@@ -51,11 +57,11 @@ namespace Journey_of_faith.Api.Controllers
             });
 
         }
-        [HttpGet("quiz/{quizId}/details")]
+        [HttpGet("question-levels/{levelId}/details")]
         [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetDetailsQuiz([FromRoute] int quizId)
+        public async Task<IActionResult> GetDetailsQuiz([FromRoute] int levelId)
         {
-            var quiz = await _mediator.Send(new GetDetailsQuestionLevelCommand { Id = quizId });
+            var quiz = await _mediator.Send(new GetDetailsQuestionLevelCommand { Id = levelId });
             if(quiz is null)
             {
                 return NotFound(new ApiResponse<QuizLevel>
@@ -72,11 +78,15 @@ namespace Journey_of_faith.Api.Controllers
             });
         }
 
-
-        [HttpPost("question_type")]
+        /// <summary>
+        ///  Create: Question Type
+        /// </summary>
+        /// <param name="command"></param>
+        /// <returns></returns>
+        [HttpPost("question-types")]
         [Consumes(MediaTypeNames.Application.Json)]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public async Task<IActionResult> QuestionType([FromBody] CreateQuestionTypeCommand command)
+        public async Task<IActionResult> QuestionTypeCreated([FromBody] CreateQuestionTypeCommand command)
         {
             var status = await _mediator.Send(command);
             return StatusCode(StatusCodes.Status201Created, new
@@ -85,7 +95,7 @@ namespace Journey_of_faith.Api.Controllers
                 Status = status
             });
         }
-        [HttpGet("question_type")]
+        [HttpGet("question-types")]
         [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAllType()
         {
@@ -105,7 +115,7 @@ namespace Journey_of_faith.Api.Controllers
                 Data = types
             });
         }
-        [HttpGet("question_type/{id}/details")]
+        [HttpGet("question-types/{id}/details")]
         [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
         public async Task<IActionResult> GetDetailsType([FromRoute] int id)
         {
@@ -125,10 +135,15 @@ namespace Journey_of_faith.Api.Controllers
             });
         }
 
-        [HttpPost("question_category")]
+        /// <summary>
+        /// Create Question category
+        /// </summary>
+        /// <param name="command"></param>
+        /// <returns></returns>
+        [HttpPost("question-categories")]
         [Consumes(MediaTypeNames.Application.Json)]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public async Task<IActionResult> QuestionCategory([FromBody] CreateQuestionCategoryCommand command)
+        public async Task<IActionResult> QuestionCategoryCreated([FromBody] CreateQuestionCategoryCommand command)
         {
             var status = await _mediator.Send(command);
             return StatusCode(StatusCodes.Status201Created, new
@@ -137,7 +152,7 @@ namespace Journey_of_faith.Api.Controllers
                 Status = status
             });
         }
-        [HttpGet("question_category")]
+        [HttpGet("question-categories")]
         [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAllCategory()
         {
@@ -157,7 +172,7 @@ namespace Journey_of_faith.Api.Controllers
             });
         }
 
-        [HttpGet("question_category/{id}/details")]
+        [HttpGet("question-categories/{id}/details")]
         [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
         public async Task<IActionResult> GetDetailsCategory([FromRoute] int id)
         {
@@ -177,28 +192,28 @@ namespace Journey_of_faith.Api.Controllers
             });
         }
         [HttpPost]
-        [Consumes("multipart/form-data")]
+        [Consumes(MediaTypeNames.Application.Json)]
         [ProducesResponseType(statusCode: StatusCodes.Status201Created)]
-        public async Task<IActionResult> CreateQuestion([FromForm] CreateQuestionCommand command, IFormFile? file)
+        public async Task<IActionResult> CreateQuestion([FromBody] CreateQuestionCommand command)
         {
-            if(file != null)
-            {
-                var path = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "uploads", "question");
-                if(!Directory.Exists(path))
-                {
-                    Directory.CreateDirectory(path);
-                }
+            // if(file != null)
+            // {
+            //     var path = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "uploads", "question");
+            //     if(!Directory.Exists(path))
+            //     {
+            //         Directory.CreateDirectory(path);
+            //     }
 
-                var UniquiFile = $"{Guid.NewGuid()}{System.IO.Path.GetExtension(file.FileName)}";
-                var filePath = System.IO.Path.Combine(path, UniquiFile);
+            //     var UniquiFile = $"{Guid.NewGuid()}{System.IO.Path.GetExtension(file.FileName)}";
+            //     var filePath = System.IO.Path.Combine(path, UniquiFile);
 
-                using(var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await file.CopyToAsync(stream);
-                }
+            //     using(var stream = new FileStream(filePath, FileMode.Create))
+            //     {
+            //         await file.CopyToAsync(stream);
+            //     }
 
-                command.ImageUrl = System.IO.Path.Combine("uploads", "question", UniquiFile);
-            }
+            //     command.ImageUrl = System.IO.Path.Combine("uploads", "question", UniquiFile);
+            // }
             await _mediator.Send(command);
             return Ok(new ApiResponse<object>
             {

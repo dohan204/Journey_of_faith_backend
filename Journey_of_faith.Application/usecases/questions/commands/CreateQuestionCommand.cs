@@ -9,10 +9,22 @@ namespace Journey_of_faith.Application.usecases.questions.commands
     public class CreateQuizLevelCommand : IRequest<bool>
     {
         public string Name { get; set; } = string.Empty;
+        public string Code { get; set; } = string.Empty;
+        public int Score { get; set; } = 0;
     }
 
-    public class CreateQuestionTypeCommand : CreateQuizLevelCommand { }
-    public class CreateQuestionCategoryCommand : CreateQuizLevelCommand { }
+    public class CreateQuestionTypeCommand : IRequest<bool>
+    {
+        public string Name {get; set;} = string.Empty;
+        public string Code { get; set;} = string.Empty;
+        public string Description { get; set; } = string.Empty;
+    }
+    public class CreateQuestionCategoryCommand : IRequest<bool>
+    {
+        public string Name { get; set; } = string.Empty;
+        public string Code { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+    }
 
 
     public class CreateQuestionCommand : IRequest<bool>
@@ -27,12 +39,11 @@ namespace Journey_of_faith.Application.usecases.questions.commands
 
     public class CreateAnswerCommand
     {
-        public int Id { get; set; }
         public int QuestionId { get; set; }
         public string Content { get; set; } = string.Empty;
         public bool IsCorrect { get; set; }
-        public string ImageUrl { get; set; } = string.Empty;
-        public string Explanation { get; set; } = string.Empty;
+        public string? ImageUrl { get; set; } = string.Empty;
+        public string? Explanation { get; set; } = string.Empty;
     }
 
     // validate
@@ -47,7 +58,7 @@ namespace Journey_of_faith.Application.usecases.questions.commands
 
     public class CreateQuestionTypeValidator : AbstractValidator<CreateQuestionTypeCommand>
     {
-        public CreateQuestionTypeValidator() { RuleFor(e => e.Name).NotEmpty().WithMessage("Tên Kiểu câu hỏi không được để trống."); } 
+        public CreateQuestionTypeValidator() { RuleFor(e => e.Name).NotEmpty().WithMessage("Tên Kiểu câu hỏi không được để trống."); }
     }
 
     public class CreateQuestionCategoryValidator : AbstractValidator<CreateQuestionCategoryCommand>
