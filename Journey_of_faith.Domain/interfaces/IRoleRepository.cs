@@ -14,4 +14,6 @@ public interface IRoleRepository
 
     Task<bool> DeleteRoleAsync(string roleName);
     Task<bool> NameExists(string name);
+    Task<bool> RemoveUserFromRole(Guid userId, string roleName);
+    Task<bool> UpdateRoleAsync(string roleId, Role role);
 }

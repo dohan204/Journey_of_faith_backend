@@ -1,3 +1,4 @@
+using System.Text.Json;
 using FluentValidation;
 using Journey_of_faith.Application.common.interfaces;
 using Journey_of_faith.Application.exceptions;
@@ -90,11 +91,14 @@ namespace Journey_of_faith.Application.usecases.events.commands
                 EndDate = request.EndDate,
                 ImageUrl = request.ImageUrl,
                 CreatorUserId = userId,
-                CategoryIds = request.CategoryIds,
+                CategoryIds = request.CategoryIds.Distinct().ToList(),
                 ImageUrls = request.ImageUrls
+                    .Where(e => !string.IsNullOrEmpty(e))
+                    .Select(e => e.Trim())
+                    .ToList()
             };
-
-            return await _eventRepository.CreateEventAsync(payload);
+            var jsonValue = JsonSerializer.Serialize(payload);
+            return await _eventRepository.CreateEventAsync(jsonValue);
         }
     }
 }

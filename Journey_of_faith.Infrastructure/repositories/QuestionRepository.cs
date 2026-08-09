@@ -1,6 +1,7 @@
 ﻿using Dapper;
 using Journey_of_faith.Application.common.interfaces;
 using Journey_of_faith.Application.exceptions;
+using Journey_of_faith.Domain.dtos;
 using Journey_of_faith.Domain.entities.quiz;
 using Journey_of_faith.Domain.interfaces;
 using Journey_of_faith.Infrastructure.common;
@@ -18,8 +19,8 @@ using System.Text;
 namespace Journey_of_faith.Infrastructure.repositories
 {
     public record InsertQuestionDto(int LevelId, string QuestionContent, int? TypeId, int? CategoryId, string? ImageUrl);
-    public record InsertAnswerDto(int questionId,string Content, bool isCorrect, string? ImageUrl, string? Explanation);
-    public sealed class QuestionRepository :  DataHandlerRequest,IQuestionRepository
+    public record InsertAnswerDto(int questionId, string Content, bool isCorrect, string? ImageUrl, string? Explanation);
+    public sealed class QuestionRepository : DataHandlerRequest, IQuestionRepository
     {
         private readonly IDbConnectionFactory _connection;
         private readonly TableSchemaName _name;
@@ -36,7 +37,7 @@ namespace Journey_of_faith.Infrastructure.repositories
             using var connection = _connection.CreateConnection();
 
             // CCheck null or empty
-            if(string.IsNullOrEmpty(name))
+            if (string.IsNullOrEmpty(name))
             {
                 throw new ArgumentNullException(nameof(name));
             }
@@ -48,7 +49,7 @@ namespace Journey_of_faith.Infrastructure.repositories
         }
 
 
-         // tao moi tao level bai thi moi
+        // tao moi tao level bai thi moi
         public async Task<bool> CreateQuizLevel(QuizLevel quizLevel)
         {
             return await InsertOnlyName(TableQuestion.QuizLevel, new { Name = quizLevel.Name, Code = quizLevel.Code, Score = quizLevel.Score });
@@ -72,7 +73,7 @@ namespace Journey_of_faith.Infrastructure.repositories
         }
         public async Task<QuestionType?> GetDetailsQuestionType(int Id)
         {
-            return await  GetEntityDetailsAsync<QuestionType>(Id, "GetDetailsQuestionType");
+            return await GetEntityDetailsAsync<QuestionType>(Id, "GetDetailsQuestionType");
         }
 
 
@@ -89,7 +90,7 @@ namespace Journey_of_faith.Infrastructure.repositories
         public async Task<IEnumerable<QuizLevel>> GetLevelsAsync()
         {
             using var connection = _connection.CreateConnection();
-            var levels = 
+            var levels =
                 await connection.QueryAsync<QuizLevel>($"SELECT * FROM [{_name.Schema}].[{TableQuestion.QuizLevel}] ");
             return levels;
         }
@@ -112,11 +113,103 @@ namespace Journey_of_faith.Infrastructure.repositories
             var result = await connection.ExecuteScalarAsync<int>(command, new { Id = id });
             return result == 1;
         }
-        
+
         #endregion
         #region questions
+        public async Task<PagedResult<dynamic>> GetQuestionsAsync(int page, int pageSize, string? search)
+        {
+            using var connection = _connection.CreateConnection();
 
-        public async Task<bool> CreateQuestionAsync(Question question) {
+            // 1. Lấy danh sách câu hỏi từ SP
+            var rawQuestions = (await connection.QueryAsync("spGetQuestions", new
+            {
+                page = page,
+                pageSize = pageSize,
+                search = search
+            }, commandType: CommandType.StoredProcedure)).ToList();
+
+            if (!rawQuestions.Any())
+            {
+                return new PagedResult<dynamic>
+                {
+                    Page = page,
+                    PageSize = pageSize,
+                    TotalCount = 0,
+                    Data = new List<dynamic>()
+                };
+            }
+
+            // 2. Lấy danh sách QuestionId để query Answer
+            var questionIds = rawQuestions.Select(q => (int)q.Id).ToList();
+
+            // 3. Query Answers sử dụng toán tử IN (Đã sửa @Ids -> IN @Ids)
+            var answers = await connection.QueryAsync(@"
+                SELECT ID, QuestionId, Content, IsCorrect
+                FROM [jcodepro_journey_of_faith].[Answer]
+                WHERE QuestionId IN @Ids
+            ", new { Ids = questionIds });
+
+            // Group answers theo QuestionId để lookup N+1 siêu nhanh O(1)
+            var answerLookup = answers.ToLookup(a => (int)a.QuestionId);
+
+            // 4. Map lại sang dynamic object có chứa thuộc tính Answers
+            var resultData = new List<dynamic>();
+            foreach (var q in rawQuestions)
+            {
+                // Chuyển DapperRow thành IDictionary để thêm key "Answers" / "Items"
+                var qDict = (IDictionary<string, object>)q;
+
+                // Gán mảng answers vào key "Answers" (hoặc "Items" tùy frontend cần)
+                qDict["Answers"] = answerLookup[(int)q.Id].ToList();
+
+                resultData.Add(qDict);
+            }
+
+            // 5. Đếm tổng số câu hỏi (Nên đưa COUNT vào bên trong SP hoặc filter theo search)
+            var countRows = await connection.ExecuteScalarAsync<int>(@"
+                SELECT COUNT(*) FROM [jcodepro_journey_of_faith].[Question]
+                WHERE IsDeleted < 1 
+                AND (@search IS NULL OR QuestionContent LIKE '%' + @search + '%')
+            ", new { search });
+
+            return new PagedResult<dynamic>
+            {
+                Page = page,
+                PageSize = pageSize,
+                TotalCount = countRows,
+                Data = resultData
+            };
+        }
+        public async Task<bool> InsertBulkQuestionAsync(string jsonValue)
+        {
+            using(var connection = _connection.CreateConnection())
+            {
+                var parameters = new { JsonData = jsonValue };
+                await connection.ExecuteAsync(
+                    "sp_UploadQuestionsFromJson",
+                    parameters,
+                    commandType: CommandType.StoredProcedure
+                );
+
+                return true;
+            }
+        }
+
+        public async Task<bool> InsertMultipleCategories(string valuesInsert)
+        {
+            using(var connection = _connection.CreateConnection())
+            {
+                var parameters = new { DataJson = valuesInsert };  
+                await connection.ExecuteAsync(
+                    "spInsertMultipleCategory", 
+                    parameters,
+                    commandType: CommandType.StoredProcedure
+                );
+                return true;
+            }
+        }
+        public async Task<bool> CreateQuestionAsync(Question question)
+        {
             try
             {
                 using var connection = _connection.CreateConnection();
@@ -144,7 +237,8 @@ namespace Journey_of_faith.Infrastructure.repositories
 
                 var result = await connection.ExecuteAsync("spCreateQuestionWithAnswert", parameters, commandType: CommandType.StoredProcedure);
                 return result > 0;
-            } catch (SqlException ex)
+            }
+            catch (SqlException ex)
             {
                 throw new InvalidOperationException("An error occurred while creating the question.", ex);
             }
@@ -168,25 +262,25 @@ namespace Journey_of_faith.Infrastructure.repositories
             var connection = _connection.CreateConnection();
             return await connection.ExecuteScalarAsync<int>($"Select Count(*) from [{_name.Schema}].[{TableQuestion.Question}]");
         }
-        public async Task<QuestionView?> GetDetailsQuestion(int id)
-        {
-            using var connection = _connection.CreateConnection();
-            var sql = @"
-                        SELECT * FROM [jcodepro_journey_of_faith].Question WHERE Id = @Id;
-                        SELECT * FROM Answer WHERE QuestionId = @Id";
-            using (var multiLine = await connection.QueryMultipleAsync(sql, new { Id = id }))
-            {
-                var question = await multiLine.ReadSingleOrDefaultAsync<QuestionView>();
-                if(question is not null)
-                {
-                    var answer = (await multiLine.ReadAsync<AnswerView>()).ToList();
+        // public async Task<Question?> GetDetailsQuestion(int id)
+        // {
+        //     using var connection = _connection.CreateConnection();
+        //     var sql = @"
+        //                 SELECT * FROM [jcodepro_journey_of_faith].Question WHERE Id = @Id;
+        //                 SELECT * FROM Answer WHERE QuestionId = @Id";
+        //     using (var multiLine = await connection.QueryMultipleAsync(sql, new { Id = id }))
+        //     {
+        //         var question = await multiLine.ReadSingleOrDefaultAsync<QuestionView>();
+        //         if(question is not null)
+        //         {
+        //             var answer = (await multiLine.ReadAsync<AnswerView>()).ToList();
 
-                    question?.Answers = answer.ToList();
-                }
+        //             question?.Answers = answer.ToList();
+        //         }
 
-                return question;
-            }
-        }
+        //         return question;
+        //     }
+        // }
 
         public async Task<bool> UpdateQuestion(Question question)
         {
@@ -204,13 +298,15 @@ namespace Journey_of_faith.Infrastructure.repositories
                                     CategoryId = Coalesce(@CategoryId, CategoryId),
                                     ImageUrl = Coalesce(@ImageUrl, ImageUrl)
                                     where Id = @Id",
-                    new { 
-                        LevelId = question.LevelId, 
+                    new
+                    {
+                        LevelId = question.LevelId,
                         QuestionContent = question.QuestionContent,
                         TypeId = question.TypeId,
                         CategoryId = question.CategoryId,
                         ImageUrl = question.ImageUrl,
-                        Id = question.Id },
+                        Id = question.Id
+                    },
                     transaction
                 );
 
@@ -237,7 +333,8 @@ namespace Journey_of_faith.Infrastructure.repositories
 
                 transaction.Commit();
                 return true;
-            } catch
+            }
+            catch
             {
                 transaction.Rollback();
                 throw;
@@ -308,7 +405,7 @@ namespace Journey_of_faith.Infrastructure.repositories
         public async Task<bool> InsertOnlyName(string table, object param)
         {
             string command = $"INSERT INTO [{_schemaName.Schema}].[{table}] (Name, Code, Description) VALUES(@Name, @Code, @Description)";
-            if(table == TableQuestion.QuizLevel)
+            if (table == TableQuestion.QuizLevel)
             {
                 command = $"INSERT INTO [{_schemaName.Schema}].[{table}] (Name, Code, Score) VALUES(@Name, @Code, @Score)";
             }

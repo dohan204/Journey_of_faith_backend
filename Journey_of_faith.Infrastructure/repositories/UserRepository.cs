@@ -43,10 +43,10 @@ public class UserRepository : BaseRepository, Journey_of_faith.Domain.interfaces
                         from [jcodepro_journey_of_faith].[User] u
                         inner join [jcodepro_journey_of_faith].[AspNetUserRoles] aspur on u.Id = aspur.UserId
                         inner join [jcodepro_journey_of_faith].[AspNetRoles] aspr on aspur.RoleId = aspr.Id
-                        where IsDeleted < 1
+                        where IsDeleted = 0
                         order by u.Id
-                        offset 0 rows
-                        fetch next 10 rows only";
+                        offset @currentPageIndex rows
+                        fetch next @pageSize rows only";
 
             var totalCount = await connection.ExecuteScalarAsync<int>($"Select Count(*) from [{_schemaName.Schema}].[User]");
             var users = await connection.QueryAsync<User>(sql, new { currentPageIndex, pageSize });
@@ -61,8 +61,6 @@ public class UserRepository : BaseRepository, Journey_of_faith.Domain.interfaces
 
         });
     }
-
-
     public async Task<User?> GetUserAsync(Guid Id)
     {
         return await QueryAsync<User>(async connection =>
@@ -70,7 +68,6 @@ public class UserRepository : BaseRepository, Journey_of_faith.Domain.interfaces
             return await connection.QueryFirstOrDefaultAsync<User>($"Select * from [{_schemaName.Schema}] where Id = @Id", new { Id });
         });
     }
-
     public async Task<bool> DeleteUserAsync(Guid Id)
     {
         return await QueryAsync<bool>(async connection =>
@@ -84,4 +81,7 @@ public class UserRepository : BaseRepository, Journey_of_faith.Domain.interfaces
                                                 ", new {Id}) > 0;
         });
     }
+
+
+
 }
