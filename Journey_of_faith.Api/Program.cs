@@ -13,6 +13,7 @@ using System.Data;
 using static Microsoft.Extensions.DependencyInjection.SchemaRequestExecutorBuilderExtensions;
 using System.Diagnostics;
 using Journey_of_faith.Infrastructure.context;
+using OfficeOpenXml;
 var builder = WebApplication.CreateBuilder(args);
 
 SqlMapper.AddTypeHandler(new GuidTypeHandler());
@@ -68,6 +69,7 @@ builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 //     // .ModifyRequestOptions(opt => opt.PersistedOperations.OnlyAllowPersistedDocuments = true);
 
 
+ExcelPackage.License.SetNonCommercialOrganization("JourneyOfFaith");
 
 // builder.Services.AddScoped<CustomHttpResponseFormatter>();
 var app = builder.Build();

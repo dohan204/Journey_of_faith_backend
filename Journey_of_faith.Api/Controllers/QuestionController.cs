@@ -8,6 +8,9 @@ using Microsoft.AspNetCore.Mvc;
 using System.Net.Mime;
 using Journey_of_faith.Application.common.interfaces;
 using Journey_of_faith.Domain.interfaces;
+using Journey_of_faith.Domain.dtos;
+using Journey_of_faith.Application.common.dtos;
+using Journey_of_faith.Application.exceptions;
 
 #nullable disable
 namespace Journey_of_faith.Api.Controllers
@@ -42,7 +45,7 @@ namespace Journey_of_faith.Api.Controllers
         public async Task<IActionResult> GetAllLevel()
         {
             var result = await _mediator.Send(new GetLevelQuery());
-            if(!result.Any())
+            if (!result.Any())
             {
                 return Ok(new ApiResponse<IEnumerable<QuizLevel>>
                 {
@@ -62,7 +65,7 @@ namespace Journey_of_faith.Api.Controllers
         public async Task<IActionResult> GetDetailsQuiz([FromRoute] int levelId)
         {
             var quiz = await _mediator.Send(new GetDetailsQuestionLevelCommand { Id = levelId });
-            if(quiz is null)
+            if (quiz is null)
             {
                 return NotFound(new ApiResponse<QuizLevel>
                 {
@@ -100,7 +103,7 @@ namespace Journey_of_faith.Api.Controllers
         public async Task<IActionResult> GetAllType()
         {
             var types = await _mediator.Send(new GetQuestionTypeQuery());
-            if(!types.Any())
+            if (!types.Any())
             {
                 return Ok(new ApiResponse<IEnumerable<QuestionType>>
                 {
@@ -120,7 +123,7 @@ namespace Journey_of_faith.Api.Controllers
         public async Task<IActionResult> GetDetailsType([FromRoute] int id)
         {
             var type = await _mediator.Send(new GetDetailsQuestionTypeQuery { Id = id });
-            if(type is null)
+            if (type is null)
             {
                 return NotFound(new ApiResponse<QuestionType>
                 {
@@ -157,7 +160,7 @@ namespace Journey_of_faith.Api.Controllers
         public async Task<IActionResult> GetAllCategory()
         {
             var categories = await _mediator.Send(new GetCategoriesQuery());
-            if(!categories.Any())
+            if (!categories.Any())
             {
                 return Ok(new ApiResponse<IEnumerable<QuestionCategory>>
                 {
@@ -177,7 +180,7 @@ namespace Journey_of_faith.Api.Controllers
         public async Task<IActionResult> GetDetailsCategory([FromRoute] int id)
         {
             var category = await _mediator.Send(new GetDetailsQuestionCategoryQuery { Id = id });
-            if(category is null)
+            if (category is null)
             {
                 return NotFound(new ApiResponse<QuestionCategory>
                 {
@@ -221,25 +224,12 @@ namespace Journey_of_faith.Api.Controllers
                 Data = command
             });
         }
-        [HttpGet("{Id}/details")]
+        [HttpGet]
         [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetDetailsQuestion(int Id)
+        public async Task<IActionResult> GetQuestions([FromQuery] int page, [FromQuery] int pageSize, [FromQuery] string? search)
         {
-            var data = await _mediator.Send(new GetDetailsQuestionQuery  { Id = Id });
-            if(data is null)
-            {
-                return NotFound(new ApiResponse<object>
-                {
-                    Message = "Không tìm thấy dữ liệu",
-                    Data = data,
-                });
-            }
-
-            return Ok(new ApiResponse<QuestionView>
-            {
-                Message = "Lấy dữ liệu thành công.",
-                Data = data,
-            });
+            var data = await _mediator.Send(new GetQuestionsQuery { Page = page, PageSize = pageSize, Search = search });
+            return Ok(data);
         }
 
         [HttpPut]
@@ -255,6 +245,38 @@ namespace Journey_of_faith.Api.Controllers
         {
             await _mediator.Send(new DeleteQuestionCommand { Id = Id });
             return NoContent();
+        }
+        [HttpGet("template")]
+        public async Task<IActionResult> GetTemplateUpload()
+        {
+            var template = await _mediator.Send(new GetTemplateUploadFileQuery());
+            return Ok(template);
+        }
+
+        [HttpPost("upload")]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> UploadQuestion([FromForm] IFormFile formFile)
+        {
+            if (formFile == null || formFile.Length == 0)
+                return BadRequest("File không được để trống");
+
+            var expectedExtension = new[] { ".xls", ".xlsx" };
+            var ext = System.IO.Path.GetExtension(formFile.FileName)?.ToLowerInvariant();
+            if (!expectedExtension.Contains(ext))
+                return BadRequest("File không hợp lệ, vui lòng kiểm tra lại xem có đúng file excel hay không");
+
+            using var memoryStream = new MemoryStream();
+            await formFile.CopyToAsync(memoryStream);
+
+            try
+            {
+                await _mediator.Send(new UploadFileCommand { FileBytes = memoryStream.ToArray() });
+                return StatusCode(StatusCodes.Status201Created);
+            }
+            catch (BadRequestException ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
     }
 }

@@ -24,7 +24,6 @@ namespace Journey_of_faith.Api.Controllers
             var login = await _me.Send(query);
             return Ok(login);
         }
-
         [HttpPost("refresh")]
         public async Task<IActionResult> RefreshToken([FromBody] CreateRefreshTokenCommand command)
         {
@@ -37,7 +36,6 @@ namespace Journey_of_faith.Api.Controllers
             await _me.Send(command);
             return NoContent();
         }
-
         [HttpGet("roles")]
         public async Task<IActionResult> GetRoles([FromQuery] int page, [FromQuery] int pageSize, [FromQuery] string? search)
         {
@@ -90,13 +88,25 @@ namespace Journey_of_faith.Api.Controllers
                 Data = result
             });
         }
-
-
         [HttpDelete("roles/{Name}")]
         public async Task<IActionResult> Delete([FromRoute] string Name)
         {
             await _me.Send(new DeleteRoleCommand { RoleName = Name});
             return NoContent();
         }
+
+        [HttpDelete("roles/remove-user")]
+        public async Task<IActionResult> RemoveUserRole([FromBody] DeleteUserFromRoleCommand command)
+        {
+            await _me.Send(new DeleteUserFromRoleCommand {userId = command.userId, RoleName = command.RoleName} );
+            return NoContent();
+        }
+        [HttpPut("roles")]
+        public async Task<IActionResult> UpdateRole([FromBody] UpDateRoleCommand command)
+        {
+            await _me.Send(command);
+            return NoContent();
+        }
+
     }
 }

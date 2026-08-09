@@ -20,13 +20,18 @@ public class RoleRepository : BaseRepository, IRoleRepository
 {
     private readonly ApplicationDbContext _dbContext;
     private readonly RoleManager<ApplicationRole> _roleManager;
-    public RoleRepository(ApplicationDbContext dbContext, 
-        IOptions<TableSchemaName> tableSchemaName, IDbConnectionFactory dbConnectionFactory,
-        RoleManager<ApplicationRole> roleManager)
+    private readonly UserManager<ApplicationUser> _userManager;
+    public RoleRepository(ApplicationDbContext dbContext,
+        IOptions<TableSchemaName> tableSchemaName,
+        IDbConnectionFactory dbConnectionFactory,
+        RoleManager<ApplicationRole> roleManager,
+        UserManager<ApplicationUser> userManager
+        )
     : base(dbConnectionFactory, schemaName: tableSchemaName)
     {
         _dbContext = dbContext;
         _roleManager = roleManager;
+        _userManager = userManager;
     }
 
 
@@ -80,7 +85,7 @@ public class RoleRepository : BaseRepository, IRoleRepository
     public async Task<bool> AddPermissionForRole(string roleName, List<string> permissions)
     {
         var roleExists = await _roleManager.FindByNameAsync(roleName);
-        if(roleExists == null)
+        if (roleExists == null)
         {
             throw new BadRequestException("Tên vai trò không tồn tại");
         }
@@ -92,13 +97,13 @@ public class RoleRepository : BaseRepository, IRoleRepository
             .Where(x => x.Type == "Permission")
             .Select(x => x.Value)
             .ToHashSet();
-        foreach(string permission in permissions)
+        foreach (string permission in permissions)
         {
-            if(!existingPermissionValues.Contains(permission))
+            if (!existingPermissionValues.Contains(permission))
             {
                 var result = await _roleManager.AddClaimAsync(roleExists, new Claim("Permission", permission));
 
-                if(!result.Succeeded)
+                if (!result.Succeeded)
                 {
                     throw new BadRequestException("Không thể thêm quyền cho Vai trò");
                 }
@@ -112,9 +117,9 @@ public class RoleRepository : BaseRepository, IRoleRepository
     {
         return await QueryAsync<List<object>>(async connection =>
         {
-           var sql = @"select a.Id, a.Name, c.ClaimType, c.ClaimValue from jcodepro_journey_of_faith.AspNetRoles a
+            var sql = @"select a.Id, a.Name, c.ClaimType, c.ClaimValue from jcodepro_journey_of_faith.AspNetRoles a
             inner join jcodepro_journey_of_faith.AspNetRoleClaims c
-            on a.Id = c.RoleId" ;
+            on a.Id = c.RoleId";
 
             var permissions = await connection.QueryAsync<object>(sql);
             return permissions.ToList();
@@ -124,18 +129,71 @@ public class RoleRepository : BaseRepository, IRoleRepository
     public async Task<bool> DeleteRoleAsync(string roleName)
     {
         var role = await _roleManager.FindByNameAsync(roleName);
-        if(role == null)
+        if (role == null)
         {
             throw new NotFoundException($"Role '{roleName}' invalid.");
         }
-        var result = await _roleManager.DeleteAsync(role);
-        if(!result.Succeeded)
+
+        var userRoleExists = await _userManager.GetUsersInRoleAsync(roleName);
+        if(userRoleExists.Any())
         {
-           var error = string.Join(", ", result.Errors.Select(e => e.Description) );
-           throw new BadRequestException($"Don't delete {roleName}: {error}"); 
+            throw new BadRequestException($"Don't delete: {roleName} because {userRoleExists.Count} users used this role.");   
+        }
+        var result = await _roleManager.DeleteAsync(role);
+        if (!result.Succeeded)
+        {
+            var error = string.Join(", ", result.Errors.Select(e => e.Description));
+            throw new BadRequestException($"Don't delete {roleName}: {error}");
         }
 
         return result.Succeeded;
     }
     public async Task<bool> NameExists(string name) => await _dbContext.Roles.AnyAsync(e => e.Name == name);
+
+    public async Task<bool> RemoveUserFromRole(Guid userId, string roleName)
+    {
+        try
+        {
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user is null)
+            {
+                throw new NotFoundException("Người dùng không hợp lệ");
+            }
+            var role = await _roleManager.FindByNameAsync(roleName);
+            if (role is null)
+            {
+                throw new NotFoundException("Vai trò không hợp lệ");
+            }
+
+
+            IdentityResult remove = await _userManager.RemoveFromRoleAsync(user, role.Name);
+            if (!remove.Succeeded)
+            {
+                throw new BadRequestException(string.Join(", ", remove.Errors.Select(e => e.Description)));
+            }
+            return remove.Succeeded;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            throw;
+        }
+    }
+
+
+    public async Task<bool> UpdateRoleAsync(string roleId ,Role role)
+    {
+
+        var roleExits = await _roleManager.FindByIdAsync(roleId);
+        if (roleExits is null)
+        {
+            throw new NotFoundException($"{role.Name} is not found.");
+        }
+
+        roleExits.Name = role.Name ?? roleExits.Name;
+        roleExits.Descriptions = role.Descriptions ?? roleExits.Descriptions;
+
+        IdentityResult result = await _roleManager.UpdateAsync(roleExits);
+        return result.Succeeded;
+    }
 }

@@ -11,5 +11,7 @@ namespace Journey_of_faith.Application.common.interfaces
         Task<bool> ExistsEmail(string email);
 
         Task<User?> GetUserByIdAsync(Guid id);
+        Task<bool> UpdateRoleAsync(Guid Id, string oldRoleName, string newRoleName);
+
     }
 }

@@ -59,9 +59,10 @@ namespace Journey_of_faith.Domain.interfaces
     {
         public string Title { get; set; } = string.Empty;
         public string? Description { get; set; }
-        public string? Location { get; set; }
+        public string Location { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime? EndDate { get; set; }
+        public string Status {get; set;}
         public string? ImageUrl { get; set; }
         public Guid CreatorUserId { get; set; }
         public List<int> CategoryIds { get; set; } = [];
@@ -91,7 +92,7 @@ namespace Journey_of_faith.Domain.interfaces
         Task<int> CreateCategoryAsync(string categoryName);
         Task<IEnumerable<EventCategoryView>> GetCategoriesAsync();
 
-        Task<int> CreateEventAsync(CreateEventPayload payload);
+        Task<int> CreateEventAsync( string payload);
         Task<bool> UpdateEventAsync(UpdateEventPayload payload);
         Task<bool> DeleteEventAsync(int eventId);
 

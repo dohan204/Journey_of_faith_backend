@@ -57,8 +57,6 @@ namespace Journey_of_faith.Infrastructure.identity.services
                 };
                 await roleManager.CreateAsync(newRole);
             }
-
-
             await _userManager.AddToRoleAsync(user, role);
             return true;
         }
@@ -79,5 +77,41 @@ namespace Journey_of_faith.Infrastructure.identity.services
             var userMapp = _mapper.Map<Journey_of_faith.Domain.entities.User>(user);
             return userMapp;
         }
+
+
+        public async Task<bool> UpdateRoleAsync(Guid userId, string oldRoleName, string newRoleName)
+        {
+            // lấy ra thông tin người dùng
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user is null)
+            {
+                throw new NotFoundException("Người dùng không tồn tại");
+            }
+
+            // xóa người dùng khỏi vai trò 
+            IdentityResult remove = await _userManager.RemoveFromRoleAsync(user, oldRoleName);
+            if(!remove.Succeeded)
+            {
+                throw new BadRequestException(string.Join(",", remove.Errors.Select(e => e.Description)));
+            }
+
+            // tìm kiểm xem vai trò mới có hợp lệ hay không 
+            var roleExists = await roleManager.FindByNameAsync(newRoleName);
+            if(roleExists is null)
+            {
+                throw new NotFoundException("Vai trò mới không hợp lệ.");
+            }
+
+            // thêm vai trò mới vào cho người dùng
+            IdentityResult addNew = await _userManager.AddToRoleAsync(user, newRoleName);
+            if(!addNew.Succeeded)
+            {
+                throw new BadRequestException(string.Join(",", addNew.Errors.Select(e => e.Description)));
+            }
+            return true;
+        }
+
+
+        
     }
 }

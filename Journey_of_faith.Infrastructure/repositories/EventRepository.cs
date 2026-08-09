@@ -92,84 +92,16 @@ namespace Journey_of_faith.Infrastructure.repositories
             });
         }
 
-        public async Task<int> CreateEventAsync(CreateEventPayload payload)
+        public async Task<int> CreateEventAsync(string json)
         {
             return await ExecuteAsync(async connection =>
             {
-                if (connection.State != ConnectionState.Open)
-                {
-                    connection.Open();
-                }
-
-                using var transaction = connection.BeginTransaction();
-                try
-                {
-                    var eventId = await connection.ExecuteScalarAsync<int>($@"
-                        INSERT INTO [{_schemaName.Schema}].[{EventTables.Event}]
-                        (
-                            Title,
-                            Description,
-                            Location,
-                            StartDate,
-                            EndDate,
-                            ImageUrl,
-                            CreatorUserId,
-                            LastModifierUserId
-                        )
-                        OUTPUT inserted.Id
-                        VALUES
-                        (
-                            @Title,
-                            @Description,
-                            @Location,
-                            @StartDate,
-                            @EndDate,
-                            @ImageUrl,
-                            @CreatorUserId,
-                            @CreatorUserId
-                        )
-                    ", new
-                    {
-                        payload.Title,
-                        payload.Description,
-                        payload.Location,
-                        payload.StartDate,
-                        payload.EndDate,
-                        payload.ImageUrl,
-                        payload.CreatorUserId
-                    }, transaction);
-
-                    var categoryIds = payload.CategoryIds.Distinct().ToList();
-                    foreach (var categoryId in categoryIds)
-                    {
-                        await connection.ExecuteAsync($@"
-                            INSERT INTO [{_schemaName.Schema}].[{EventTables.EventCategoryMapping}] (EventId, CategoryId)
-                            VALUES (@EventId, @CategoryId)
-                        ", new { EventId = eventId, CategoryId = categoryId }, transaction);
-                    }
-
-                    var imageUrls = payload.ImageUrls
-                        .Where(url => !string.IsNullOrWhiteSpace(url))
-                        .Select(url => url.Trim())
-                        .Distinct()
-                        .ToList();
-
-                    foreach (var imageUrl in imageUrls)
-                    {
-                        await connection.ExecuteAsync($@"
-                            INSERT INTO [{_schemaName.Schema}].[{EventTables.EventImage}] (EventId, ImageUrl)
-                            VALUES (@EventId, @ImageUrl)
-                        ", new { EventId = eventId, ImageUrl = imageUrl }, transaction);
-                    }
-
-                    transaction.Commit();
-                    return eventId;
-                }
-                catch
-                {
-                    transaction.Rollback();
-                    throw;
-                }
+                var paramter = new { JsonData = json };
+                return await connection.ExecuteAsync(
+                    "spCreateEventWithAnotherToping",
+                    paramter,
+                    commandType: CommandType.StoredProcedure
+                );
             });
         }
 

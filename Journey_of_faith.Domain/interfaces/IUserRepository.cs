@@ -8,6 +8,7 @@ public interface IUserRepository
 {
     Task<PagedResult<User>> GetUsersAsync(int page, int pageSize, string? search);
     Task<User?> GetUserAsync(Guid Id);
+    // Task<bool> UpdateUserAsync(User user);
 
     Task<bool> DeleteUserAsync(Guid Id);
 }
