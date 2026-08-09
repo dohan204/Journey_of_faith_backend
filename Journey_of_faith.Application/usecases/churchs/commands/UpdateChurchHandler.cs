@@ -46,7 +46,7 @@ public class UpdateChurchHandler : IRequestHandler<UpdateChurchCommand, int>
 
             _logger.LogError("data update: {0}", command);
             _logger.LogWarning("MassSchedule: {0}", listMassSche);
-            var church = new Church(command.Id, command.Name, command.Email, command.Email, command.DioceseId, command.Boss, command.Description, userId, listMassSche);
+            var church = new Church(command.Id, command.Name, command.Email, command.Address, command.DioceseId, command.Boss, command.Description, userId, listMassSche);
             church.SetLocation(command?.Latitude ?? 0, command?.Longitude ?? 0);
 
             return await churchRepository.UpdateAsync(church, userId);
