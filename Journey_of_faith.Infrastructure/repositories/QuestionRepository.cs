@@ -1,4 +1,5 @@
 ﻿using Dapper;
+using HotChocolate.Types.Pagination;
 using Journey_of_faith.Application.common.interfaces;
 using Journey_of_faith.Application.exceptions;
 using Journey_of_faith.Domain.dtos;
@@ -22,26 +23,22 @@ namespace Journey_of_faith.Infrastructure.repositories
     public record InsertAnswerDto(int questionId, string Content, bool isCorrect, string? ImageUrl, string? Explanation);
     public sealed class QuestionRepository : DataHandlerRequest, IQuestionRepository
     {
-        private readonly IDbConnectionFactory _connection;
-        private readonly TableSchemaName _name;
 
         public QuestionRepository(IDbConnectionFactory factory, IOptions<TableSchemaName> _options) : base(factory, _options)
         {
-            _connection = factory;
-            _name = _options.Value;
         }
         #region another method with table relationship
         public async Task<bool> NameExistsAsync(string name, string table)
         {
             // tạo kết nối
-            using var connection = _connection.CreateConnection();
+            using var connection = _factory.CreateConnection();
 
             // CCheck null or empty
             if (string.IsNullOrEmpty(name))
             {
                 throw new ArgumentNullException(nameof(name));
             }
-            var sql = $@"IF EXISTS (SELECT 1 FROM [{_name.Schema}].[{table}] WHERE Name = @Name)
+            var sql = $@"IF EXISTS (SELECT 1 FROM [{_schemaName.Schema}].[{table}] WHERE Name = @Name)
                                         SELECT 1 ELSE SELECT 0";
 
             var result = await connection.ExecuteScalarAsync<int>(sql, new { Name = name });
@@ -61,7 +58,7 @@ namespace Journey_of_faith.Infrastructure.repositories
         }
         public async Task<int> GetCountQuestionByLevel(string name)
         {
-            var connection = _connection.CreateConnection();
+            var connection = _factory.CreateConnection();
             return await connection.ExecuteScalarAsync<int>
                 ("GetCountQuestionLevel", new { Name = name }, commandType: System.Data.CommandType.StoredProcedure);
         }
@@ -89,9 +86,9 @@ namespace Journey_of_faith.Infrastructure.repositories
 
         public async Task<IEnumerable<QuizLevel>> GetLevelsAsync()
         {
-            using var connection = _connection.CreateConnection();
+            using var connection = _factory.CreateConnection();
             var levels =
-                await connection.QueryAsync<QuizLevel>($"SELECT * FROM [{_name.Schema}].[{TableQuestion.QuizLevel}] ");
+                await connection.QueryAsync<QuizLevel>($"SELECT * FROM [{_schemaName.Schema}].[{TableQuestion.QuizLevel}] ");
             return levels;
         }
 
@@ -107,9 +104,9 @@ namespace Journey_of_faith.Infrastructure.repositories
 
         public async Task<bool> CheckValidId(int id, string table)
         {
-            var command = $@"IF EXISTS (SELECT 1 FROM [{_name.Schema}].[{table}] where Id = @Id)
+            var command = $@"IF EXISTS (SELECT 1 FROM [{_schemaName.Schema}].[{table}] where Id = @Id)
                                 SELECT 1 ELSE SELECT 0";
-            using var connection = _connection.CreateConnection();
+            using var connection = _factory.CreateConnection();
             var result = await connection.ExecuteScalarAsync<int>(command, new { Id = id });
             return result == 1;
         }
@@ -118,7 +115,7 @@ namespace Journey_of_faith.Infrastructure.repositories
         #region questions
         public async Task<PagedResult<dynamic>> GetQuestionsAsync(int page, int pageSize, string? search)
         {
-            using var connection = _connection.CreateConnection();
+            using var connection = _factory.CreateConnection();
 
             // 1. Lấy danh sách câu hỏi từ SP
             var rawQuestions = (await connection.QueryAsync("spGetQuestions", new
@@ -182,7 +179,7 @@ namespace Journey_of_faith.Infrastructure.repositories
         }
         public async Task<bool> InsertBulkQuestionAsync(string jsonValue)
         {
-            using(var connection = _connection.CreateConnection())
+            using(var connection = _factory.CreateConnection())
             {
                 var parameters = new { JsonData = jsonValue };
                 await connection.ExecuteAsync(
@@ -197,7 +194,7 @@ namespace Journey_of_faith.Infrastructure.repositories
 
         public async Task<bool> InsertMultipleCategories(string valuesInsert)
         {
-            using(var connection = _connection.CreateConnection())
+            using(var connection = _factory.CreateConnection())
             {
                 var parameters = new { DataJson = valuesInsert };  
                 await connection.ExecuteAsync(
@@ -212,7 +209,7 @@ namespace Journey_of_faith.Infrastructure.repositories
         {
             try
             {
-                using var connection = _connection.CreateConnection();
+                using var connection = _factory.CreateConnection();
                 DataTable answers = new DataTable();
                 answers.Columns.Add("Content", typeof(string));
                 answers.Columns.Add("IsCorrect", typeof(bool));
@@ -245,12 +242,12 @@ namespace Journey_of_faith.Infrastructure.repositories
         }
         public async Task<bool> CheckUniqueName(string name)
         {
-            using var connection = _connection.CreateConnection();
+            using var connection = _factory.CreateConnection();
 
             string sql = $@"
             IF EXISTS (
                 SELECT 1 
-                FROM [{_name.Schema}].[{TableQuestion.Question}] 
+                FROM [{_schemaName.Schema}].[{TableQuestion.Question}] 
                 WHERE QuestionContent = @QuestionContent
             ) 
             SELECT 1 ELSE SELECT 0";
@@ -259,8 +256,41 @@ namespace Journey_of_faith.Infrastructure.repositories
         }
         public async Task<int> GetCountQuestion()
         {
-            var connection = _connection.CreateConnection();
-            return await connection.ExecuteScalarAsync<int>($"Select Count(*) from [{_name.Schema}].[{TableQuestion.Question}]");
+            await using var connection = (SqlConnection)_factory.CreateConnection();
+            return await connection.ExecuteScalarAsync<int>($"Select Count(*) from [{_schemaName.Schema}].[{TableQuestion.Question}]");
+        }
+
+
+        public async Task<IEnumerable<Question>> GetQuestionsWithCondition(int categoryId, int levelId, int countQuestion)
+        {
+            await using var connection = (SqlConnection)_factory.CreateConnection();
+            var listQuestion = await connection.QueryAsync<Question>(
+                @$" Select Top {countQuestion} *  
+                    From [jcodepro_journey_of_faith].[Question]
+                    Where CategoryId = @CategoryId And LevelId = @LevelId
+                ",
+                new {CategoryId = categoryId, LevelId = levelId}
+            );
+
+
+            var questionIds = listQuestion.Select(e => e.Id).ToList();
+            var answerQuestions = await connection.QueryAsync<Answer>(
+                @$" Select * 
+                    From [jcodepro_journey_of_faith].[Answer]
+                    Where QuestionId in @QuestionIds
+                ",
+                new {QuestionIds = questionIds}
+            );
+
+
+            var dicAnswer = answerQuestions.ToLookup(e => e.QuestionId, e => e);
+
+            foreach(var question in listQuestion)
+            {
+                question.AddAnswer(dicAnswer[question.Id].ToList());
+            }
+
+            return listQuestion;
         }
         // public async Task<Question?> GetDetailsQuestion(int id)
         // {
@@ -284,7 +314,7 @@ namespace Journey_of_faith.Infrastructure.repositories
 
         public async Task<bool> UpdateQuestion(Question question)
         {
-            using var connection = _connection.CreateConnection();
+            using var connection = _factory.CreateConnection();
             using var transaction = connection.BeginTransaction();
 
             try
@@ -315,7 +345,7 @@ namespace Journey_of_faith.Infrastructure.repositories
                 foreach (var answer in question.Answers)
                 {
                     await connection.ExecuteAsync($@"
-                        UPdate [{_name.Schema}].[{TableQuestion.Answer}] SET
+                        UPdate [{_schemaName.Schema}].[{TableQuestion.Answer}] SET
                             Content = Coalesce(@Content, Content),
                             IsCorrect = Coalesce(@IsCorrect, IsCorrect), 
                             ImageUrl = CoaLesce(@ImageUrl, ImageUrl),
@@ -344,10 +374,10 @@ namespace Journey_of_faith.Infrastructure.repositories
 
         public async Task<bool> DeleteQuestion(int id)
         {
-            using var connection = _connection.CreateConnection();
+            using var connection = _factory.CreateConnection();
 
             var rowsAffected = await connection.ExecuteAsync($@"
-                UPDATE [{_name.Schema}].[{TableQuestion.Question}]
+                UPDATE [{_schemaName.Schema}].[{TableQuestion.Question}]
                 SET IsDeleted = @IsDeleted,
                     DeletedAt = @DeletedAt
                 WHERE Id = @Id and IsDeleted = 0",
@@ -374,46 +404,6 @@ namespace Journey_of_faith.Infrastructure.repositories
     }
     #endregion
     #region Get data generic
-    public abstract class DataHandlerRequest
-    {
-        private readonly IDbConnectionFactory _factory;
-        private readonly TableSchemaName _schemaName;
-        public DataHandlerRequest(IDbConnectionFactory factory, IOptions<TableSchemaName> _options)
-        {
-            _factory = factory;
-            _schemaName = _options.Value;
-        }
-
-        public async Task<IEnumerable<T>> GetAllEntityAsync<T>(string table)
-        {
-            var connection = _factory.CreateConnection();
-            return await connection.QueryAsync<T>($"Select * from [{_schemaName.Schema}].[{table}]");
-        }
-
-        public async Task<T?> GetEntityDetailsAsync<T>(int Id, string StoredProcedure)
-        {
-            var connection = _factory.CreateConnection();
-            DynamicParameters param = new DynamicParameters();
-            param.Add("Id", Id);
-
-            var data = await connection.QueryFirstOrDefaultAsync<T>(
-                    StoredProcedure, param, commandType: System.Data.CommandType.StoredProcedure
-                );
-            return data;
-        }
-
-        public async Task<bool> InsertOnlyName(string table, object param)
-        {
-            string command = $"INSERT INTO [{_schemaName.Schema}].[{table}] (Name, Code, Description) VALUES(@Name, @Code, @Description)";
-            if (table == TableQuestion.QuizLevel)
-            {
-                command = $"INSERT INTO [{_schemaName.Schema}].[{table}] (Name, Code, Score) VALUES(@Name, @Code, @Score)";
-            }
-            using var connection = _factory.CreateConnection();
-            var result = await connection.ExecuteAsync(command, param);
-
-            return result > 0;
-        }
-    }
+    
     #endregion
 }
