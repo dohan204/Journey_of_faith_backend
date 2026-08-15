@@ -77,10 +77,9 @@ namespace Journey_of_faith.Domain.entities.quiz
         public static Question Create(int levelId, string questionContent, int typeId, int categoryId, string imageUrl)
             => new Question(levelId, questionContent, typeId, categoryId, imageUrl);
 
-        public void AddAnswer(int questionId,string content, bool isCorrect)
+        public void AddAnswer(List<Answer> answers)
         {
-            var answer = Answer.Create(this.Id, content, isCorrect);
-            _answers.Add(answer);
+            _answers.AddRange(answers);
         }
 
         public static Question Update(int? LevelId, string? questionContent, int? typeId, int? categoryId, string? imageUrl, int Id)
@@ -94,6 +93,6 @@ namespace Journey_of_faith.Domain.entities.quiz
             var answer = Answer.Create(this.Id , content, isCorrect, imageUrl, explance);
             _answers.Add(answer);
         }
-       
+        
     }
 }

@@ -278,6 +278,22 @@ namespace Journey_of_faith.Api.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+
+        [HttpGet("filter-condition")]
+        public async Task<IActionResult> GetQuestionCondition(
+            [FromQuery] int CategoryId,
+            [FromQuery] int LevelId,
+            [FromQuery] int QuestionCount
+        )
+        {
+            var result = await _mediator.Send(new GetQuestionWithConditionQuery {CategoryId = CategoryId, LevelId = LevelId, QuestionCount = QuestionCount});
+            return Ok(new ApiResponse<IEnumerable<Question>>
+            {
+                Data = result,
+                Message = "Lấy câu hỏi thành công."
+            });
+        }
     }
 }
 
