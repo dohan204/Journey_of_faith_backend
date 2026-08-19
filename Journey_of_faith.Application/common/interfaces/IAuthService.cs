@@ -11,8 +11,8 @@ namespace Journey_of_faith.Application.common.interfaces
     {
         Task<LoginUserResponse> Login(string username, string passwrod);
         Task<LoginUserResponse> RefreshToken(string refreshToken);
-
-
         Task<bool> ChangePassword(string currentPassword, string newPassword);
+
+        Task<bool> ResetPassword(string email);
     }
 }

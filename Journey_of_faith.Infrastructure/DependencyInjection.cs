@@ -50,7 +50,8 @@ namespace Journey_of_faith.Infrastructure
 
             service.AddIdentityCore<ApplicationUser>()
                 .AddRoles<ApplicationRole>()
-                .AddEntityFrameworkStores<ApplicationDbContext>();
+                .AddEntityFrameworkStores<ApplicationDbContext>()
+                .AddDefaultTokenProviders();
 
 
             service.Configure<IdentityOptions>(options =>
@@ -120,6 +121,7 @@ namespace Journey_of_faith.Infrastructure
             services.AddScoped(typeof(IGetOneToManyData<,>), typeof(GetDataRepository<,>));
             services.AddScoped<IRoleRepository, RoleRepository>();
             services.AddScoped<IDataHandler, DataHandlerRequest>();
+            services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IFirebaseAuthService, FirebaseAuthService>();
             services.AddScoped<IFirebaseNotification, FirebaseNotification>();
             return services;
