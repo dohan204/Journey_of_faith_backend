@@ -77,8 +77,8 @@ namespace UnitTesting.HandlerTests.churchs
                 Name = "Nhà thờ Đức Bà",
                 DioceseId = 1,
                 Address = "1 Công xã Paris",
-                Latitude = 10.77978,
-                Longitude = 106.69901
+                Latitude = 10.77978f,
+                Longitude = 106.69901f
             };
 
             // Act

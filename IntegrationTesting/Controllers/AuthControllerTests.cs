@@ -1,56 +1,111 @@
-using FluentAssertions;
-using Journey_of_faith.Application.usecases.auth.commands;
-using Journey_of_faith.Application.usecases.auth.queries;
+// using FluentAssertions;
+// using Journey_of_faith.Application.usecases.auth.commands;
+// using Journey_of_faith.Application.usecases.auth.queries;
+// using System.Net;
+// using System.Net.Http.Json;
+// using System.Threading.Tasks;
+// using Journey_of_faith.Api;
+// using Xunit;
+
+// namespace IntegrationTesting.Controllers
+// {
+//     public class AuthControllerTests : IClassFixture<CustomWebApplicationFactory<Program>>
+//     {
+//         private readonly HttpClient _client;
+//         private readonly CustomWebApplicationFactory<Program> _factory;
+
+//         public AuthControllerTests(CustomWebApplicationFactory<Program> factory)
+//         {
+//             _factory = factory;
+//             _client = factory.CreateClient();
+//         }
+
+//         [Fact]
+//         public async Task Login_ShouldReturnBadRequest_WhenEmailIsEmpty()
+//         {
+//             // Arrange
+//             var query = new UserLoginQuery
+//             {
+//                 Email = "",
+//                 Password = "Password123"
+//             };
+
+//             // Act
+//             var response = await _client.PostAsJsonAsync("/api/Auth/login", query);
+
+//             // Assert
+//             response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+//         }
+
+//         [Fact]
+//         public async Task AddPermission_ShouldReturnBadRequest_WhenRoleNameIsEmpty()
+//         {
+//             // Arrange
+//             var command = new AddPermissionCommand
+//             {
+//                 RoleName = "",
+//                 Permissions = new System.Collections.Generic.List<string> { "Read" }
+//             };
+
+//             // Act
+//             var response = await _client.PostAsJsonAsync("/api/Auth/roles/add-permission", command);
+
+//             // Assert
+//             response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+//         }
+//     }
+// }
 using System.Net;
 using System.Net.Http.Json;
-using System.Threading.Tasks;
+using FluentAssertions;
+using Journey_of_faith.Api;
 using Xunit;
 
 namespace IntegrationTesting.Controllers
 {
-    public class AuthControllerTests : IClassFixture<CustomWebApplicationFactory>
+    public class AuthControllerTests
+        : IClassFixture<CustomWebApplicationFactory<Program>>
     {
         private readonly HttpClient _client;
-        private readonly CustomWebApplicationFactory _factory;
 
-        public AuthControllerTests(CustomWebApplicationFactory factory)
+        public AuthControllerTests(
+            CustomWebApplicationFactory<Program> factory)
         {
-            _factory = factory;
             _client = factory.CreateClient();
         }
 
         [Fact]
-        public async Task Login_ShouldReturnBadRequest_WhenEmailIsEmpty()
+        public async Task Login_ShouldReturnOk_WhenCredentialsValid()
         {
             // Arrange
-            var query = new UserLoginQuery
+            var loginRequest = new
             {
-                Email = "",
-                Password = "Password123"
+                Username = "admin",
+                Password = "Admin@123"
             };
 
             // Act
-            var response = await _client.PostAsJsonAsync("/api/Auth/login", query);
+            var response = await _client.PostAsJsonAsync("/api/Auth/login", loginRequest);
 
             // Assert
-            response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
         }
 
         [Fact]
-        public async Task AddPermission_ShouldReturnBadRequest_WhenRoleNameIsEmpty()
+        public async Task Login_ShouldReturnUnauthorized_WhenCredentialsInvalid()
         {
             // Arrange
-            var command = new AddPermissionCommand
+            var loginRequest = new
             {
-                RoleName = "",
-                Permissions = new System.Collections.Generic.List<string> { "Read" }
+                Username = "invalid",
+                Password = "wrong"
             };
 
             // Act
-            var response = await _client.PostAsJsonAsync("/api/Auth/roles/add-permission", command);
+            var response = await _client.PostAsJsonAsync("/api/Auth/login", loginRequest);
 
             // Assert
-            response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+            response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
         }
     }
 }
