@@ -53,8 +53,8 @@ namespace UnitTesting.ValidatorTests.churchs
                 Name = "Nhà thờ Tân Định",
                 Address = "289 Hai Bà Trưng",
                 DioceseId = 1,
-                Latitude = 10.7885,
-                Longitude = 106.6908
+                Latitude = 10.7885f,
+                Longitude = 106.6908f
             };
             var result = _validator.TestValidate(command);
             result.ShouldNotHaveAnyValidationErrors();
