@@ -1,4 +1,5 @@
-﻿using Azure.Core;
+﻿
+using Azure.Core;
 using Journey_of_faith.Api.dtos;
 using Journey_of_faith.Application.usecases.auth.commands;
 using Journey_of_faith.Application.usecases.auth.queries;
@@ -18,34 +19,39 @@ namespace Journey_of_faith.Api.Controllers
         {
             _me = me;
         }
+
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] UserLoginQuery query)
         {
             var login = await _me.Send(query);
             return Ok(login);
         }
+
         [HttpPost("refresh")]
         public async Task<IActionResult> RefreshToken([FromBody] CreateRefreshTokenCommand command)
         {
             var refresh = await _me.Send(command);
             return Ok(refresh);
         }
+
         [HttpPatch("change")]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordCommand command)
         {
             await _me.Send(command);
             return NoContent();
         }
+
         [HttpGet("roles")]
         public async Task<IActionResult> GetRoles([FromQuery] int page, [FromQuery] int pageSize, [FromQuery] string? search)
         {
-            var roles = await _me.Send(new GetRolesQuery {Page = page,PageSize = pageSize,Search = search});
+            var roles = await _me.Send(new GetRolesQuery { Page = page, PageSize = pageSize, Search = search });
             return Ok(new ApiResponse<PagedResult<Role>>
             {
                 Data = roles,
                 Message = "Lấy dữ liệu thành công"
             });
         }
+
         [HttpGet("roles/users-role")]
         public async Task<IActionResult> GetTotalRole()
         {
@@ -56,6 +62,7 @@ namespace Journey_of_faith.Api.Controllers
                 Data = total
             });
         }
+
         [HttpPost("roles")]
         public async Task<IActionResult> CreateRole([FromBody] CreateRoleCommand command)
         {
@@ -84,23 +91,25 @@ namespace Journey_of_faith.Api.Controllers
             var result = await _me.Send(new GetPermissionsQuery());
             return Ok(new ApiResponse<List<object>>
             {
-                Message = "Lay quuyen thanfh cong",
+                Message = "Lay quyen thanh cong",
                 Data = result
             });
         }
+
         [HttpDelete("roles/{Name}")]
         public async Task<IActionResult> Delete([FromRoute] string Name)
         {
-            await _me.Send(new DeleteRoleCommand { RoleName = Name});
+            await _me.Send(new DeleteRoleCommand { RoleName = Name });
             return NoContent();
         }
 
         [HttpDelete("roles/remove-user")]
         public async Task<IActionResult> RemoveUserRole([FromBody] DeleteUserFromRoleCommand command)
         {
-            await _me.Send(new DeleteUserFromRoleCommand {userId = command.userId, RoleName = command.RoleName} );
+            await _me.Send(new DeleteUserFromRoleCommand { userId = command.userId, RoleName = command.RoleName });
             return NoContent();
         }
+
         [HttpPut("roles")]
         public async Task<IActionResult> UpdateRole([FromBody] UpDateRoleCommand command)
         {
@@ -108,5 +117,46 @@ namespace Journey_of_faith.Api.Controllers
             return NoContent();
         }
 
+        // ==============================
+        // 🚀 GOOGLE LOGIN ENDPOINT
+        // ==============================
+        [HttpPost("google-login")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginRequest request)
+        {
+            try
+            {
+                // Log request nhận được (ẩn bớt token)
+                Console.WriteLine($"🟢 GoogleLogin endpoint called");
+                Console.WriteLine($"🟢 Token length: {request.IdToken?.Length ?? 0}");
+
+                var result = await _me.Send(new GoogleLoginCommand { IdToken = request.IdToken });
+
+                return Ok(new ApiResponse<LoginResponse>
+                {
+                    Message = "Đăng nhập Google thành công",
+                    Data = result
+                });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                Console.WriteLine($"❌ Unauthorized: {ex.Message}");
+                return Unauthorized(new ApiResponse<string>
+                {
+                    Message = ex.Message
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Internal error: {ex.Message}");
+                Console.WriteLine($"❌ Stack: {ex.StackTrace}");
+                return StatusCode(500, new ApiResponse<string>
+                {
+                    Message = $"Lỗi đăng nhập Google: {ex.Message}"
+                });
+            }
+        }
     }
 }
