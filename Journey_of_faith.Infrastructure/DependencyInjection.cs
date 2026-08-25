@@ -218,30 +218,30 @@ namespace Journey_of_faith.Infrastructure
     //     }
     // }
 
-    public static class RegisterFirebase
-    {
-        public static IServiceCollection AddFirebaseService(this IServiceCollection services, IConfiguration configuration)
-        {
-            var credentialPath = configuration.GetValue<string>("Firebase:CredentialFilePath");
-            if (!string.IsNullOrEmpty(credentialPath))
-            {
-                var fullPath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), credentialPath);
-                if (!File.Exists(fullPath))
-                {
-                    throw new FileNotFoundException($"Firebase credential file not found at: {fullPath}");
-                }
-                if (FirebaseApp.DefaultInstance == null)
-                {
-                    var credential = CredentialFactory
-                        .FromFile<ServiceAccountCredential>(fullPath)
-                        .ToGoogleCredential();
-                    FirebaseApp.Create(new AppOptions()
-                    {
-                        Credential = credential
-                    });
-                }
-            }
-            return services;
-        }
-    }
+    // public static class RegisterFirebase
+    // {
+    //     public static IServiceCollection AddFirebaseService(this IServiceCollection services, IConfiguration configuration)
+    //     {
+    //         var credentialPath = configuration.GetValue<string>("Firebase:CredentialFilePath");
+    //         if (!string.IsNullOrEmpty(credentialPath))
+    //         {
+    //             var fullPath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), credentialPath);
+    //             if (!File.Exists(fullPath))
+    //             {
+    //                 throw new FileNotFoundException($"Firebase credential file not found at: {fullPath}");
+    //             }
+    //             if (FirebaseApp.DefaultInstance == null)
+    //             {
+    //                 var credential = CredentialFactory
+    //                     .FromFile<ServiceAccountCredential>(fullPath)
+    //                     .ToGoogleCredential();
+    //                 FirebaseApp.Create(new AppOptions()
+    //                 {
+    //                     Credential = credential
+    //                 });
+    //             }
+    //         }
+    //         return services;
+    //     }
+    // }
 }
