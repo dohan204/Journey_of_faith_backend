@@ -14,6 +14,7 @@ using static Microsoft.Extensions.DependencyInjection.SchemaRequestExecutorBuild
 using System.Diagnostics;
 using Journey_of_faith.Infrastructure.context;
 using OfficeOpenXml;
+using Asp.Versioning;
 var builder = WebApplication.CreateBuilder(args);
 
 SqlMapper.AddTypeHandler(new GuidTypeHandler());
@@ -38,6 +39,21 @@ builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
+builder.Services.AddApiVersioning(options =>
+{
+    options.DefaultApiVersion = new Asp.Versioning.ApiVersion(1);
+    options.ReportApiVersions = true;
+    options.AssumeDefaultVersionWhenUnspecified = true;
+    options.ApiVersionReader = ApiVersionReader.Combine(
+        new UrlSegmentApiVersionReader(),
+        new HeaderApiVersionReader()  
+    );
+}).AddMvc()
+.AddApiExplorer(options =>
+{
+    options.GroupNameFormat = "'v'V";
+    options.SubstituteApiVersionInUrl = true;
+});
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 

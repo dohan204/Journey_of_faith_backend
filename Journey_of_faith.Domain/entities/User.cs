@@ -21,8 +21,11 @@ namespace Journey_of_faith.Domain.entities
         public string Role {get; set;}
         public string PasswordHash { get; private set; } = string.Empty;
         public int? RoleId { get; private set; }
+        public List<string>? RoleName {get; private set;}
         public int? ChurchId { get; private set; }
+
         public int? ProvinceId { get; private set; }
+        public string? ProvinceName {get; private set;}
         public int? SchoolId { get; private set; }
         public Guid CreatorUserId { get; set; }
         public DateTime? CreationTime { get; set; }
@@ -63,7 +66,17 @@ namespace Journey_of_faith.Domain.entities
 
         public User()
         {
-
+            
+        }
+        public User(
+            string email,string username, string avatar, List<string> roleName, string provinceName
+        )
+        {
+            Email = email;
+            Username = username;
+            Avatar = avatar;
+            RoleName = roleName;
+            ProvinceName = provinceName;
         }
         public User(string name, string email, string username, string password, string? avatar)
         {

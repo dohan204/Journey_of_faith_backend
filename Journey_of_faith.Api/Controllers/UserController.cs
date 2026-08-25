@@ -47,6 +47,16 @@ namespace Journey_of_faith.Api.Controllers
                 Message = "Lấy dữ liệu thành công."
             });
         }
+        [HttpGet("me")]
+        public async Task<IActionResult> GetMe()
+        {
+            var user = await _mediator.Send(new GetMeQuery());
+            return Ok(new ApiResponse<User>
+            {
+                Data  = user,
+                Message = "Laays nguoi dung thanh cong."
+            });
+        }
         [HttpDelete("{UsreId}")]
         public async Task<IActionResult> DeleteUser([FromRoute] string UsreId)
         {

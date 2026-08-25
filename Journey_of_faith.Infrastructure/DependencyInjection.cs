@@ -28,6 +28,7 @@ using Microsoft.IdentityModel.Tokens;
 using FirebaseAdmin;
 using System.Text;
 using Google.Apis.Auth.OAuth2;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace Journey_of_faith.Infrastructure
 {
@@ -68,7 +69,7 @@ namespace Journey_of_faith.Infrastructure
                 options.Lockout.MaxFailedAccessAttempts = 5;
                 options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
             });
-
+            JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
             service.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;

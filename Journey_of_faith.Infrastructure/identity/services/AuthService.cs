@@ -1,6 +1,6 @@
 ﻿using Journey_of_faith.Application.common.interfaces;
 using Journey_of_faith.Application.exceptions;
-using Journey_of_faith.Application.usecases.auth.queries;
+using Journey_of_faith.Domain.entities;
 using Journey_of_faith.Infrastructure.context;
 using Journey_of_faith.Infrastructure.persistence.entities.location;
 using Journey_of_faith.Infrastructure.services;
@@ -8,10 +8,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
-using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
 using System.Security.Claims;
 using System.Text;
 
@@ -57,7 +53,7 @@ namespace Journey_of_faith.Infrastructure.identity.services
             var refreshToken = _tokenService.CreateRefreshToken(user.Id);
 
             await _context.RefreshTokens.AddAsync(refreshToken);
-            UserActive active = new UserActive
+            var active = new Journey_of_faith.Infrastructure.persistence.entities.location.UserActive
             {
                 ApplicationUserId = user.Id,
                 Status = true,
@@ -162,6 +158,38 @@ namespace Journey_of_faith.Infrastructure.identity.services
             }
 
             return false;
+        }
+
+        public async Task<User> GetMe()
+        {
+            var userId = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier ?? "sub");
+            if(userId == null)
+            {
+                throw new BadRequestException("Nguoi dung khong hop le");
+            }
+
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                throw new NotFoundException("Khong tim thay nguoi dung");
+            }
+
+            var userProvince = await _context
+                .Users.AsNoTracking().Include(e => e.Province)
+                .Select(e => new
+                {
+                    Id = e.Id,
+                    Name = e.Province.Name
+                })
+                .FirstOrDefaultAsync(e => e.Id == Guid.Parse(userId));
+            var userRole = await _userManager.GetRolesAsync(user);
+            return new User(
+                user.Email,
+                user.UserName,
+                user.Avatar,
+                userRole.ToList(),
+                userProvince.Name
+            );
         }
     }
 }
