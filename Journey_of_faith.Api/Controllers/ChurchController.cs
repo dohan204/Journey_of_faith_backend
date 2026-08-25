@@ -1,3 +1,5 @@
+
+using Asp.Versioning;
 // using Journey_of_faith.Api.dtos;
 // using Journey_of_faith.Application.usecases.churchs.commands;
 // using Journey_of_faith.Application.usecases.churchs.dtos;
@@ -252,10 +254,12 @@
 //         }
 //     }
 // }
+
 using Journey_of_faith.Api.dtos;
 using Journey_of_faith.Application.usecases.churchs.commands;
 using Journey_of_faith.Application.usecases.churchs.dtos;
 using Journey_of_faith.Application.usecases.churchs.queries;
+using Journey_of_faith.Domain.dtos;
 using Journey_of_faith.Domain.entities.catholic;
 using Journey_of_faith.Domain.entities.location;
 using Journey_of_faith.Domain.interfaces;
@@ -267,8 +271,9 @@ using System.Net.Mime;
 
 namespace Journey_of_faith.Api.Controllers
 {
+    [ApiVersion(1)]
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/v{version:apiVersion}/[controller]")]
     public class ChurchesController : ControllerBase
     {
         private readonly IMediator _mediator;
@@ -277,7 +282,7 @@ namespace Journey_of_faith.Api.Controllers
         {
             _mediator = mediator;
         }
-
+        [MapToApiVersion(1)]
         [HttpPost]
         [Consumes(MediaTypeNames.Application.Json)]
         [ProducesResponseType(statusCode: StatusCodes.Status201Created)]
@@ -325,7 +330,7 @@ namespace Journey_of_faith.Api.Controllers
                     Data = churchId
                 });
         }
-
+        [MapToApiVersion(1)]
         [HttpPost("dioceses")]
         [Consumes("multipart/form-data")]
         [ProducesResponseType(statusCode: StatusCodes.Status201Created)]
@@ -374,6 +379,8 @@ namespace Journey_of_faith.Api.Controllers
                 });
         }
 
+        [MapToApiVersion(1)]
+
         [HttpGet("dioceses")]
         public async Task<IActionResult> GetDiocese()
         {
@@ -387,6 +394,9 @@ namespace Journey_of_faith.Api.Controllers
                     Data = result
                 });
         }
+
+        [MapToApiVersion(1)]
+
 
         [HttpGet]
         [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
@@ -407,6 +417,8 @@ namespace Journey_of_faith.Api.Controllers
             return Ok(result);
         }
 
+        [MapToApiVersion(1)]
+
         [HttpPut("{Id}")]
         public async Task<IActionResult> UpdateChurch(
             [FromBody] UpdateChurchCommand command,
@@ -416,6 +428,8 @@ namespace Journey_of_faith.Api.Controllers
 
             return NoContent();
         }
+
+        [MapToApiVersion(1)]
 
         [HttpDelete("{Id}")]
         public async Task<IActionResult> DeleteChurch(
@@ -432,7 +446,7 @@ namespace Journey_of_faith.Api.Controllers
 
             return Ok(result);
         }
-
+        [MapToApiVersion(1)]
         [HttpGet("{id:int}")]
         [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
         public async Task<IActionResult> GetChurchDetails(
@@ -462,7 +476,37 @@ namespace Journey_of_faith.Api.Controllers
                     Data = church
                 });
         }
+        [MapToApiVersion(1)]
+        [HttpGet("condition")]
+        [Authorize]
+        [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetCondition(
+            [FromQuery] string? churchName, 
+            [FromQuery] string? province,
+            [FromQuery] string? ward,
+            [FromQuery] string? time
+        )
+        {
+            var result = await _mediator.Send(
+                new GetChurchWithCondition
+                {
+                    NameChurch = churchName,
+                    Province = province,
+                    Ward = ward,
+                    Time = time,
+                    Page = 1,
+                    PageSize = 10
+                }
+            );
 
+            return Ok(new ApiResponse<PagedResult<Church>>
+            {
+                Data = result,
+                Message = "Lấy dữ liệu thành công"
+            });
+        }
+
+        [MapToApiVersion(1)]
         [HttpPost("{churchId:int}/follow")]
         [Authorize]
         [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
@@ -483,7 +527,7 @@ namespace Journey_of_faith.Api.Controllers
                     Data = new { ChurchId = churchId }
                 });
         }
-
+        [MapToApiVersion(1)]
         [HttpDelete("{churchId:int}/follow")]
         [Authorize]
         [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
@@ -504,7 +548,7 @@ namespace Journey_of_faith.Api.Controllers
                     Data = new { ChurchId = churchId }
                 });
         }
-
+        [MapToApiVersion(1)]
         [HttpGet("following")]
         [Authorize]
         [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
@@ -523,7 +567,7 @@ namespace Journey_of_faith.Api.Controllers
                     Data = result
                 });
         }
-
+        [MapToApiVersion(1)]
         [HttpGet("mass-schedules/personalized")]
         [Authorize]
         [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
@@ -542,7 +586,7 @@ namespace Journey_of_faith.Api.Controllers
                     Data = result
                 });
         }
-
+        [MapToApiVersion(1)]
         [HttpGet("reminder-setting")]
         [Authorize]
         [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
@@ -559,7 +603,7 @@ namespace Journey_of_faith.Api.Controllers
                     Data = result
                 });
         }
-
+        [MapToApiVersion(1)]
         [HttpPut("reminder-setting")]
         [Authorize]
         [Consumes(MediaTypeNames.Application.Json)]
@@ -570,6 +614,9 @@ namespace Journey_of_faith.Api.Controllers
             var result =
                 await _mediator.Send(command);
 
+
+        [MapToApiVersion(1)]
+
             return Ok(
                 new ApiResponse<ReminderSettingView>
                 {
@@ -578,6 +625,7 @@ namespace Journey_of_faith.Api.Controllers
                     Data = result
                 });
         }
+
 
         [HttpPost("dailyWords")]
         [Consumes(MediaTypeNames.Application.Json)]
@@ -595,6 +643,7 @@ namespace Journey_of_faith.Api.Controllers
                 });
         }
 
+        [MapToApiVersion(1)]
         [HttpGet("dailyWords/search")]
         [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
         public async Task<IActionResult> GetDailyWord(

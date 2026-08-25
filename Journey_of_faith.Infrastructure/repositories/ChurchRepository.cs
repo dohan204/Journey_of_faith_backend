@@ -101,7 +101,40 @@ namespace Journey_of_faith.Infrastructure.repositories
                 }
             });
         }
+        public async Task<PagedResult<Church>> GetChurchWithCondition(string? churchName, string? province, string? wards, string? time, int page, int pageSize)
+        {
+            return await QueryAsync<PagedResult<Church>>(async connection => {
+                var churches = await connection.QueryAsync<Church>("spSearchChurch", new
+                {
+                    ChurchName = churchName,
+                    Province = province,
+                    Ward = wards,
+                    Page = page,
+                    PageSize = pageSize
+                }, commandType: CommandType.StoredProcedure);
 
+                var massSchedules = await connection.QueryAsync<MassSchedule>(@"
+                    Select * from [jcodepro_journey_of_faith].[MassSchedule]
+                    Where ChurchId in @ChurchIds And Time Like N'%@Time%'
+                ", new
+                {
+                    ChurchIds = churches.Select(e => e.Id).ToArray(),
+                    Time = time
+                });
+                var groupSchedule = massSchedules.ToLookup(e => e.ChurchId);
+                foreach(var church in churches)
+                {
+                    church.SetMassSchedule(groupSchedule[church.Id].ToList());
+                }
+
+                return new PagedResult<Church>{
+                    Data = churches.ToList(),
+                    Page = page,
+                    PageSize = pageSize,
+                    TotalCount = churches.Count(),
+                };
+            });
+        }
         public async Task<Church?> GetChurchByIdAsync(int id, CancellationToken cancellationToken)
         {
             return await ExecuteAsync(async connection =>

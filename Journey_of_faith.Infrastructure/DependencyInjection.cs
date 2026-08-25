@@ -28,6 +28,7 @@ using Microsoft.IdentityModel.Tokens;
 using FirebaseAdmin;
 using System.Text;
 using Google.Apis.Auth.OAuth2;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace Journey_of_faith.Infrastructure
 {
@@ -50,7 +51,8 @@ namespace Journey_of_faith.Infrastructure
 
             service.AddIdentityCore<ApplicationUser>()
                 .AddRoles<ApplicationRole>()
-                .AddEntityFrameworkStores<ApplicationDbContext>();
+                .AddEntityFrameworkStores<ApplicationDbContext>()
+                .AddDefaultTokenProviders();
 
 
             service.Configure<IdentityOptions>(options =>
@@ -67,7 +69,7 @@ namespace Journey_of_faith.Infrastructure
                 options.Lockout.MaxFailedAccessAttempts = 5;
                 options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
             });
-
+            JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
             service.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -120,6 +122,7 @@ namespace Journey_of_faith.Infrastructure
             services.AddScoped(typeof(IGetOneToManyData<,>), typeof(GetDataRepository<,>));
             services.AddScoped<IRoleRepository, RoleRepository>();
             services.AddScoped<IDataHandler, DataHandlerRequest>();
+            services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IFirebaseAuthService, FirebaseAuthService>();
             services.AddScoped<IFirebaseNotification, FirebaseNotification>();
             return services;

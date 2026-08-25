@@ -117,6 +117,12 @@ namespace Journey_of_faith.Api.Controllers
             return NoContent();
         }
 
+        [HttpPost("reset")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordCommand command)
+        {
+            var result = await _me.Send(command);
+            return NoContent();
+        } 
         // ==============================
         // 🚀 GOOGLE LOGIN ENDPOINT
         // ==============================

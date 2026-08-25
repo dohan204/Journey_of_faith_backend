@@ -76,10 +76,9 @@ namespace Journey_of_faith.Domain.interfaces
         Task<IEnumerable<PersonalizedMassScheduleView>> GetPersonalizedMassSchedulesAsync(Guid userId, DateTime fromDate, DateTime toDate, int? churchId);
         Task<ReminderSettingView> GetReminderSettingAsync(Guid userId);
         Task<ReminderSettingView> SaveReminderSettingAsync(Guid userId, bool isEnabled, int minutesBefore, string? speechGender, double? speechSpeed);
-
-
         // Daily words
         Task<bool> CreateDailyWorld(DailyWord dailyWord);
         Task<DailyWord?> GetDailyWorldAsync(DateTime dailyDay);
+        Task<PagedResult<Church>> GetChurchWithCondition(string churchName, string province, string wards, string time, int page, int pageSize);
     }
 }
