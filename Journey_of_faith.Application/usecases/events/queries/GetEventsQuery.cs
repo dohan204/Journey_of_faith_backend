@@ -1,11 +1,13 @@
 using FluentValidation;
 using Journey_of_faith.Application.common.interfaces;
+using Journey_of_faith.Domain.dtos;
+using Journey_of_faith.Domain.entities.events;
 using Journey_of_faith.Domain.interfaces;
 using MediatR;
 
 namespace Journey_of_faith.Application.usecases.events.queries
 {
-    public class GetEventsQuery : IRequest<EventPagedResult>
+    public class GetEventsQuery : IRequest<PagedResult<Event>>
     {
         public string? Keyword { get; set; }
         public int? CategoryId { get; set; }
@@ -36,7 +38,7 @@ namespace Journey_of_faith.Application.usecases.events.queries
         }
     }
 
-    public class GetEventsHandler : IRequestHandler<GetEventsQuery, EventPagedResult>
+    public class GetEventsHandler : IRequestHandler<GetEventsQuery, PagedResult<Event>>
     {
         private readonly IEventRepository _eventRepository;
         private readonly ICurrentUserService _currentUserService;
@@ -47,26 +49,16 @@ namespace Journey_of_faith.Application.usecases.events.queries
             _currentUserService = currentUserService;
         }
 
-        public async Task<EventPagedResult> Handle(GetEventsQuery request, CancellationToken cancellationToken)
+        public async Task<PagedResult<Event>> Handle(GetEventsQuery request, CancellationToken cancellationToken)
         {
-            Guid? userId = null;
-            if (Guid.TryParse(_currentUserService.UserId, out var parsedUserId))
-            {
-                userId = parsedUserId;
-            }
-
             var filter = new EventListFilter
             {
                 Keyword = request.Keyword,
-                CategoryId = request.CategoryId,
-                StartFrom = request.StartFrom,
-                StartTo = request.StartTo,
-                OnlyUpcoming = request.OnlyUpcoming,
                 PageIndex = request.PageIndex,
                 PageSize = request.PageSize
             };
 
-            return await _eventRepository.GetEventsAsync(filter, userId);
+            return await _eventRepository.GetEventsAsync(filter);
         }
     }
 }

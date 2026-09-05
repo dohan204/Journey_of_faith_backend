@@ -7,6 +7,8 @@ using Journey_of_faith.Domain.entities.location;
 using Journey_of_faith.Domain.entities.masslive;
 using Journey_of_faith.Domain.interfaces;
 using Journey_of_faith.Infrastructure.common;
+using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Options;
 using System.Data;
 using Z.Dapper.Plus;
@@ -133,6 +135,21 @@ namespace Journey_of_faith.Infrastructure.repositories
                     PageSize = pageSize,
                     TotalCount = churches.Count(),
                 };
+            });
+        }
+        public async Task<bool> UploadFileChurchAsync(List<Church> churches)
+        {
+            return await ExecuteAsync(async connection =>
+            {
+                try
+                {
+                    await connection.BulkInsertAsync<Church>(churches);
+                    return true;
+                } catch (Exception ex)
+                {
+                    Console.WriteLine(ex);
+                    throw;
+                }
             });
         }
         public async Task<Church?> GetChurchByIdAsync(int id, CancellationToken cancellationToken)
@@ -537,31 +554,30 @@ namespace Journey_of_faith.Infrastructure.repositories
             );
         }
 
-        public async Task<IEnumerable<ChurchListItemView>> GetFollowedChurchesAsync(Guid userId)
+        public async Task<IEnumerable<Church>> GetFollowedChurchesAsync(Guid userId)
         {
             return await ExecuteAsync(async connection =>
-                await connection.QueryAsync<ChurchListItemView>($@"
-                    SELECT
-                        c.Id,
-                        c.Name,
-                        c.Thumbnail,
-                        c.Email,
-                        c.Address,
-                        c.DioceseId,
-                        d.Name AS DioceseName,
-                        c.Latitude,
-                        c.Longitude,
-                        CAST(1 AS bit) AS IsFollowed
-                    FROM [{_schemaName.Schema}].[{TableTopicChurch.UserChurch}] uc
-                    INNER JOIN [{_schemaName.Schema}].[{TableTopicChurch.Church}] c
-                        ON c.Id = uc.ChurchId
-                       AND c.IsDeleted = 0
-                    LEFT JOIN [{_schemaName.Schema}].[{TableTopicChurch.Diocese}] d
-                        ON d.Id = c.DioceseId
-                    WHERE uc.UserId = @UserId
-                    ORDER BY c.Name ASC
-                ", new { UserId = userId })
-            );
+            {
+                var churches = await connection.QueryAsync<Church>(@$"
+                    SELECT Name, Email, Address, DioceseId, Id, Boss FROM [jcodepro_journey_of_faith].[Church]
+                    Inner join [jcodepro_journey_of_faith].[UserChurch] uc on uc.ChurchId = Church.Id
+                    WHERE uc.UserId = @UserId", new { UserId = userId });
+
+                var massSchedules = (await connection.QueryAsync<MassSchedule>(@$"
+                    SELECT * FROM [jcodepro_journey_of_faith].[MassSchedule]
+                    WHERE ChurchId IN (
+                        SELECT ChurchId
+                        FROM [jcodepro_journey_of_faith].[UserChurch]
+                        WHERE UserId = @UserId
+                    )", new { UserId = userId })).ToLookup(e => e.ChurchId);
+
+                foreach(var church in churches)
+                {
+                    church.SetMassSchedule(massSchedules[church.Id].ToList());
+                }
+
+                return churches;
+            });
         }
         #endregion
 

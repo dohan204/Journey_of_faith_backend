@@ -1,4 +1,5 @@
-﻿using Journey_of_faith.Api.dtos;
+﻿using Asp.Versioning;
+using Journey_of_faith.Api.dtos;
 using Journey_of_faith.Application.usecases.quizs.commands;
 using Journey_of_faith.Application.usecases.quizs.queries;
 using Journey_of_faith.Domain.entities.quiz;
@@ -11,8 +12,9 @@ using System.Net.Mime;
 
 namespace Journey_of_faith.Api.Controllers
 {
+    [ApiVersion(1)]
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/v{version:apiVersion}/[controller]")]
     [Authorize]
     public class QuizController : ControllerBase
     {
@@ -24,6 +26,7 @@ namespace Journey_of_faith.Api.Controllers
         [HttpPost]
         [Consumes(MediaTypeNames.Application.Json)]
         [ProducesResponseType(statusCode: StatusCodes.Status201Created)]
+        [MapToApiVersion(1)]
         public async Task<IActionResult> CreateQuiz([FromBody] CreateQuizCommand command)
         {
             var quiz = await _mediator.Send(command);
@@ -36,6 +39,7 @@ namespace Journey_of_faith.Api.Controllers
 
         [HttpGet("{id}/details")]
         [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
+        [MapToApiVersion(1)]
         public async Task<IActionResult> GetDetails(int id)
         {
             var details = await _mediator.Send(new GetDetailsQuizQuery { Id = id });
@@ -58,6 +62,7 @@ namespace Journey_of_faith.Api.Controllers
         [HttpPost("/submit")]
         //[Consumes(MediaTypeNames.Application.Json)]
         [ProducesResponseType(statusCode: StatusCodes.Status201Created)]
+        [MapToApiVersion(1)]
         public async Task<IActionResult> SubmitExam(SubmitExamCommand command)
         {
             var com = await _mediator.Send(command);
@@ -70,6 +75,7 @@ namespace Journey_of_faith.Api.Controllers
 
         [HttpDelete("{id}")]
         [ProducesResponseType(statusCode: StatusCodes.Status204NoContent)]
+        [MapToApiVersion(1)]
         public async Task<IActionResult> DeleteQuiz(int id)
         {
             await _mediator.Send(new DeleteQuizCommand { Id = id });
@@ -79,6 +85,7 @@ namespace Journey_of_faith.Api.Controllers
 
         [HttpPost("topics")]
         [ProducesResponseType(statusCode: StatusCodes.Status201Created)]
+        [MapToApiVersion(1)]
         public async Task<IActionResult> CreateTopicAsync([FromBody] CreateTopicCommand command)
         {
             await _mediator.Send(command);
@@ -89,6 +96,7 @@ namespace Journey_of_faith.Api.Controllers
         }
         [HttpDelete("topics")]
         [ProducesResponseType(statusCode: StatusCodes.Status204NoContent)]
+        [MapToApiVersion(1)]
         public async Task<IActionResult> DeleteTopic([FromBody] int id)
         {
             await _mediator.Send(new DeleteTopicCommand { Id = id });

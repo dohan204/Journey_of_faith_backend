@@ -1,3 +1,4 @@
+using Asp.Versioning;
 using Journey_of_faith.Api.dtos;
 using Journey_of_faith.Application.common.dtos;
 using Journey_of_faith.Application.usecases.dashboard.queries;
@@ -6,8 +7,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Journey_of_faith.Api.Controllers;
 
+[ApiVersion(1)]
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/v{version:apiVersion}/[controller]")]
 public class DashBoardesController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -18,6 +20,7 @@ public class DashBoardesController : ControllerBase
 
     [HttpGet]
     [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
+    [MapToApiVersion(1)]
     public async Task<IActionResult> GetCardHeaderInfo()
     {
         var result = await _mediator.Send(new GetDashboardQuery());

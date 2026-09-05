@@ -11,12 +11,14 @@ using Journey_of_faith.Domain.interfaces;
 using Journey_of_faith.Domain.dtos;
 using Journey_of_faith.Application.common.dtos;
 using Journey_of_faith.Application.exceptions;
+using Asp.Versioning;
 
 #nullable disable
 namespace Journey_of_faith.Api.Controllers
 {
+    [ApiVersion(1)]
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/v{version:apiVersion}/[controller]")]
     public sealed class QuestionController(IMediator mediator, IFileStorageService service) : ControllerBase
     {
         private readonly IMediator _mediator = mediator;
@@ -30,6 +32,7 @@ namespace Journey_of_faith.Api.Controllers
         [HttpPost("question-levels")]
         [Consumes(MediaTypeNames.Application.Json)]
         [ProducesResponseType(StatusCodes.Status201Created)]
+        [MapToApiVersion(1)]
         public async Task<IActionResult> LevelCreate([FromBody] CreateQuizLevelCommand command)
         {
             var status = await _mediator.Send(command);
@@ -42,6 +45,7 @@ namespace Journey_of_faith.Api.Controllers
 
         [HttpGet("question-levels")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [MapToApiVersion(1)]
         public async Task<IActionResult> GetAllLevel()
         {
             var result = await _mediator.Send(new GetLevelQuery());
@@ -62,6 +66,7 @@ namespace Journey_of_faith.Api.Controllers
         }
         [HttpGet("question-levels/{levelId}/details")]
         [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
+        [MapToApiVersion(1)]
         public async Task<IActionResult> GetDetailsQuiz([FromRoute] int levelId)
         {
             var quiz = await _mediator.Send(new GetDetailsQuestionLevelCommand { Id = levelId });
@@ -89,6 +94,7 @@ namespace Journey_of_faith.Api.Controllers
         [HttpPost("question-types")]
         [Consumes(MediaTypeNames.Application.Json)]
         [ProducesResponseType(StatusCodes.Status201Created)]
+        [MapToApiVersion(1)]
         public async Task<IActionResult> QuestionTypeCreated([FromBody] CreateQuestionTypeCommand command)
         {
             var status = await _mediator.Send(command);
@@ -100,6 +106,7 @@ namespace Journey_of_faith.Api.Controllers
         }
         [HttpGet("question-types")]
         [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
+        [MapToApiVersion(1)]
         public async Task<IActionResult> GetAllType()
         {
             var types = await _mediator.Send(new GetQuestionTypeQuery());
@@ -120,6 +127,7 @@ namespace Journey_of_faith.Api.Controllers
         }
         [HttpGet("question-types/{id}/details")]
         [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
+        [MapToApiVersion(1)]
         public async Task<IActionResult> GetDetailsType([FromRoute] int id)
         {
             var type = await _mediator.Send(new GetDetailsQuestionTypeQuery { Id = id });
@@ -146,6 +154,7 @@ namespace Journey_of_faith.Api.Controllers
         [HttpPost("question-categories")]
         [Consumes(MediaTypeNames.Application.Json)]
         [ProducesResponseType(StatusCodes.Status201Created)]
+        [MapToApiVersion(1)]
         public async Task<IActionResult> QuestionCategoryCreated([FromBody] CreateQuestionCategoryCommand command)
         {
             var status = await _mediator.Send(command);
@@ -157,6 +166,7 @@ namespace Journey_of_faith.Api.Controllers
         }
         [HttpGet("question-categories")]
         [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
+        [MapToApiVersion(1)]
         public async Task<IActionResult> GetAllCategory()
         {
             var categories = await _mediator.Send(new GetCategoriesQuery());
@@ -177,6 +187,7 @@ namespace Journey_of_faith.Api.Controllers
 
         [HttpGet("question-categories/{id}/details")]
         [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
+        [MapToApiVersion(1)]
         public async Task<IActionResult> GetDetailsCategory([FromRoute] int id)
         {
             var category = await _mediator.Send(new GetDetailsQuestionCategoryQuery { Id = id });
@@ -197,6 +208,7 @@ namespace Journey_of_faith.Api.Controllers
         [HttpPost]
         [Consumes(MediaTypeNames.Application.Json)]
         [ProducesResponseType(statusCode: StatusCodes.Status201Created)]
+        [MapToApiVersion(1)]
         public async Task<IActionResult> CreateQuestion([FromBody] CreateQuestionCommand command)
         {
             // if(file != null)
@@ -226,6 +238,7 @@ namespace Journey_of_faith.Api.Controllers
         }
         [HttpGet]
         [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
+        [MapToApiVersion(1)]
         public async Task<IActionResult> GetQuestions([FromQuery] int page, [FromQuery] int pageSize, [FromQuery] string? search)
         {
             var data = await _mediator.Send(new GetQuestionsQuery { Page = page, PageSize = pageSize, Search = search });
@@ -234,6 +247,7 @@ namespace Journey_of_faith.Api.Controllers
 
         [HttpPut]
         [ProducesResponseType(statusCode: StatusCodes.Status204NoContent)]
+        [MapToApiVersion(1)]
         public async Task<IActionResult> UpdateQuestion([FromBody] UpdateQuestionCommand command)
         {
             await _mediator.Send(command);
@@ -241,12 +255,14 @@ namespace Journey_of_faith.Api.Controllers
         }
         [HttpDelete("{Id}")]
         [ProducesResponseType(statusCode: StatusCodes.Status204NoContent)]
+        [MapToApiVersion(1)]
         public async Task<IActionResult> DeleteQuestion(int Id)
         {
             await _mediator.Send(new DeleteQuestionCommand { Id = Id });
             return NoContent();
         }
         [HttpGet("template")]
+        [MapToApiVersion(1)]
         public async Task<IActionResult> GetTemplateUpload()
         {
             var template = await _mediator.Send(new GetTemplateUploadFileQuery());
@@ -255,6 +271,7 @@ namespace Journey_of_faith.Api.Controllers
 
         [HttpPost("upload")]
         [Consumes("multipart/form-data")]
+        [MapToApiVersion(1)]
         public async Task<IActionResult> UploadQuestion([FromForm] IFormFile formFile)
         {
             if (formFile == null || formFile.Length == 0)
@@ -281,6 +298,7 @@ namespace Journey_of_faith.Api.Controllers
 
 
         [HttpGet("filter-condition")]
+        [MapToApiVersion(1)]
         public async Task<IActionResult> GetQuestionCondition(
             [FromQuery] int CategoryId,
             [FromQuery] int LevelId,
