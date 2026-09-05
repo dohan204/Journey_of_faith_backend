@@ -192,6 +192,7 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddInfrastructure(builder.Configuration);
 
+builder.Services.AddFirebaseService(builder.Configuration);
 builder.Services.AddRegisterService(builder.Configuration);
 
 builder.Services.AddApplication();

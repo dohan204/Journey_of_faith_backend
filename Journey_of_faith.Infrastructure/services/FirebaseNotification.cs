@@ -6,7 +6,7 @@ namespace Journey_of_faith.Infrastructure.services;
 
 public class FirebaseNotification : IFirebaseNotification
 {
-    public async Task<bool> SendNotificationAsync(string deviceToken, string title, string body)
+    public async Task<string> SendNotificationAsync(string deviceToken, string title, string body)
     {
         var message = new Message()
         {
@@ -22,11 +22,26 @@ public class FirebaseNotification : IFirebaseNotification
         try
         {
             // sử dụng thông báo chính thức của firebase 
-            string response = await FirebaseMessaging.DefaultInstance.SendAsync(message);
-            return !string.IsNullOrEmpty(response);
-        } catch
+            return await FirebaseMessaging.DefaultInstance.SendAsync(message);
+        } catch (Exception ex)
         {
-            return false;
+            throw ex;
         }
+    }
+
+    public async Task<string> SendToTopicAsync(string topic, string title, string body, Dictionary<string, string>? data = null)
+    {
+        var message = new Message()
+        {
+            Topic = topic,
+            Notification = new Notification()
+            {
+                Title = title,
+                Body = body
+            },
+            Data = data
+        };
+
+        return await FirebaseMessaging.DefaultInstance.SendAsync(message);
     }
 }

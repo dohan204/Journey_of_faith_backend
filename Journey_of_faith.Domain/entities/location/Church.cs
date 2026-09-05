@@ -13,7 +13,7 @@ namespace Journey_of_faith.Domain.entities.location
         public string? Email { get; private set; }
         public string? Address { get; private set; }
         public int DioceseId { get; private set; }
-        public string Boss {get; private set;}
+        public string? Boss {get; private set;}
         public string? Description {get; private set;}
         public GeoLocation GeoLocation { get; private set; }
 

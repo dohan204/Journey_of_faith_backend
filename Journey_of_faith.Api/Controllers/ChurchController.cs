@@ -378,9 +378,7 @@ namespace Journey_of_faith.Api.Controllers
                     Data = dioceseId
                 });
         }
-
         [MapToApiVersion(1)]
-
         [HttpGet("dioceses")]
         public async Task<IActionResult> GetDiocese()
         {
@@ -396,8 +394,6 @@ namespace Journey_of_faith.Api.Controllers
         }
 
         [MapToApiVersion(1)]
-
-
         [HttpGet]
         [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
         public async Task<IActionResult> SearchChurches(
@@ -528,7 +524,7 @@ namespace Journey_of_faith.Api.Controllers
                 });
         }
         [MapToApiVersion(1)]
-        [HttpDelete("{churchId:int}/follow")]
+        [HttpDelete("{churchId:int}/unfollow")]
         [Authorize]
         [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
         public async Task<IActionResult> UnfollowChurch(
@@ -559,7 +555,7 @@ namespace Journey_of_faith.Api.Controllers
                     new GetFollowedChurchesQuery());
 
             return Ok(
-                new ApiResponse<IEnumerable<ChurchListItemView>>
+                new ApiResponse<IEnumerable<Church>>
                 {
                     Message = result.Any()
                         ? "Lấy danh sách nhà thờ theo dõi thành công."
@@ -567,25 +563,25 @@ namespace Journey_of_faith.Api.Controllers
                     Data = result
                 });
         }
-        [MapToApiVersion(1)]
-        [HttpGet("mass-schedules/personalized")]
-        [Authorize]
-        [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetPersonalizedMassSchedules(
-            [FromQuery] GetPersonalizedMassSchedulesQuery query)
-        {
-            var result =
-                await _mediator.Send(query);
+        // [MapToApiVersion(1)]
+        // [HttpGet("mass-schedules/personalized")]
+        // [Authorize]
+        // [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
+        // public async Task<IActionResult> GetPersonalizedMassSchedules(
+        //     [FromQuery] GetPersonalizedMassSchedulesQuery query)
+        // {
+        //     var result =
+        //         await _mediator.Send(query);
 
-            return Ok(
-                new ApiResponse<IEnumerable<PersonalizedMassScheduleItemDto>>
-                {
-                    Message = result.Any()
-                        ? "Lấy lịch lễ cá nhân hóa thành công."
-                        : "Không có lịch lễ trong phạm vi lọc hoặc bạn chưa theo dõi nhà thờ nào.",
-                    Data = result
-                });
-        }
+        //     return Ok(
+        //         new ApiResponse<IEnumerable<PersonalizedMassScheduleItemDto>>
+        //         {
+        //             Message = result.Any()
+        //                 ? "Lấy lịch lễ cá nhân hóa thành công."
+        //                 : "Không có lịch lễ trong phạm vi lọc hoặc bạn chưa theo dõi nhà thờ nào.",
+        //             Data = result
+        //         });
+        // }
         [MapToApiVersion(1)]
         [HttpGet("reminder-setting")]
         [Authorize]
@@ -615,7 +611,6 @@ namespace Journey_of_faith.Api.Controllers
                 await _mediator.Send(command);
 
 
-        [MapToApiVersion(1)]
 
             return Ok(
                 new ApiResponse<ReminderSettingView>
@@ -626,6 +621,7 @@ namespace Journey_of_faith.Api.Controllers
                 });
         }
 
+        [MapToApiVersion(1)]
 
         [HttpPost("dailyWords")]
         [Consumes(MediaTypeNames.Application.Json)]
