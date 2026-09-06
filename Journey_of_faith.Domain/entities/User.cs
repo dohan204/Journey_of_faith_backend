@@ -87,7 +87,7 @@ namespace Journey_of_faith.Domain.entities
             ProvinceName = provinceName;
         }
 
-        public User() { }
+
 
 
         public User(string name, string email, string username, string password, string? avatar)

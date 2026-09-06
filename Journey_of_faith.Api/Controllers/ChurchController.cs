@@ -615,7 +615,7 @@ namespace Journey_of_faith.Api.Controllers
                 await _mediator.Send(command);
 
 
-        [MapToApiVersion(1)]
+        
 
             return Ok(
                 new ApiResponse<ReminderSettingView>
@@ -625,6 +625,7 @@ namespace Journey_of_faith.Api.Controllers
                     Data = result
                 });
         }
+        [MapToApiVersion(1)]
 
 
         [HttpPost("dailyWords")]
