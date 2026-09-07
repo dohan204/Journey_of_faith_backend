@@ -8,7 +8,7 @@ using System.Text;
 
 namespace Journey_of_faith.Domain.interfaces
 {
-    public class ChurchListItemView
+    public record class ChurchListItemView
     {
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
@@ -20,19 +20,22 @@ namespace Journey_of_faith.Domain.interfaces
         public double? Latitude { get; set; }
         public double? Longitude { get; set; }
         public bool IsFollowed { get; set; }
+
+        public List<PersonalizedMassScheduleView> MassSchedules {get; set;}
     }
 
-    public class PersonalizedMassScheduleView
+    public record class PersonalizedMassScheduleView
     {
         public int MassScheduleId { get; set; }
         public int ChurchId { get; set; }
+        public string Name {get; set;}
         public string ChurchName { get; set; } = string.Empty;
         public string? ChurchAddress { get; set; }
         public bool? IsFixed { get; set; }
         public DateTime? Date { get; set; }
         public DateTime? FromDate { get; set; }
         public DateTime? ToDate { get; set; }
-        public TimeSpan Time { get; set; }
+        public string Time { get; set; }
         public int? MassTypeId { get; set; }
         public string? MassTypeName { get; set; }
     }
@@ -72,7 +75,7 @@ namespace Journey_of_faith.Domain.interfaces
         Task<bool> IsFollowingChurchAsync(Guid userId, int churchId);
         Task<bool> FollowChurchAsync(Guid userId, int churchId);
         Task<bool> UnfollowChurchAsync(Guid userId, int churchId);
-        Task<IEnumerable<ChurchListItemView>> GetFollowedChurchesAsync(Guid userId);
+        Task<IEnumerable<Church>> GetFollowedChurchesAsync(Guid userId);
         Task<IEnumerable<PersonalizedMassScheduleView>> GetPersonalizedMassSchedulesAsync(Guid userId, DateTime fromDate, DateTime toDate, int? churchId);
         Task<ReminderSettingView> GetReminderSettingAsync(Guid userId);
         Task<ReminderSettingView> SaveReminderSettingAsync(Guid userId, bool isEnabled, int minutesBefore, string? speechGender, double? speechSpeed);
@@ -80,5 +83,6 @@ namespace Journey_of_faith.Domain.interfaces
         Task<bool> CreateDailyWorld(DailyWord dailyWord);
         Task<DailyWord?> GetDailyWorldAsync(DateTime dailyDay);
         Task<PagedResult<Church>> GetChurchWithCondition(string churchName, string province, string wards, string time, int page, int pageSize);
+        Task<bool> UploadFileChurchAsync(List<Church> churches);
     }
 }

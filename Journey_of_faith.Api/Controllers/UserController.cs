@@ -1,4 +1,5 @@
 ﻿using System.Net.Mime;
+using Asp.Versioning;
 using Journey_of_faith.Api.dtos;
 using Journey_of_faith.Application.common.dtos;
 using Journey_of_faith.Application.usecases.users.commands;
@@ -12,8 +13,9 @@ using Microsoft.AspNetCore.Mvc.Formatters;
 
 namespace Journey_of_faith.Api.Controllers
 {
+    [ApiVersion(1)]
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/v{version:apiVersion}/[controller]")]
     
     public class UsersController : ControllerBase
     {
@@ -25,6 +27,7 @@ namespace Journey_of_faith.Api.Controllers
         [HttpPost]
         [Consumes(MediaTypeNames.Application.Json)]
         [ProducesResponseType(statusCode: StatusCodes.Status201Created)]
+        [MapToApiVersion(1)]    
         public async Task<IActionResult> Create([FromBody] CreateUserCommand command)
         {
             await _mediator.Send(command);
@@ -37,7 +40,7 @@ namespace Journey_of_faith.Api.Controllers
         [HttpGet]
         // [Consumes(MediaTypeNames.Application.j)]
         // [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
-        
+        [MapToApiVersion(1)]
         public async Task<IActionResult> GetUsers([FromQuery] int page, [FromQuery] int pageSize, [FromQuery] string? search)
         {
             var result = await _mediator.Send(new GetUsersQuery { Page = page, PageSize = pageSize, Search = search});
@@ -48,6 +51,7 @@ namespace Journey_of_faith.Api.Controllers
             });
         }
         [HttpGet("me")]
+        [MapToApiVersion(1)]
         public async Task<IActionResult> GetMe()
         {
             var user = await _mediator.Send(new GetMeQuery());
@@ -58,6 +62,7 @@ namespace Journey_of_faith.Api.Controllers
             });
         }
         [HttpDelete("{UsreId}")]
+        [MapToApiVersion(1)]
         public async Task<IActionResult> DeleteUser([FromRoute] string UsreId)
         {
             var isDeleted = await _mediator.Send(new DeleteUserCommand{Id = UsreId});

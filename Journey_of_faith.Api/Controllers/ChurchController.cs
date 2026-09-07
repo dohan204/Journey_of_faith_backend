@@ -540,8 +540,7 @@ namespace Journey_of_faith.Api.Controllers
                     Data = dioceseId
                 });
         }
-
-        // Các action còn lại giữ nguyên, nhưng nếu có dùng Path/FileMode thì cũng sửa tương tự
+        [MapToApiVersion(1)]
         [HttpGet("dioceses")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetDiocese()
@@ -557,6 +556,7 @@ namespace Journey_of_faith.Api.Controllers
                 });
         }
 
+        [MapToApiVersion(1)]
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> SearchChurches(
@@ -675,8 +675,8 @@ namespace Journey_of_faith.Api.Controllers
                 Data = new { ChurchId = churchId }
             });
         }
-
-        [HttpDelete("{churchId:int}/follow")]
+        [MapToApiVersion(1)]
+        [HttpDelete("{churchId:int}/unfollow")]
         [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> UnfollowChurch([FromRoute] int churchId)
@@ -694,28 +694,39 @@ namespace Journey_of_faith.Api.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetFollowingChurches()
         {
-            var result = await _mediator.Send(new GetFollowedChurchesQuery());
-            return Ok(new ApiResponse<IEnumerable<ChurchListItemView>>
-            {
-                Message = result.Any() ? "Lấy danh sách nhà thờ theo dõi thành công." : "Bạn chưa theo dõi nhà thờ nào.",
-                Data = result
-            });
-        }
+            var result =
+                await _mediator.Send(
+                    new GetFollowedChurchesQuery());
 
-        [HttpGet("mass-schedules/personalized")]
-        [Authorize]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetPersonalizedMassSchedules(
-            [FromQuery] GetPersonalizedMassSchedulesQuery query)
-        {
-            var result = await _mediator.Send(query);
-            return Ok(new ApiResponse<IEnumerable<PersonalizedMassScheduleItemDto>>
-            {
-                Message = result.Any() ? "Lấy lịch lễ cá nhân hóa thành công." : "Không có lịch lễ trong phạm vi lọc hoặc bạn chưa theo dõi nhà thờ nào.",
-                Data = result
-            });
+            return Ok(
+                new ApiResponse<IEnumerable<Church>>
+                {
+                    Message = result.Any()
+                        ? "Lấy danh sách nhà thờ theo dõi thành công."
+                        : "Bạn chưa theo dõi nhà thờ nào.",
+                    Data = result
+                });
         }
+        // [MapToApiVersion(1)]
+        // [HttpGet("mass-schedules/personalized")]
+        // [Authorize]
+        // [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
+        // public async Task<IActionResult> GetPersonalizedMassSchedules(
+        //     [FromQuery] GetPersonalizedMassSchedulesQuery query)
+        // {
+        //     var result =
+        //         await _mediator.Send(query);
 
+        //     return Ok(
+        //         new ApiResponse<IEnumerable<PersonalizedMassScheduleItemDto>>
+        //         {
+        //             Message = result.Any()
+        //                 ? "Lấy lịch lễ cá nhân hóa thành công."
+        //                 : "Không có lịch lễ trong phạm vi lọc hoặc bạn chưa theo dõi nhà thờ nào.",
+        //             Data = result
+        //         });
+        // }
+        [MapToApiVersion(1)]
         [HttpGet("reminder-setting")]
         [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -736,13 +747,21 @@ namespace Journey_of_faith.Api.Controllers
         public async Task<IActionResult> UpdateReminderSetting(
             [FromBody] UpdateMassReminderSettingCommand command)
         {
-            var result = await _mediator.Send(command);
-            return Ok(new ApiResponse<ReminderSettingView>
-            {
-                Message = "Cập nhật cấu hình nhắc lễ thành công.",
-                Data = result
-            });
+            var result =
+                await _mediator.Send(command);
+
+
+
+            return Ok(
+                new ApiResponse<ReminderSettingView>
+                {
+                    Message =
+                        "Cập nhật cấu hình nhắc lễ thành công.",
+                    Data = result
+                });
         }
+
+        [MapToApiVersion(1)]
 
         [HttpPost("dailyWords")]
         [Consumes(MediaTypeNames.Application.Json)]

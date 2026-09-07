@@ -1,31 +1,44 @@
+using Asp.Versioning;
+using FirebaseAdmin.Messaging;
 using Journey_of_faith.Application.common.interfaces;
+using Journey_of_faith.Application.usecases.notifications;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Journey_of_faith.Api.Controllers;
 
+[ApiVersion(1)]
+[ApiController]
+[Route("api/v{version:apiVersion}/notifications")]
 public class NotificationController : ControllerBase
 {
-    private readonly IFirebaseNotification firebaseNotification;
-
-    public NotificationController(IFirebaseNotification firebaseNotification)
+    private readonly IMediator mediator;
+    public NotificationController(IMediator mediator)
     {
-        this.firebaseNotification = firebaseNotification;
+        this.mediator = mediator;
     }
-    [HttpPost("test")]
-    public async Task<IActionResult> Test([FromBody] TestNotificationDto dto)
+    [MapToApiVersion(1)]
+    [HttpPost("send-notification")]
+    public async Task<IActionResult> PushToUser(string? token, string? topic, string title, string message)
     {
-        var success = await firebaseNotification.SendNotificationAsync(
-            dto.DeviceToken, dto.Title, dto.Body
-        );
+        try
+        {
+            var dataPayload = new Dictionary<string, string> { { "click_action", "OPEN_ARTICLE" }, { "articleId", "123" } };
+            var messageId = await mediator.Send(new PushNotificationCommand
+            {
+                Topic = topic,
+                Token = token,
+                Title = title,
+                Body = message,
+                Data = dataPayload
+            });
 
-        return success ? Ok("sent") : BadRequest("failed");
+            return Ok(new {Success = true, MessageId = messageId});
+        } catch (FirebaseMessagingException ex)
+        {
+            return BadRequest(new { Success = false, Error = ex.Message, ErrorCode = ex.MessagingErrorCode.ToString() });
+      
+        }
     }
-}
 
-
-public class TestNotificationDto
-{
-    public string DeviceToken { get; set; }
-    public string Title { get; set; }
-    public string Body { get; set; }
 }

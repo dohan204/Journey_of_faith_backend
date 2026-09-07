@@ -1,3 +1,4 @@
+using Journey_of_faith.Domain.dtos;
 using Journey_of_faith.Domain.entities.events;
 
 namespace Journey_of_faith.Domain.interfaces
@@ -5,10 +6,6 @@ namespace Journey_of_faith.Domain.interfaces
     public class EventListFilter
     {
         public string? Keyword { get; set; }
-        public int? CategoryId { get; set; }
-        public DateTime? StartFrom { get; set; }
-        public DateTime? StartTo { get; set; }
-        public bool OnlyUpcoming { get; set; }
         public int PageIndex { get; set; } = 1;
         public int PageSize { get; set; } = 10;
     }
@@ -97,7 +94,7 @@ namespace Journey_of_faith.Domain.interfaces
         Task<bool> DeleteEventAsync(int eventId);
 
         Task<EventDetailsView?> GetEventDetailsAsync(int eventId, Guid? userId);
-        Task<EventPagedResult> GetEventsAsync(EventListFilter filter, Guid? userId);
+        Task<PagedResult<Event>> GetEventsAsync(EventListFilter filterr);
 
         Task<bool> IsFollowingEventAsync(Guid userId, int eventId);
         Task<bool> FollowEventAsync(Guid userId, int eventId);

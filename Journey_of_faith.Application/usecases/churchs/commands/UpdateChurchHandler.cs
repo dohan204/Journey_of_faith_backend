@@ -38,7 +38,7 @@ public class UpdateChurchHandler : IRequestHandler<UpdateChurchCommand, int>
             }
             var listMassSche = command.MassSchedules.Select(e => new MassSchedule
             {
-                Id = (int)e.Id,
+                Id = e.Id  ?? 0,
                 Name = e?.Name ?? string.Empty,
                 Time = e?.Time ?? string.Empty,
                 MassTypeId = 1

@@ -1,4 +1,5 @@
 ﻿
+using Asp.Versioning;
 using Azure.Core;
 using Journey_of_faith.Api.dtos;
 using Journey_of_faith.Application.usecases.auth.commands;
@@ -10,8 +11,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Journey_of_faith.Api.Controllers
 {
+    [ApiVersion(1)]
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/v{version:apiVersion}/[controller]")]
     public class AuthController : ControllerBase
     {
         private readonly IMediator _me;
@@ -19,7 +21,7 @@ namespace Journey_of_faith.Api.Controllers
         {
             _me = me;
         }
-
+        [MapToApiVersion(1)]
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] UserLoginQuery query)
         {
@@ -27,20 +29,21 @@ namespace Journey_of_faith.Api.Controllers
             return Ok(login);
         }
 
+        [MapToApiVersion(1)]
         [HttpPost("refresh")]
         public async Task<IActionResult> RefreshToken([FromBody] CreateRefreshTokenCommand command)
         {
             var refresh = await _me.Send(command);
             return Ok(refresh);
         }
-
+        [MapToApiVersion(1)]
         [HttpPatch("change")]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordCommand command)
         {
             await _me.Send(command);
             return NoContent();
         }
-
+        [MapToApiVersion(1)]
         [HttpGet("roles")]
         public async Task<IActionResult> GetRoles([FromQuery] int page, [FromQuery] int pageSize, [FromQuery] string? search)
         {
@@ -51,7 +54,7 @@ namespace Journey_of_faith.Api.Controllers
                 Message = "Lấy dữ liệu thành công"
             });
         }
-
+        [MapToApiVersion(1)]
         [HttpGet("roles/users-role")]
         public async Task<IActionResult> GetTotalRole()
         {
@@ -62,7 +65,7 @@ namespace Journey_of_faith.Api.Controllers
                 Data = total
             });
         }
-
+        [MapToApiVersion(1)]
         [HttpPost("roles")]
         public async Task<IActionResult> CreateRole([FromBody] CreateRoleCommand command)
         {
@@ -73,7 +76,7 @@ namespace Journey_of_faith.Api.Controllers
                 Data = roleId
             });
         }
-
+        [MapToApiVersion(1)]
         [HttpPost("roles/add-permission")]
         public async Task<IActionResult> AddPermission([FromBody] AddPermissionCommand command)
         {
@@ -84,7 +87,7 @@ namespace Journey_of_faith.Api.Controllers
                 Data = isSuccess
             });
         }
-
+        [MapToApiVersion(1)]
         [HttpGet("roles/get-permissions")]
         public async Task<IActionResult> GetPermission()
         {
@@ -95,14 +98,14 @@ namespace Journey_of_faith.Api.Controllers
                 Data = result
             });
         }
-
+        [MapToApiVersion(1)]
         [HttpDelete("roles/{Name}")]
         public async Task<IActionResult> Delete([FromRoute] string Name)
         {
             await _me.Send(new DeleteRoleCommand { RoleName = Name });
             return NoContent();
         }
-
+        [MapToApiVersion(1)]
         [HttpDelete("roles/remove-user")]
         public async Task<IActionResult> RemoveUserRole([FromBody] DeleteUserFromRoleCommand command)
         {
@@ -110,6 +113,7 @@ namespace Journey_of_faith.Api.Controllers
             return NoContent();
         }
 
+        [MapToApiVersion(1)]
         [HttpPut("roles")]
         public async Task<IActionResult> UpdateRole([FromBody] UpDateRoleCommand command)
         {
@@ -117,6 +121,7 @@ namespace Journey_of_faith.Api.Controllers
             return NoContent();
         }
 
+        [MapToApiVersion(1)]
         [HttpPost("reset")]
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordCommand command)
         {
@@ -130,6 +135,7 @@ namespace Journey_of_faith.Api.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [MapToApiVersion(1)]
         public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginRequest request)
         {
             try

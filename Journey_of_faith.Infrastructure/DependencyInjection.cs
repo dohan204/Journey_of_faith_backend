@@ -29,6 +29,7 @@ using FirebaseAdmin;
 using System.Text;
 using Google.Apis.Auth.OAuth2;
 using System.IdentityModel.Tokens.Jwt;
+using System.Text.Json;
 
 namespace Journey_of_faith.Infrastructure
 {
@@ -218,30 +219,36 @@ namespace Journey_of_faith.Infrastructure
     //     }
     // }
 
-    // public static class RegisterFirebase
-    // {
-    //     public static IServiceCollection AddFirebaseService(this IServiceCollection services, IConfiguration configuration)
-    //     {
-    //         var credentialPath = configuration.GetValue<string>("Firebase:CredentialFilePath");
-    //         if (!string.IsNullOrEmpty(credentialPath))
-    //         {
-    //             var fullPath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), credentialPath);
-    //             if (!File.Exists(fullPath))
-    //             {
-    //                 throw new FileNotFoundException($"Firebase credential file not found at: {fullPath}");
-    //             }
-    //             if (FirebaseApp.DefaultInstance == null)
-    //             {
-    //                 var credential = CredentialFactory
-    //                     .FromFile<ServiceAccountCredential>(fullPath)
-    //                     .ToGoogleCredential();
-    //                 FirebaseApp.Create(new AppOptions()
-    //                 {
-    //                     Credential = credential
-    //                 });
-    //             }
-    //         }
-    //         return services;
-    //     }
-    // }
+    public static class RegisterFirebase
+    {
+        public static IServiceCollection AddFirebaseService(this IServiceCollection services, IConfiguration configuration)
+        {
+            if (FirebaseApp.DefaultInstance == null)
+            {
+                var firebaseSection = configuration.GetSection("Firebase");
+
+                var firebaseConfigJson = JsonSerializer.Serialize(
+                    new
+                    {
+                        type = firebaseSection["type"],
+                        project_id = firebaseSection["project_id"],
+                        private_key_id = firebaseSection["private_key_id"],
+                        private_key = firebaseSection["private_key"]?.Replace("\\n", "\n"),
+                        client_email = firebaseSection["client_email"],
+                        client_id = firebaseSection["client_id"],
+                        auth_uri = firebaseSection["auth_uri"],
+                        token_uri = firebaseSection["token_uri"],
+                        auth_provider_x509_cert_url = firebaseSection["auth_provider_x509_cert_url"],
+                        client_x509_cert_url = firebaseSection["client_x509_cert_url"]
+                    }
+                );
+
+                FirebaseApp.Create(new AppOptions()
+                {
+                    Credential = GoogleCredential.FromJson(firebaseConfigJson)
+                });
+            }
+            return services;
+        }
+    }
 }

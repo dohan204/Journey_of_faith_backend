@@ -1,5 +1,6 @@
 using Dapper;
 using Journey_of_faith.Application.common.interfaces;
+using Journey_of_faith.Domain.dtos;
 using Journey_of_faith.Domain.entities.events;
 using Journey_of_faith.Domain.interfaces;
 using Journey_of_faith.Infrastructure.common;
@@ -227,33 +228,26 @@ namespace Journey_of_faith.Infrastructure.repositories
             });
         }
 
-        public async Task<EventPagedResult> GetEventsAsync(EventListFilter filter, Guid? userId)
+        public async Task<PagedResult<Event>> GetEventsAsync(EventListFilter filter)
         {
             return await ExecuteAsync(async connection =>
             {
-                var offset = (filter.PageIndex - 1) * filter.PageSize;
-
                 using var multi = await connection.QueryMultipleAsync("sp_EventsPage", new
                 {
                     Keyword = filter.Keyword,
-                    CategoryId = filter.CategoryId,
-                    StartFrom = filter.StartFrom,
-                    StartTo = filter.StartTo,
-                    OnlyUpcoming = filter.OnlyUpcoming,
-                    UserId = userId,
-                    Offset = offset,
-                    PageSize = filter.PageSize
-                }, commandType: CommandType.StoredProcedure);
-
-                var items = (await multi.ReadAsync<EventListItemView>()).ToList();
-                var totalCount = await multi.ReadSingleAsync<int>();
-
-                return new EventPagedResult
-                {
-                    TotalCount = totalCount,
                     PageIndex = filter.PageIndex,
                     PageSize = filter.PageSize,
-                    Items = items
+                }, commandType: CommandType.StoredProcedure);
+
+                var items = (await multi.ReadAsync<Event>()).ToList();
+                var totalCount = await multi.ReadSingleAsync<int>();
+
+                return new PagedResult<Event>
+                {
+                    TotalCount = totalCount,
+                    Page = filter.PageIndex,
+                    PageSize = filter.PageSize,
+                    Data = items
                 };
             });
         }
