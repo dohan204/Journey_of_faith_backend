@@ -367,8 +367,6 @@ namespace Journey_of_faith.Api.Controllers
                 });
         }
         [MapToApiVersion(1)]
-
-
         [HttpPost("dailyWords")]
         [Consumes(MediaTypeNames.Application.Json)]
         [ProducesResponseType(statusCode: StatusCodes.Status201Created)]
