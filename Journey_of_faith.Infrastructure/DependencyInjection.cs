@@ -245,7 +245,8 @@ namespace Journey_of_faith.Infrastructure
 
                 FirebaseApp.Create(new AppOptions()
                 {
-                    Credential = GoogleCredential.FromJson(firebaseConfigJson)
+                    Credential = GoogleCredential.FromJson(firebaseConfigJson),
+                    HttpClientFactory = new TimeoutHttpClientFactory(TimeSpan.FromSeconds(5))
                 });
             }
             return services;
