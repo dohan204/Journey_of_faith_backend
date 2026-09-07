@@ -14,7 +14,7 @@ namespace Journey_of_faith.Api.Controllers
 {
     [ApiVersion(1)]
     [ApiController]
-    [Route("api/v{version:apiVersion}/[controller]")]
+    [Route("api/v{version:apiVersion}/events")]
     public class EventController : ControllerBase
     {
         private readonly IMediator _mediator;

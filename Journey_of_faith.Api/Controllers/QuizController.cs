@@ -14,7 +14,7 @@ namespace Journey_of_faith.Api.Controllers
 {
     [ApiVersion(1)]
     [ApiController]
-    [Route("api/v{version:apiVersion}/[controller]")]
+    [Route("api/v{version:apiVersion}/quiz")]
     [Authorize]
     public class QuizController : ControllerBase
     {

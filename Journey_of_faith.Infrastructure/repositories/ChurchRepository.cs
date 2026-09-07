@@ -124,8 +124,7 @@ namespace Journey_of_faith.Infrastructure.repositories
                     Time = time
                 });
                 var groupSchedule = massSchedules.ToLookup(e => e.ChurchId);
-                foreach(var church in churches)
-                {
+                foreach(var church in churches) {
                     church.SetMassSchedule(groupSchedule[church.Id].ToList());
                 }
 
@@ -835,4 +834,28 @@ namespace Journey_of_faith.Infrastructure.repositories
         public const string NotificationPreference = "NotificationPreference";
         public const string ReminderSetting = "ReminderSetting";
     }
+
+    public class ChurchViewModel
+    {
+        public int Id { get; set; }
+
+        public string Name { get; set; } = string.Empty;
+
+        public string? Thumbnail { get; set; }
+
+        public string? Email { get; set; }
+
+        public string? Address { get; set; }
+
+        public int DioceseId { get; set; }
+
+        public string? Boss { get; set; }
+
+        public string? Description { get; set; }
+
+        public float? Latitude { get; set; }
+
+        public float? Longitude { get; set; }
+    }
+
 }

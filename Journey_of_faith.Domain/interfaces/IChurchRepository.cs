@@ -23,7 +23,6 @@ namespace Journey_of_faith.Domain.interfaces
 
         public List<PersonalizedMassScheduleView> MassSchedules {get; set;}
     }
-
     public record class PersonalizedMassScheduleView
     {
         public int MassScheduleId { get; set; }

@@ -9,7 +9,7 @@ namespace Journey_of_faith.Api.Controllers;
 
 [ApiVersion(1)]
 [ApiController]
-[Route("api/v{version:apiVersion}/[controller]")]
+[Route("api/v{version:apiVersion}/dashboard")]
 public class DashBoardesController : ControllerBase
 {
     private readonly IMediator _mediator;

@@ -18,7 +18,7 @@ namespace Journey_of_faith.Api.Controllers
 {
     [ApiVersion(1)]
     [ApiController]
-    [Route("api/v{version:apiVersion}/[controller]")]
+    [Route("api/v{version:apiVersion}/questions")]
     public sealed class QuestionController(IMediator mediator, IFileStorageService service) : ControllerBase
     {
         private readonly IMediator _mediator = mediator;
