@@ -374,7 +374,6 @@ namespace Journey_of_faith.Api.Controllers
             [FromBody] CreateDailyWordCommand command)
         {
             await _mediator.Send(command);
-
             return StatusCode(
                 StatusCodes.Status201Created,
                 new
