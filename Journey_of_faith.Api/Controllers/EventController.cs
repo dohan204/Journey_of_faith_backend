@@ -31,6 +31,8 @@ namespace Journey_of_faith.Api.Controllers
         public async Task<IActionResult> CreateCategory([FromBody] CreateEventCategoryCommand command)
         {
             var categoryId = await _mediator.Send(command);
+
+            var userId = Guid.NewGuid();
             return StatusCode(StatusCodes.Status201Created, new ApiResponse<int>
             {
                 Message = "Tạo danh mục sự kiện thành công.",
@@ -138,7 +140,7 @@ namespace Journey_of_faith.Api.Controllers
             });
         }
         [MapToApiVersion(1)]
-        [HttpDelete("{id:int}/follow")]
+        [HttpDelete("{id:int}/unfollow")]
         [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> UnfollowEvent([FromRoute] int id)

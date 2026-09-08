@@ -37,6 +37,19 @@ namespace Journey_of_faith.Api.Controllers
             });
         }
 
+        [HttpGet]
+        [ProducesResponseType(typeof(ApiResponse<IEnumerable<QuizView>>), StatusCodes.Status200OK)]
+        [MapToApiVersion(1)]
+        public async Task<IActionResult> GetAll()
+        {
+            var quizzes = await _mediator.Send(new GetAllQuizzesQuery());
+            return Ok(new ApiResponse<IEnumerable<QuizView>>
+            {
+                Message = "Lấy danh sách đề thi thành công",
+                Data = quizzes
+            });
+        }
+
         [HttpGet("{id}/details")]
         [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
         [MapToApiVersion(1)]
