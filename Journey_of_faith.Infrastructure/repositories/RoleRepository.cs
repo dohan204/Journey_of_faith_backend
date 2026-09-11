@@ -97,17 +97,20 @@ public class RoleRepository : BaseRepository, IRoleRepository
             .Where(x => x.Type == "Permission")
             .Select(x => x.Value)
             .ToHashSet();
+        foreach (var claim in existingClaims.Where(x => x.Type == "Permission"))
+        {
+            await _roleManager.RemoveClaimAsync(roleExists, claim);
+        }
         foreach (string permission in permissions)
         {
-            if (!existingPermissionValues.Contains(permission))
-            {
-                var result = await _roleManager.AddClaimAsync(roleExists, new Claim("Permission", permission));
 
-                if (!result.Succeeded)
-                {
-                    throw new BadRequestException("Không thể thêm quyền cho Vai trò");
-                }
+            var result = await _roleManager.AddClaimAsync(roleExists, new Claim("Permission", permission));
+
+            if (!result.Succeeded)
+            {
+                throw new BadRequestException("Không thể thêm quyền cho Vai trò");
             }
+
         }
         ;
         return true;
@@ -135,9 +138,9 @@ public class RoleRepository : BaseRepository, IRoleRepository
         }
 
         var userRoleExists = await _userManager.GetUsersInRoleAsync(roleName);
-        if(userRoleExists.Any())
+        if (userRoleExists.Any())
         {
-            throw new BadRequestException($"Don't delete: {roleName} because {userRoleExists.Count} users used this role.");   
+            throw new BadRequestException($"Don't delete: {roleName} because {userRoleExists.Count} users used this role.");
         }
         var result = await _roleManager.DeleteAsync(role);
         if (!result.Succeeded)
@@ -181,7 +184,7 @@ public class RoleRepository : BaseRepository, IRoleRepository
     }
 
 
-    public async Task<bool> UpdateRoleAsync(string roleId ,Role role)
+    public async Task<bool> UpdateRoleAsync(string roleId, Role role)
     {
 
         var roleExits = await _roleManager.FindByIdAsync(roleId);

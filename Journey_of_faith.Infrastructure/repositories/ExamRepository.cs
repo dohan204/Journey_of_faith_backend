@@ -45,6 +45,62 @@ namespace Journey_of_faith.Infrastructure.repositories
             }
         }
 
+        public async Task<IEnumerable<QuizView>> GetAllQuizzesAsync()
+        {
+            using var connection = _factory.CreateConnection();
+            using var multi = await connection.QueryMultipleAsync($@"
+                SELECT Id, Title, Description, TimeLimit, QuestionCount, IsDailyQuiz, TopicId, CreatedTime
+                FROM [{name.Schema}].[{QuizTalbe.Quiz}]
+                WHERE ISNULL(IsDeleted, 0) = 0
+                ORDER BY CreatedTime DESC, Id DESC;
+
+                SELECT qq.QuizId, q.Id, q.QuestionContent, q.ImageUrl
+                FROM [{name.Schema}].[{QuizTalbe.QuizQuestion}] qq
+                INNER JOIN [{name.Schema}].[{TableQuestion.Question}] q ON q.Id = qq.QuestionId
+                INNER JOIN [{name.Schema}].[{QuizTalbe.Quiz}] quiz ON quiz.Id = qq.QuizId
+                WHERE ISNULL(quiz.IsDeleted, 0) = 0
+                  AND ISNULL(q.IsDeleted, 0) = 0
+                ORDER BY qq.QuizId, qq.OrderIndex, qq.Id;
+
+                SELECT a.QuestionId, a.Id, a.Content, a.IsCorrect
+                FROM [{name.Schema}].[{TableQuestion.Answer}] a
+                WHERE EXISTS (
+                    SELECT 1
+                    FROM [{name.Schema}].[{QuizTalbe.QuizQuestion}] qq
+                    INNER JOIN [{name.Schema}].[{QuizTalbe.Quiz}] quiz ON quiz.Id = qq.QuizId
+                    WHERE qq.QuestionId = a.QuestionId
+                      AND ISNULL(quiz.IsDeleted, 0) = 0
+                )
+                ORDER BY a.QuestionId, a.Id;
+            ");
+
+            var quizzes = (await multi.ReadAsync<QuizView>()).ToList();
+            var questionRows = (await multi.ReadAsync<QuizQuestionRow>()).ToList();
+            var answers = (await multi.ReadAsync<AnsewrQuestion>()).ToList();
+
+            var answerLookup = answers.ToLookup(answer => answer.QuestionId);
+            var questionLookup = questionRows
+                .Select(row => new
+                {
+                    row.QuizId,
+                    Question = new QuestionQuiz
+                    {
+                        Id = row.Id,
+                        QuestionContent = row.QuestionContent,
+                        ImageUrl = row.ImageUrl,
+                        Ansewrs = answerLookup[row.Id].ToList()
+                    }
+                })
+                .ToLookup(item => item.QuizId, item => item.Question);
+
+            foreach (var quiz in quizzes)
+            {
+                quiz.Questions = questionLookup[quiz.Id].ToList();
+            }
+
+            return quizzes;
+        }
+
 
         public async Task<QuizView?> GetDetailsQuiz(int Id)
         {
@@ -124,7 +180,12 @@ namespace Journey_of_faith.Infrastructure.repositories
             return isDelete > 0;
         }
 
-
+        public async Task<IEnumerable<Topic>> GetTopicsAsync()
+        {
+            using var connection = _factory.CreateConnection();
+            var topics = await connection.QueryAsync<Topic>("Select * From [jcodepro_journey_of_faith].[Topic]");
+            return topics;
+        }
         #region Topic
         public async Task<int> CreateTopicAsync(Topic topic)
         {
@@ -166,6 +227,14 @@ namespace Journey_of_faith.Infrastructure.repositories
         public const string QuizAttempt = "QuizAttempt";
         public const string AttemptAnswer = "AttemptAnswer";
         public const string Topic = "Topic";
+    }
+
+    internal sealed class QuizQuestionRow
+    {
+        public int QuizId { get; set; }
+        public int Id { get; set; }
+        public string QuestionContent { get; set; } = string.Empty;
+        public string ImageUrl { get; set; } = string.Empty;
     }
 
     

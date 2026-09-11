@@ -9,6 +9,7 @@ using Journey_of_faith.Domain.interfaces;
 using Journey_of_faith.Infrastructure.common;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using System.Data;
 using Z.Dapper.Plus;
@@ -17,11 +18,13 @@ namespace Journey_of_faith.Infrastructure.repositories
 {
     public class ChurchRepository : BaseRepository, IChurchRepository
     {
+        private static readonly string _cacheKeyChurches = "churches";
         private const int DefaultReminderMinutes = 30;
-
-        public ChurchRepository(IDbConnectionFactory dbConnection, IOptions<TableSchemaName> schemaName)
+        private readonly IMemoryCache memoryCache;
+        public ChurchRepository(IDbConnectionFactory dbConnection, IOptions<TableSchemaName> schemaName, IMemoryCache memoryCache)
             : base(dbConnection, schemaName)
         {
+            this.memoryCache = memoryCache;
         }
 
         #region Crud church
@@ -70,42 +73,62 @@ namespace Journey_of_faith.Infrastructure.repositories
         {
             return await ExecuteAsync(async connection =>
             {
-                try
-                {
-                    int ignoreRecord = (page - 1) * pageSize;
-                    var churches = await connection.QueryAsync<Church>(@$"
-                    SELECT Name, Email, Address, DioceseId, Id, Boss FROM [jcodepro_journey_of_faith].[Church]
-                    ORDER BY Id
-                    OFFSET @ignore rows
-                    FETCH NEXT  @pageSize rows only
-                ", new { ignore = ignoreRecord, pageSize });
-                    var churcheIds = churches.Select(e => e.Id).ToList();
-                    var countChurch = await connection.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM [jcodepro_journey_of_faith].[Church]");
-                    var massSchedules = await connection.QueryAsync<MassSchedule>(@$"
-                    SELECT Id,Name, Time, ChurchId FROM [jcodepro_journey_of_faith].[MassSchedule]
-                    WHERE ChurchId in @ChurchIds
-                ", new { ChurchIds = churcheIds });
+                var cacheKey = $"{_cacheKeyChurches}_{page}_{pageSize}_{search}";
 
-                    foreach (var church in churches)
-                    {
-                        church.SetMassSchedule(massSchedules.Where(ms => ms.ChurchId == church.Id).ToList());
-                    }
-                    return new PagedResult<Church>
-                    {
-                        TotalCount = countChurch,
-                        Page = page,
-                        PageSize = pageSize,
-                        Data = churches.ToList()
-                    };
-                } catch (Exception ex)
+                if (memoryCache.TryGetValue(cacheKey, out PagedResult<Church> cached))
                 {
-                    throw;
+                    return cached;
                 }
+
+                int ignoreRecord = (page - 1) * pageSize;
+
+                var whereClause = string.IsNullOrWhiteSpace(search)
+                    ? ""
+                    : "WHERE Name LIKE @Search";
+
+                var churches = await connection.QueryAsync<Church>($@"
+            SELECT Name, Email, Address, DioceseId, Id, Boss 
+            FROM [jcodepro_journey_of_faith].[Church]
+            {whereClause}
+            ORDER BY Id
+            OFFSET @ignore ROWS
+            FETCH NEXT @pageSize ROWS ONLY
+        ", new { ignore = ignoreRecord, pageSize, Search = $"%{search}%" });
+
+                var churchIds = churches.Select(e => e.Id).ToList();
+
+                var countChurch = await connection.ExecuteScalarAsync<int>($@"
+            SELECT COUNT(*) FROM [jcodepro_journey_of_faith].[Church] {whereClause}
+        ", new { Search = $"%{search}%" });
+
+                var massSchedules = await connection.QueryAsync<MassSchedule>(@"
+            SELECT Id, Name, Time, ChurchId 
+            FROM [jcodepro_journey_of_faith].[MassSchedule]
+            WHERE ChurchId IN @ChurchIds
+        ", new { ChurchIds = churchIds });
+
+                foreach (var church in churches)
+                {
+                    church.SetMassSchedule(massSchedules.Where(ms => ms.ChurchId == church.Id).ToList());
+                }
+
+                var result = new PagedResult<Church>
+                {
+                    TotalCount = countChurch,
+                    Page = page,
+                    PageSize = pageSize,
+                    Data = churches.ToList()
+                };
+
+                memoryCache.Set(cacheKey, result, TimeSpan.FromMinutes(5));
+
+                return result;
             });
         }
         public async Task<PagedResult<Church>> GetChurchWithCondition(string? churchName, string? province, string? wards, string? time, int page, int pageSize)
         {
-            return await QueryAsync<PagedResult<Church>>(async connection => {
+            return await QueryAsync<PagedResult<Church>>(async connection =>
+            {
                 var churches = await connection.QueryAsync<Church>("spSearchChurch", new
                 {
                     ChurchName = churchName,
@@ -124,11 +147,13 @@ namespace Journey_of_faith.Infrastructure.repositories
                     Time = time
                 });
                 var groupSchedule = massSchedules.ToLookup(e => e.ChurchId);
-                foreach(var church in churches) {
+                foreach (var church in churches)
+                {
                     church.SetMassSchedule(groupSchedule[church.Id].ToList());
                 }
 
-                return new PagedResult<Church>{
+                return new PagedResult<Church>
+                {
                     Data = churches.ToList(),
                     Page = page,
                     PageSize = pageSize,
@@ -144,7 +169,8 @@ namespace Journey_of_faith.Infrastructure.repositories
                 {
                     await connection.BulkInsertAsync<Church>(churches);
                     return true;
-                } catch (Exception ex)
+                }
+                catch (Exception ex)
                 {
                     Console.WriteLine(ex);
                     throw;
@@ -570,7 +596,7 @@ namespace Journey_of_faith.Infrastructure.repositories
                         WHERE UserId = @UserId
                     )", new { UserId = userId })).ToLookup(e => e.ChurchId);
 
-                foreach(var church in churches)
+                foreach (var church in churches)
                 {
                     church.SetMassSchedule(massSchedules[church.Id].ToList());
                 }

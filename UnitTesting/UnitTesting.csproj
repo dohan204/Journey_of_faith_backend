@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Journey_of_faith.Application\Journey_of_faith.Application.csproj" />
+    <ProjectReference Include="..\Journey_of_faith.Infrastructure\Journey_of_faith.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>

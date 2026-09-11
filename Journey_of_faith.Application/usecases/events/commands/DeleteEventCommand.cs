@@ -33,16 +33,10 @@ namespace Journey_of_faith.Application.usecases.events.commands
 
         public async Task<bool> Handle(DeleteEventCommand request, CancellationToken cancellationToken)
         {
-            // if (!Guid.TryParse(_currentUserService.UserId, out var userId))
-            // {
-            //     throw new UnauthorizationException("Không xác định được người dùng hiện tại.");
-            // }
-
-            // if (!string.Equals(_currentUserService.GetRoleUserName, "admin", StringComparison.OrdinalIgnoreCase))
-            // {
-            //     throw new ForbiddenException("Bạn không có quyền xóa sự kiện.");
-            // }
-
+            if (!Guid.TryParse(_currentUserService.UserId, out var userId))
+            {
+                throw new UnauthorizationException("Không xác định được người dùng hiện tại.");
+            }
             if (!await _eventRepository.EventExistsAsync(request.Id))
             {
                 throw new NotFoundException("Không tìm thấy sự kiện.");
