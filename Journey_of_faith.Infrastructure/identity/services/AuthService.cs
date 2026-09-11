@@ -6,6 +6,7 @@ using Journey_of_faith.Infrastructure.persistence.entities.location;
 using Journey_of_faith.Infrastructure.services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using System.Security.Claims;
@@ -22,14 +23,16 @@ namespace Journey_of_faith.Infrastructure.identity.services
         private readonly ICurrentUserService _currentUser;
         private readonly IConfiguration configuration;
         private readonly IEmailService emailService;
+        private readonly RoleManager<ApplicationRole> _roleManager;
         public AuthService(TokenService tokenService, UserManager<ApplicationUser> userManager,
             ApplicationDbContext context, ICurrentUserService currentUserService, IConfiguration configuration,
-            IHttpContextAccessor httpContextAccessor, IEmailService emailService)
+            IHttpContextAccessor httpContextAccessor, IEmailService emailService, RoleManager<ApplicationRole> roleManager)
         {
             _tokenService = tokenService;
             _userManager = userManager;
             _context = context;
             _currentUser = currentUserService;
+            _roleManager = roleManager;
             this.configuration = configuration;
             this.httpContextAccessor = httpContextAccessor;
             this.emailService = emailService;
@@ -39,17 +42,28 @@ namespace Journey_of_faith.Infrastructure.identity.services
             var user = await _userManager.FindByEmailAsync(email);
             if (user is null)
             {
-                throw new NotFoundException("Tài khoản hoặc mật khẩu không chính xác");
-            }
-
+                throw new UnauthorizationException("Tài khoản hoặc mật khẩu không chính xác");
+            }            
             var result = await _userManager.CheckPasswordAsync(user, passwrod);
             if (!result)
             {
                 throw new UnauthorizationException("Tài khoản hoặc mật khẩu không chính xác");
             }
-            var roles = await _userManager.GetRolesAsync(user);
 
-            var token = _tokenService.GenerateToken(user, roles.ToList());
+            var expiredToken = await _context.RefreshTokens.Where(e => e.UserId == user.Id).ToListAsync();
+            if(expiredToken.Any())
+            {
+                _context.RefreshTokens.RemoveRange(expiredToken);
+            }
+            List<string> claims = new List<string>();
+            var roles = await _userManager.GetRolesAsync(user);
+            foreach(var role in roles)
+            {
+                var roleExists = await _roleManager.FindByNameAsync(role);
+                var claimsRole = await _roleManager.GetClaimsAsync(roleExists);
+                claims.AddRange(claimsRole.Where(e => string.Equals(e.Type, "Permission")).Select(e => e.Value));
+            }
+            var token = _tokenService.GenerateToken(user, roles.ToList(), claims);
             var refreshToken = _tokenService.CreateRefreshToken(user.Id);
 
             await _context.RefreshTokens.AddAsync(refreshToken);
@@ -78,8 +92,14 @@ namespace Journey_of_faith.Infrastructure.identity.services
             var user = await _userManager.FindByIdAsync(refresh.UserId.ToString());
             var roles = await _userManager.GetRolesAsync(user);
             var expiry = configuration.GetValue<int>("Token:Expiry");
-
-            var newToken = _tokenService.GenerateToken(user, roles.ToList());
+            List<string> claims = new List<string>();
+            foreach(var role in roles)
+            {
+                var roleExists = await _roleManager.FindByNameAsync(role);
+                var claimsRole = await _roleManager.GetClaimsAsync(roleExists);
+                claims.AddRange(claimsRole.Where(e => string.Equals(e.Type, "Permission")).Select(e => e.Value));
+            }
+            var newToken = _tokenService.GenerateToken(user, roles.ToList(), claims);
             var newRefreshToken = _tokenService.CreateRefreshToken(user.Id);
 
             _context.RefreshTokens.Remove(refresh);

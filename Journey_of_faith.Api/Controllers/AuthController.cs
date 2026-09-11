@@ -1,12 +1,15 @@
 ﻿
 using Asp.Versioning;
 using Azure.Core;
+using Journey_of_faith.Api.Attributes;
+using Journey_of_faith.Api.authorization;
 using Journey_of_faith.Api.dtos;
 using Journey_of_faith.Application.usecases.auth.commands;
 using Journey_of_faith.Application.usecases.auth.queries;
 using Journey_of_faith.Domain.dtos;
 using Journey_of_faith.Domain.entities;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Journey_of_faith.Api.Controllers
@@ -23,6 +26,7 @@ namespace Journey_of_faith.Api.Controllers
         }
         [MapToApiVersion(1)]
         [HttpPost("login")]
+        [AllowAnonymous]
         public async Task<IActionResult> Login([FromBody] UserLoginQuery query)
         {
             var login = await _me.Send(query);
@@ -30,6 +34,7 @@ namespace Journey_of_faith.Api.Controllers
         }
 
         [MapToApiVersion(1)]
+        [AllowAnonymous]
         [HttpPost("refresh")]
         public async Task<IActionResult> RefreshToken([FromBody] CreateRefreshTokenCommand command)
         {
@@ -37,6 +42,7 @@ namespace Journey_of_faith.Api.Controllers
             return Ok(refresh);
         }
         [MapToApiVersion(1)]
+        [Authorize]
         [HttpPatch("change")]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordCommand command)
         {
@@ -44,6 +50,7 @@ namespace Journey_of_faith.Api.Controllers
             return NoContent();
         }
         [MapToApiVersion(1)]
+        [HasPermission(Permissions.Roles.VIEW)]
         [HttpGet("roles")]
         public async Task<IActionResult> GetRoles([FromQuery] int page, [FromQuery] int pageSize, [FromQuery] string? search)
         {
@@ -55,6 +62,7 @@ namespace Journey_of_faith.Api.Controllers
             });
         }
         [MapToApiVersion(1)]
+        [HasPermission(Permissions.Roles.VIEW)]
         [HttpGet("roles/users-role")]
         public async Task<IActionResult> GetTotalRole()
         {
@@ -66,6 +74,7 @@ namespace Journey_of_faith.Api.Controllers
             });
         }
         [MapToApiVersion(1)]
+        [HasPermission(Permissions.Roles.CREATE)]
         [HttpPost("roles")]
         public async Task<IActionResult> CreateRole([FromBody] CreateRoleCommand command)
         {
@@ -77,6 +86,7 @@ namespace Journey_of_faith.Api.Controllers
             });
         }
         [MapToApiVersion(1)]
+        [HasPermission(Permissions.Roles.CREATE)]
         [HttpPost("roles/add-permission")]
         public async Task<IActionResult> AddPermission([FromBody] AddPermissionCommand command)
         {
@@ -88,6 +98,7 @@ namespace Journey_of_faith.Api.Controllers
             });
         }
         [MapToApiVersion(1)]
+        [HasPermission(Permissions.Roles.VIEW)]
         [HttpGet("roles/get-permissions")]
         public async Task<IActionResult> GetPermission()
         {
@@ -99,6 +110,7 @@ namespace Journey_of_faith.Api.Controllers
             });
         }
         [MapToApiVersion(1)]
+        [HasPermission(Permissions.Roles.DELETE)]
         [HttpDelete("roles/{Name}")]
         public async Task<IActionResult> Delete([FromRoute] string Name)
         {
@@ -106,6 +118,7 @@ namespace Journey_of_faith.Api.Controllers
             return NoContent();
         }
         [MapToApiVersion(1)]
+        [HasPermission(Permissions.Roles.DELETE)]
         [HttpDelete("roles/remove-user")]
         public async Task<IActionResult> RemoveUserRole([FromBody] DeleteUserFromRoleCommand command)
         {
@@ -114,6 +127,7 @@ namespace Journey_of_faith.Api.Controllers
         }
 
         [MapToApiVersion(1)]
+        [HasPermission(Permissions.Roles.EDIT)]
         [HttpPut("roles")]
         public async Task<IActionResult> UpdateRole([FromBody] UpDateRoleCommand command)
         {
@@ -122,6 +136,7 @@ namespace Journey_of_faith.Api.Controllers
         }
 
         [MapToApiVersion(1)]
+        [AllowAnonymous]
         [HttpPost("reset")]
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordCommand command)
         {

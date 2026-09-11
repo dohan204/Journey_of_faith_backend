@@ -1,4 +1,6 @@
 using Asp.Versioning;
+using Journey_of_faith.Api.Attributes;
+using Journey_of_faith.Api.authorization;
 using Journey_of_faith.Api.dtos;
 using Journey_of_faith.Application.usecases.events.commands;
 using Journey_of_faith.Application.usecases.events.queries;
@@ -14,6 +16,7 @@ namespace Journey_of_faith.Api.Controllers
 {
     [ApiVersion(1)]
     [ApiController]
+    [Authorize]
     [Route("api/v{version:apiVersion}/events")]
     public class EventController : ControllerBase
     {
@@ -25,14 +28,13 @@ namespace Journey_of_faith.Api.Controllers
         }
         [MapToApiVersion(1)]
         [HttpPost("category")]
-        [Authorize]
+        [HasPermission(Permissions.Event.CREATE_CATEGORY)]
         [Consumes(MediaTypeNames.Application.Json)]
         [ProducesResponseType(StatusCodes.Status201Created)]
         public async Task<IActionResult> CreateCategory([FromBody] CreateEventCategoryCommand command)
         {
             var categoryId = await _mediator.Send(command);
 
-            var userId = Guid.NewGuid();
             return StatusCode(StatusCodes.Status201Created, new ApiResponse<int>
             {
                 Message = "Tạo danh mục sự kiện thành công.",
@@ -41,6 +43,7 @@ namespace Journey_of_faith.Api.Controllers
         }
         [MapToApiVersion(1)]
         [HttpGet("category")]
+        [HasPermission(Permissions.Event.VIEW_CATEGORY)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetCategories()
         {
@@ -53,7 +56,7 @@ namespace Journey_of_faith.Api.Controllers
         }
         [MapToApiVersion(1)]
         [HttpPost]
-        [Authorize]
+        [HasPermission(Permissions.Event.CREATE)]
         [Consumes(MediaTypeNames.Application.Json)]
         [ProducesResponseType(StatusCodes.Status201Created)]
         public async Task<IActionResult> CreateEvent([FromBody] CreateEventCommand command)
@@ -67,7 +70,7 @@ namespace Journey_of_faith.Api.Controllers
         }
         [MapToApiVersion(1)]
         [HttpPut("{id:int}")]
-        [Authorize]
+        [HasPermission(Permissions.Event.UPDATE)]
         [Consumes(MediaTypeNames.Application.Json)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> UpdateEvent([FromRoute] int id, [FromBody] UpdateEventCommand command)
@@ -82,7 +85,7 @@ namespace Journey_of_faith.Api.Controllers
         }
         [MapToApiVersion(1)]
         [HttpDelete("{id:int}")]
-        // [Authorize]
+        [HasPermission(Permissions.Event.DELETE)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> DeleteEvent([FromRoute] int id)
         {
@@ -95,6 +98,7 @@ namespace Journey_of_faith.Api.Controllers
         }
         [MapToApiVersion(1)]
         [HttpGet]
+        [HasPermission(Permissions.Event.VIEW)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetEvents([FromQuery] GetEventsQuery query)
         {
@@ -107,6 +111,7 @@ namespace Journey_of_faith.Api.Controllers
         }
         [MapToApiVersion(1)]
         [HttpGet("{id:int}")]
+        [HasPermission(Permissions.Event.VIEW)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetDetails([FromRoute] int id)
         {
@@ -128,7 +133,7 @@ namespace Journey_of_faith.Api.Controllers
         }
         [MapToApiVersion(1)]
         [HttpPost("{id:int}/follow")]
-        [Authorize]
+        [HasPermission(Permissions.Event.USER_CREATE)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> FollowEvent([FromRoute] int id)
         {
@@ -141,7 +146,7 @@ namespace Journey_of_faith.Api.Controllers
         }
         [MapToApiVersion(1)]
         [HttpDelete("{id:int}/unfollow")]
-        [Authorize]
+        [HasPermission(Permissions.Event.USER_DELETE)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> UnfollowEvent([FromRoute] int id)
         {
@@ -154,7 +159,7 @@ namespace Journey_of_faith.Api.Controllers
         }
         [MapToApiVersion(1)]
         [HttpGet("following")]
-        [Authorize]
+        [HasPermission(Permissions.Event.VIEW)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetFollowedEvents([FromQuery] GetFollowedEventsQuery query)
         {

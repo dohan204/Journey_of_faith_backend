@@ -14,8 +14,6 @@ namespace Journey_of_faith.Domain.interfaces;
         Task<bool> CreateQuestionType(QuestionType questionType);
         Task<bool> CreateQuestionCategory(QuestionCategory questionCategory);
         Task<PagedResult<dynamic>> GetQuestionsAsync(int page, int pageSize, string? search);
-
-
         Task<IEnumerable<Question>> GetQuestionsWithCondition(int categoryId, int levelId, int questionCount);
         Task<bool> CreateQuestionAsync(Question question);
         Task<bool> InsertBulkQuestionAsync(string jsonValue);
