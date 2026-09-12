@@ -1,4 +1,6 @@
 ﻿using Asp.Versioning;
+using Journey_of_faith.Api.Attributes;
+using Journey_of_faith.Api.authorization;
 using Journey_of_faith.Api.dtos;
 using Journey_of_faith.Application.usecases.quizs.commands;
 using Journey_of_faith.Application.usecases.quizs.queries;
@@ -14,7 +16,7 @@ namespace Journey_of_faith.Api.Controllers
 {
     [ApiVersion(1)]
     [ApiController]
-    [Route("api/v{version:apiVersion}/[controller]")]
+    [Route("api/v{version:apiVersion}/quiz")]
     [Authorize]
     public class QuizController : ControllerBase
     {
@@ -24,6 +26,7 @@ namespace Journey_of_faith.Api.Controllers
             _mediator = mediator;
         }
         [HttpPost]
+        [HasPermission(Permissions.Quizes.CREATE)]
         [Consumes(MediaTypeNames.Application.Json)]
         [ProducesResponseType(statusCode: StatusCodes.Status201Created)]
         [MapToApiVersion(1)]
@@ -37,7 +40,22 @@ namespace Journey_of_faith.Api.Controllers
             });
         }
 
+        [HttpGet]
+        [HasPermission(Permissions.Quizes.VIEW)]
+        [ProducesResponseType(typeof(ApiResponse<IEnumerable<QuizView>>), StatusCodes.Status200OK)]
+        [MapToApiVersion(1)]
+        public async Task<IActionResult> GetAll()
+        {
+            var quizzes = await _mediator.Send(new GetAllQuizzesQuery());
+            return Ok(new ApiResponse<IEnumerable<QuizView>>
+            {
+                Message = "Lấy danh sách đề thi thành công",
+                Data = quizzes
+            });
+        }
+
         [HttpGet("{id}/details")]
+        [HasPermission(Permissions.Quizes.VIEW)]
         [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
         [MapToApiVersion(1)]
         public async Task<IActionResult> GetDetails(int id)
@@ -59,8 +77,8 @@ namespace Journey_of_faith.Api.Controllers
             });
         }
 
-        [HttpPost("/submit")]
-        //[Consumes(MediaTypeNames.Application.Json)]
+        [HttpPost("submit")]
+        [HasPermission(Permissions.Quizes.SUBMIT)]
         [ProducesResponseType(statusCode: StatusCodes.Status201Created)]
         [MapToApiVersion(1)]
         public async Task<IActionResult> SubmitExam(SubmitExamCommand command)
@@ -74,6 +92,7 @@ namespace Journey_of_faith.Api.Controllers
         }
 
         [HttpDelete("{id}")]
+        [HasPermission(Permissions.Quizes.DELETE)]
         [ProducesResponseType(statusCode: StatusCodes.Status204NoContent)]
         [MapToApiVersion(1)]
         public async Task<IActionResult> DeleteQuiz(int id)
@@ -82,8 +101,21 @@ namespace Journey_of_faith.Api.Controllers
             return NoContent();
         }
 
-
+        [HttpGet("topics")]
+        [HasPermission(Permissions.Quizes.VIEW)]
+        [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
+        [MapToApiVersion(1)]
+        public async Task<IActionResult> GetTopics()
+        {
+            var topics = await _mediator.Send(new GetAllTopicQuery());
+            return Ok(new ApiResponse<IEnumerable<Topic>>
+            {
+                Data = topics,
+                Message = "Lấy chủ thế thành công"
+            });
+        }
         [HttpPost("topics")]
+        [HasPermission(Permissions.Quizes.CREATE)]
         [ProducesResponseType(statusCode: StatusCodes.Status201Created)]
         [MapToApiVersion(1)]
         public async Task<IActionResult> CreateTopicAsync([FromBody] CreateTopicCommand command)
@@ -95,6 +127,7 @@ namespace Journey_of_faith.Api.Controllers
             });
         }
         [HttpDelete("topics")]
+        [HasPermission(Permissions.Quizes.DELETE)]
         [ProducesResponseType(statusCode: StatusCodes.Status204NoContent)]
         [MapToApiVersion(1)]
         public async Task<IActionResult> DeleteTopic([FromBody] int id)

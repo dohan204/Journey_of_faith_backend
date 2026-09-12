@@ -8,6 +8,7 @@ namespace Journey_of_faith.Infrastructure.persistence.entities.faith_notificatio
     public class MassSchedule
     {
         public int Id { get; set; }
+        public string Name {get; set;}
         public bool? IsFixed { get; set; }
         public int ChurchId { get; set; }
         public DateOnly? FromDate { get; set; }
@@ -24,7 +25,7 @@ namespace Journey_of_faith.Infrastructure.persistence.entities.faith_notificatio
         public DateTime? DeletionTime { get; set; }
         public bool IsDeleted { get; set; }
 
-        public Church Church { get; set; } = null!;
+        public Church Church { get; set; }
         public MassType? MassType { get; set; }
     }
 }

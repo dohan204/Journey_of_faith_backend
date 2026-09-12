@@ -1,6 +1,7 @@
 using Dapper;
 using Journey_of_faith.Application.common.interfaces;
 using Journey_of_faith.Domain.dtos;
+using Journey_of_faith.Domain.entities;
 using Journey_of_faith.Domain.entities.events;
 using Journey_of_faith.Domain.interfaces;
 using Journey_of_faith.Infrastructure.common;
@@ -79,12 +80,13 @@ namespace Journey_of_faith.Infrastructure.repositories
                 };
 
 
-                foreach(var e in events)
+                foreach (var e in events)
                 {
-                    if(!string.IsNullOrWhiteSpace(e.Events))
+                    if (!string.IsNullOrWhiteSpace(e.Events))
                     {
                         e.EventsList = JsonSerializer.Deserialize<List<Event>>(e.Events, jsonOptions);
-                    } else
+                    }
+                    else
                     {
                         e.EventsList = new List<Event>();
                     }
@@ -357,6 +359,46 @@ namespace Journey_of_faith.Infrastructure.repositories
                     StartTo = startTo
                 }, commandType: CommandType.StoredProcedure)
             );
+        }
+
+        public async Task<bool> CreateEventCommentAsync(EventComment comment)
+        {
+            return await ExecuteAsync(async connection =>
+            {
+                await connection.ExecuteAsync(@"
+                  Insert into [jcodepro_journey_of_faith].[EventComment] (EventId, UserId, Comment, CreatedTime)
+                    Values(@EventId, @UserId, @Comment, @CreatedTime);
+               ", new {EventId = comment.EventId, UserId = comment.UserId, Comment = comment.Comment, CreatedTime = comment.CreatedTime});
+                return true;
+            });
+        }
+
+        public async Task<List<EventCommentView>> GetCommmentForEventAsync(int eventId)
+        {
+            return await ExecuteAsync(async connection =>
+            {
+
+                var currentUserEvent = await connection.QueryAsync<EventComment>(@"
+                    SELECT UserId, Comment FROM [jcodepro_journey_of_faith].[EventComment]
+                    WHERE EventId = @Id
+                ", new { Id = eventId });
+
+                var userIds = currentUserEvent.Select(e => e.UserId).Distinct().ToList();
+
+                var users = await connection.QueryAsync<User>(@"
+                    SELECT Id, Username FROM [jcodepro_journey_of_faith].[User]
+                    WHERE Id IN @Ids
+                ", new { Ids = userIds });
+
+                var userNameById = users.ToDictionary(u => u.Id, u => u.Username);
+
+                List<EventCommentView> result = currentUserEvent.Select(c => new EventCommentView
+                (
+                    userNameById.TryGetValue(c.UserId, out var name) ? name : null,
+                    c.Comment
+                )).ToList();
+                return result;
+            });
         }
     }
 

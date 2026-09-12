@@ -66,11 +66,6 @@ namespace Journey_of_faith.Application.usecases.events.commands
                 throw new UnauthorizationException("Không xác định được người dùng hiện tại.");
             }
 
-            if (!string.Equals(_currentUserService.GetRoleUserName, "admin", StringComparison.OrdinalIgnoreCase))
-            {
-                throw new ForbiddenException("Bạn không có quyền cập nhật sự kiện.");
-            }
-
             if (!await _eventRepository.EventExistsAsync(request.Id))
             {
                 throw new NotFoundException("Không tìm thấy sự kiện.");

@@ -39,16 +39,18 @@ namespace Journey_of_faith.Infrastructure
         {
             service.AddDbContext<ApplicationDbContext>(options =>
             {
-                options.UseSqlServer(configuration.GetConnectionString("Connection"), sqlServerOptionsAction: sqloption =>
-                {
-                    sqloption.EnableRetryOnFailure(
-                        maxRetryCount: 5,
-                        maxRetryDelay: TimeSpan.FromSeconds(20),
-                        errorNumbersToAdd: null
-
-                    );
-                });
+                options.UseSqlServer(configuration.GetConnectionString("Connection"));
             });
+
+            //  sqlServerOptionsAction: sqloption =>
+            //     {
+            //         sqloption.EnableRetryOnFailure(
+            //             maxRetryCount: 5,
+            //             maxRetryDelay: TimeSpan.FromSeconds(20),
+            //             errorNumbersToAdd: null
+
+            //         );
+            //     }
 
             service.AddIdentityCore<ApplicationUser>()
                 .AddRoles<ApplicationRole>()
@@ -146,6 +148,8 @@ namespace Journey_of_faith.Infrastructure
                 cfg.CreateMap<persistence.entities.music.Artist, Domain.entities.musics.Artist>().ReverseMap();
                 cfg.CreateMap<persistence.entities.quiz.Quiz, Domain.entities.quiz.Quiz>().ReverseMap();
                 cfg.CreateMap<persistence.entities.quiz.Topic, Domain.entities.quiz.Topic>().ReverseMap();
+                cfg.CreateMap<Journey_of_faith.Domain.entities.masslive.MassSchedule, Journey_of_faith.Infrastructure.persistence.entities.faith_notifications.MassSchedule>();
+                cfg.CreateMap<Journey_of_faith.Domain.entities.location.Liturgy, Journey_of_faith.Infrastructure.persistence.entities.location.Liturgy>();
             });
 
             return services;
@@ -245,7 +249,8 @@ namespace Journey_of_faith.Infrastructure
 
                 FirebaseApp.Create(new AppOptions()
                 {
-                    Credential = GoogleCredential.FromJson(firebaseConfigJson)
+                    Credential = GoogleCredential.FromJson(firebaseConfigJson),
+                    HttpClientFactory = new TimeoutHttpClientFactory(TimeSpan.FromSeconds(5))
                 });
             }
             return services;

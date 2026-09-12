@@ -10,14 +10,17 @@ namespace Journey_of_faith.Infrastructure.identity.services
 {
     public class TokenService(IConfiguration config)
     {
-        public string GenerateToken(ApplicationUser user, List<string> roles)
+
+        public string GenerateToken(ApplicationUser user, List<string> roles, List<string> claims)
         {
+
+
             var claim = new List<Claim>()
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Email, user.Email!.ToString()),
                 new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             };
 
             if(roles.Any())
@@ -25,6 +28,14 @@ namespace Journey_of_faith.Infrastructure.identity.services
                 foreach(var role in roles)
                 {
                     claim.Add(new Claim("role", role.ToString()));
+                }
+            }
+
+            if(claims.Any())
+            {
+                foreach(var claimIn in claims)
+                {
+                    claim.Add(new Claim("Permission", claimIn));
                 }
             }
 

@@ -24,6 +24,7 @@ namespace Journey_of_faith.Domain.interfaces
         public List<PersonalizedMassScheduleView> MassSchedules {get; set;}
     }
 
+
     public record class PersonalizedMassScheduleView
     {
         public int MassScheduleId { get; set; }
@@ -47,7 +48,12 @@ namespace Journey_of_faith.Domain.interfaces
         public string? SpeechGender { get; set; }
         public double? SpeechSpeed { get; set; }
     }
-
+    public class MassAndLiturgyInsert
+    {
+        public MassSchedule MassSchedules { get; set; } = new();
+        public Liturgy Liturgies { get; set; } = new();
+    }
+    public record MassScheduleTodayView(string Time, string NameMass, string ChurchName, string? Description);
     public interface IChurchRepository
     {
         // MassTypye
@@ -57,8 +63,12 @@ namespace Journey_of_faith.Domain.interfaces
         Task<Church?> GetChurchByIdAsync(int id, CancellationToken cancellationTokenc);
         Task<PagedResult<Church>> GetChurchesAsync(int page, int pageSize, string? search);
         Task<int> CreateAsync(Church church);
+        Task<bool> CreateLiturgyAsync(Liturgy liturgy);
+        Task<Liturgy?> GetLiturgyTodayAsync();
+        Task<bool> CreateMassAndLiturgyAsync(IReadOnlyCollection<MassAndLiturgyInsert> dataInsert);
         Task<int> UpdateAsync(Church church, Guid UserId);
         Task<bool> DeleteChurchAsync(int id, bool? force = false);
+        Task<IReadOnlyList<MassScheduleTodayView>> GetMassScheduleTodayViewsAsync();
         // Task<bool> UpdateChurchAsync(int id)
         // Dicosce
         Task<bool> GetDioceseExistsAsync(int dioceseId);

@@ -27,7 +27,7 @@ public class PushNotificationHandler : IRequestHandler<PushNotificationCommand, 
     {
         if(!string.IsNullOrEmpty(command.Token))
         {
-            return await notification.SendNotificationAsync(command.Token, command.Title, command.Body);
+            return await notification.SendNotificationAsync(command.Token, command.Title, command.Body, command.Data);
         } else
         {
             return await notification.SendToTopicAsync(command.Topic, command.Title, command.Body, command.Data);

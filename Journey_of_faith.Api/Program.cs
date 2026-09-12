@@ -169,6 +169,9 @@ using System.Diagnostics;
 using OfficeOpenXml;
 
 using Asp.Versioning;
+using Journey_of_faith.Api.authorization;
+using Journey_of_faith.Infrastructure.scheduling;
+using Microsoft.AspNetCore.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -189,11 +192,16 @@ builder.Services.AddCors(options =>
 // Add services to the container.
 
 // builder.Services.AddFirebaseService(builder.Configuration);
+builder.Services.AddSingleton<IAuthorizationPolicyProvider, UserPermissionPolicyProvider>();
+builder.Services.AddScoped<IAuthorizationHandler, UserPermissionHandler>();
 
 builder.Services.AddInfrastructure(builder.Configuration);
 
 builder.Services.AddFirebaseService(builder.Configuration);
 builder.Services.AddRegisterService(builder.Configuration);
+// builder.Services.AddNotificationScheduling(builder.Configuration);
+
+builder.Services.AddNotificationSchedulingAuthorization();
 
 builder.Services.AddApplication();
 
@@ -321,7 +329,7 @@ app.UseCors("allowFrontend");
 
 app.UseExceptionHandler();
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
 
 
 // ==========================================================

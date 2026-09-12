@@ -12,18 +12,19 @@ using Journey_of_faith.Domain.dtos;
 using Journey_of_faith.Application.common.dtos;
 using Journey_of_faith.Application.exceptions;
 using Asp.Versioning;
+using Journey_of_faith.Api.Attributes;
+using Journey_of_faith.Api.authorization;
 
 #nullable disable
 namespace Journey_of_faith.Api.Controllers
 {
     [ApiVersion(1)]
     [ApiController]
-    [Route("api/v{version:apiVersion}/[controller]")]
+    [Route("api/v{version:apiVersion}/questions")]
     public sealed class QuestionController(IMediator mediator, IFileStorageService service) : ControllerBase
     {
         private readonly IMediator _mediator = mediator;
         private readonly IFileStorageService _fileStorageService = service;
-
         /// <summary>
         /// quizLevel => questionLevel
         /// </summary>
@@ -78,7 +79,6 @@ namespace Journey_of_faith.Api.Controllers
                     Data = quiz
                 });
             }
-
             return Ok(new ApiResponse<QuizLevel>
             {
                 Message = "Lấy dữ liệu thành công",
@@ -93,6 +93,7 @@ namespace Journey_of_faith.Api.Controllers
         /// <returns></returns>
         [HttpPost("question-types")]
         [Consumes(MediaTypeNames.Application.Json)]
+        [HasPermission(Permissions.Questions.CREATE)]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [MapToApiVersion(1)]
         public async Task<IActionResult> QuestionTypeCreated([FromBody] CreateQuestionTypeCommand command)
@@ -105,6 +106,7 @@ namespace Journey_of_faith.Api.Controllers
             });
         }
         [HttpGet("question-types")]
+        [HasPermission(Permissions.Questions.VIEW)]
         [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
         [MapToApiVersion(1)]
         public async Task<IActionResult> GetAllType()
@@ -126,6 +128,7 @@ namespace Journey_of_faith.Api.Controllers
             });
         }
         [HttpGet("question-types/{id}/details")]
+        [HasPermission(Permissions.Questions.VIEW)]
         [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
         [MapToApiVersion(1)]
         public async Task<IActionResult> GetDetailsType([FromRoute] int id)
@@ -153,6 +156,7 @@ namespace Journey_of_faith.Api.Controllers
         /// <returns></returns>
         [HttpPost("question-categories")]
         [Consumes(MediaTypeNames.Application.Json)]
+        [HasPermission(Permissions.Questions.CREATE)]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [MapToApiVersion(1)]
         public async Task<IActionResult> QuestionCategoryCreated([FromBody] CreateQuestionCategoryCommand command)
@@ -207,6 +211,7 @@ namespace Journey_of_faith.Api.Controllers
         }
         [HttpPost]
         [Consumes(MediaTypeNames.Application.Json)]
+        [HasPermission(Permissions.Questions.CREATE)]
         [ProducesResponseType(statusCode: StatusCodes.Status201Created)]
         [MapToApiVersion(1)]
         public async Task<IActionResult> CreateQuestion([FromBody] CreateQuestionCommand command)
@@ -237,6 +242,7 @@ namespace Journey_of_faith.Api.Controllers
             });
         }
         [HttpGet]
+        [HasPermission(Permissions.Questions.VIEW)]
         [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
         [MapToApiVersion(1)]
         public async Task<IActionResult> GetQuestions([FromQuery] int page, [FromQuery] int pageSize, [FromQuery] string? search)
@@ -246,6 +252,7 @@ namespace Journey_of_faith.Api.Controllers
         }
 
         [HttpPut]
+        [HasPermission(Permissions.Questions.Edit)]
         [ProducesResponseType(statusCode: StatusCodes.Status204NoContent)]
         [MapToApiVersion(1)]
         public async Task<IActionResult> UpdateQuestion([FromBody] UpdateQuestionCommand command)
@@ -254,6 +261,7 @@ namespace Journey_of_faith.Api.Controllers
             return NoContent();
         }
         [HttpDelete("{Id}")]
+        [HasPermission(Permissions.Questions.DELETE)]
         [ProducesResponseType(statusCode: StatusCodes.Status204NoContent)]
         [MapToApiVersion(1)]
         public async Task<IActionResult> DeleteQuestion(int Id)
@@ -262,6 +270,7 @@ namespace Journey_of_faith.Api.Controllers
             return NoContent();
         }
         [HttpGet("template")]
+        [HasPermission(Permissions.Questions.CREATE)]
         [MapToApiVersion(1)]
         public async Task<IActionResult> GetTemplateUpload()
         {
@@ -270,6 +279,7 @@ namespace Journey_of_faith.Api.Controllers
         }
 
         [HttpPost("upload")]
+        [HasPermission(Permissions.Questions.CREATE)]
         [Consumes("multipart/form-data")]
         [MapToApiVersion(1)]
         public async Task<IActionResult> UploadQuestion([FromForm] IFormFile formFile)
@@ -298,6 +308,7 @@ namespace Journey_of_faith.Api.Controllers
 
 
         [HttpGet("filter-condition")]
+        [HasPermission(Permissions.Questions.VIEW)]
         [MapToApiVersion(1)]
         public async Task<IActionResult> GetQuestionCondition(
             [FromQuery] int CategoryId,
