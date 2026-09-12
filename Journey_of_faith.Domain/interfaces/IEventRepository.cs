@@ -1,3 +1,4 @@
+using System.Diagnostics.Tracing;
 using Journey_of_faith.Domain.dtos;
 using Journey_of_faith.Domain.entities.events;
 
@@ -100,5 +101,9 @@ namespace Journey_of_faith.Domain.interfaces
         Task<bool> FollowEventAsync(Guid userId, int eventId);
         Task<bool> UnfollowEventAsync(Guid userId, int eventId);
         Task<IEnumerable<EventListItemView>> GetFollowedEventsAsync(Guid userId, DateTime? startFrom, DateTime? startTo);
+
+        Task<bool> CreateEventCommentAsync(EventComment comment);
+        Task<List<EventCommentView>> GetCommmentForEventAsync(int eventId);
     }
 }
+public record EventCommentView(string Username, string Comment);

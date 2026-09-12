@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Journey_of_faith.Domain.entities.location;
 
 namespace Journey_of_faith.Domain.entities.masslive
 {
@@ -11,6 +12,7 @@ namespace Journey_of_faith.Domain.entities.masslive
         public DateTime? FromDate { get; set; }
         public DateTime? ToDate { get; set; }
         public DateTime? Date { get; set; }
+        public Liturgy? Liturgy {get; set;}
         public string Time { get; set; }
         public int? MassTypeId { get; set; }
         public string Name {get; set;}

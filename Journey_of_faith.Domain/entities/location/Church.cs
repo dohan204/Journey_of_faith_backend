@@ -31,7 +31,7 @@ namespace Journey_of_faith.Domain.entities.location
         public Church(string name, string thumbnail, 
             string website, string address, int discoceId, float latitude, 
             float longtitude, Guid Userid, Guid modifier, string boss, string description, 
-            List<MassSchedule> massSchedules
+            List<MassSchedule>? massSchedules
             )
         {
             if(string.IsNullOrEmpty(name))
