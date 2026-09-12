@@ -1,6 +1,422 @@
 
+
 using Asp.Versioning;
 
+// using Asp.Versioning;
+// using Journey_of_faith.Api.dtos;
+// using Journey_of_faith.Application.usecases.churchs.commands;
+// using Journey_of_faith.Application.usecases.churchs.dtos;
+// using Journey_of_faith.Application.usecases.churchs.queries;
+// using Journey_of_faith.Domain.dtos;
+// using Journey_of_faith.Domain.entities.catholic;
+// using Journey_of_faith.Domain.entities.location;
+// using Journey_of_faith.Domain.interfaces;
+// using MediatR;
+// using Microsoft.AspNetCore.Authorization;
+// using Microsoft.AspNetCore.Mvc;
+// using Microsoft.AspNetCore.Mvc.Formatters;
+// using System.Net.Mime;
+
+// namespace Journey_of_faith.Api.Controllers
+// {
+//     [ApiVersion(1)]
+//     [ApiController]
+//     [Route("api/v{version:apiVersion}/[controller]")]
+//     public class ChurchesController : ControllerBase
+//     {
+//         private readonly IMediator _mediator;
+
+//         public ChurchesController(IMediator mediator)
+//         {
+//             _mediator = mediator;
+//         }
+//         [MapToApiVersion(1)]
+//         [HttpPost]
+//         [Consumes(MediaTypeNames.Application.Json)]
+//         [ProducesResponseType(statusCode: StatusCodes.Status201Created)]
+//         public async Task<IActionResult> CreateChurch(
+//             [FromBody] CreateChurchCommand command,
+//             IFormFile? file)
+//         {
+//             if (file != null)
+//             {
+//                 var path = System.IO.Path.Combine(
+//                     Directory.GetCurrentDirectory(),
+//                     "uploads",
+//                     "churchs");
+
+//                 if (!Directory.Exists(path))
+//                 {
+//                     Directory.CreateDirectory(path);
+//                 }
+
+//                 var uniqueFile =
+//                     $"{Guid.NewGuid()}{System.IO.Path.GetExtension(file.FileName)}";
+
+//                 var fullPath =
+//                     System.IO.Path.Combine(path, uniqueFile);
+
+//                 using (var stream = new FileStream(fullPath, FileMode.Create))
+//                 {
+//                     await file.CopyToAsync(stream);
+//                 }
+
+//                 command.Thumbnail =
+//                     System.IO.Path.Combine(
+//                         "uploads",
+//                         "churchs",
+//                         uniqueFile);
+//             }
+
+//             var churchId = await _mediator.Send(command);
+
+//             return StatusCode(
+//                 StatusCodes.Status201Created,
+//                 new ApiResponse<int>
+//                 {
+//                     Message = "Tạo nhà thờ thành công.",
+//                     Data = churchId
+//                 });
+//         }
+//         [MapToApiVersion(1)]
+//         [HttpPost("dioceses")]
+//         [Consumes("multipart/form-data")]
+//         [ProducesResponseType(statusCode: StatusCodes.Status201Created)]
+//         public async Task<IActionResult> CreateDiocese(
+//             [FromForm] CreateDioceseCommand command,
+//             IFormFile? file)
+//         {
+//             if (file != null)
+//             {
+//                 var path = System.IO.Path.Combine(
+//                     Directory.GetCurrentDirectory(),
+//                     "uploads",
+//                     "dioceses");
+
+//                 if (!Directory.Exists(path))
+//                 {
+//                     Directory.CreateDirectory(path);
+//                 }
+
+//                 var uniqueFile =
+//                     $"{Guid.NewGuid()}{System.IO.Path.GetExtension(file.FileName)}";
+
+//                 var fullPath =
+//                     System.IO.Path.Combine(path, uniqueFile);
+
+//                 using (var stream = new FileStream(fullPath, FileMode.Create))
+//                 {
+//                     await file.CopyToAsync(stream);
+//                 }
+
+//                 command.Thumbnail =
+//                     System.IO.Path.Combine(
+//                         "uploads",
+//                         "dioceses",
+//                         uniqueFile);
+//             }
+
+//             var dioceseId = await _mediator.Send(command);
+
+//             return StatusCode(
+//                 StatusCodes.Status201Created,
+//                 new ApiResponse<int>
+//                 {
+//                     Message = "Tạo giáo phận thành công.",
+//                     Data = dioceseId
+//                 });
+//         }
+
+//         [MapToApiVersion(1)]
+
+//         [HttpGet("dioceses")]
+//         public async Task<IActionResult> GetDiocese()
+//         {
+//             var result =
+//                 await _mediator.Send(new GetDioceseQuery());
+
+//             return Ok(
+//                 new ApiResponse<IEnumerable<Diocese>>
+//                 {
+//                     Message = "Lấy dữ liệu thành công.",
+//                     Data = result
+//                 });
+//         }
+
+//         [MapToApiVersion(1)]
+
+
+//         [HttpGet]
+//         [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
+//         public async Task<IActionResult> SearchChurches(
+//             [FromQuery] int page,
+//             [FromQuery] int pageSize,
+//             [FromQuery] string? search)
+//         {
+//             var result =
+//                 await _mediator.Send(
+//                     new GetChurchWithMassScheduleQueries
+//                     {
+//                         Page = page,
+//                         PageSize = pageSize,
+//                         Search = search
+//                     });
+
+//             return Ok(result);
+//         }
+
+//         [MapToApiVersion(1)]
+
+//         [HttpPut("{Id}")]
+//         public async Task<IActionResult> UpdateChurch(
+//             [FromBody] UpdateChurchCommand command,
+//             [FromRoute] int Id)
+//         {
+//             await _mediator.Send(command);
+
+//             return NoContent();
+//         }
+
+//         [MapToApiVersion(1)]
+
+//         [HttpDelete("{Id}")]
+//         public async Task<IActionResult> DeleteChurch(
+//             [FromRoute] int Id,
+//             [FromQuery] bool? force)
+//         {
+//             var result =
+//                 await _mediator.Send(
+//                     new DeleteChurchCommand
+//                     {
+//                         Id = Id,
+//                         Force = force
+//                     });
+
+//             return Ok(result);
+//         }
+//         [MapToApiVersion(1)]
+//         [HttpGet("{id:int}")]
+//         [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
+//         public async Task<IActionResult> GetChurchDetails(
+//             [FromRoute] int id)
+//         {
+//             var church =
+//                 await _mediator.Send(
+//                     new GetChurchDetailsQuery
+//                     {
+//                         Id = id
+//                     });
+
+//             if (church is null)
+//             {
+//                 return NotFound(
+//                     new ApiResponse<object>
+//                     {
+//                         Message = "Không tìm thấy nhà thờ.",
+//                         Data = new { Id = id }
+//                     });
+//             }
+
+//             return Ok(
+//                 new ApiResponse<Church>
+//                 {
+//                     Message = "Lấy chi tiết nhà thờ thành công.",
+//                     Data = church
+//                 });
+//         }
+//         [MapToApiVersion(1)]
+//         [HttpGet("condition")]
+//         [Authorize]
+//         [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
+//         public async Task<IActionResult> GetCondition(
+//             [FromQuery] string? churchName, 
+//             [FromQuery] string? province,
+//             [FromQuery] string? ward,
+//             [FromQuery] string? time
+//         )
+//         {
+//             var result = await _mediator.Send(
+//                 new GetChurchWithCondition
+//                 {
+//                     NameChurch = churchName,
+//                     Province = province,
+//                     Ward = ward,
+//                     Time = time,
+//                     Page = 1,
+//                     PageSize = 10
+//                 }
+//             );
+
+//             return Ok(new ApiResponse<PagedResult<Church>>
+//             {
+//                 Data = result,
+//                 Message = "Lấy dữ liệu thành công"
+//             });
+//         }
+
+//         [MapToApiVersion(1)]
+//         [HttpPost("{churchId:int}/follow")]
+//         [Authorize]
+//         [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
+//         public async Task<IActionResult> FollowChurch(
+//             [FromRoute] int churchId)
+//         {
+//             await _mediator.Send(
+//                 new FollowChurchCommand
+//                 {
+//                     ChurchId = churchId
+//                 });
+
+//             return Ok(
+//                 new ApiResponse<object>
+//                 {
+//                     Message =
+//                         "Đã thêm nhà thờ vào danh sách theo dõi.",
+//                     Data = new { ChurchId = churchId }
+//                 });
+//         }
+//         [MapToApiVersion(1)]
+//         [HttpDelete("{churchId:int}/follow")]
+//         [Authorize]
+//         [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
+//         public async Task<IActionResult> UnfollowChurch(
+//             [FromRoute] int churchId)
+//         {
+//             await _mediator.Send(
+//                 new UnfollowChurchCommand
+//                 {
+//                     ChurchId = churchId
+//                 });
+
+//             return Ok(
+//                 new ApiResponse<object>
+//                 {
+//                     Message =
+//                         "Đã hủy theo dõi nhà thờ.",
+//                     Data = new { ChurchId = churchId }
+//                 });
+//         }
+//         [MapToApiVersion(1)]
+//         [HttpGet("following")]
+//         [Authorize]
+//         [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
+//         public async Task<IActionResult> GetFollowingChurches()
+//         {
+//             var result =
+//                 await _mediator.Send(
+//                     new GetFollowedChurchesQuery());
+
+//             return Ok(
+//                 new ApiResponse<IEnumerable<ChurchListItemView>>
+//                 {
+//                     Message = result.Any()
+//                         ? "Lấy danh sách nhà thờ theo dõi thành công."
+//                         : "Bạn chưa theo dõi nhà thờ nào.",
+//                     Data = result
+//                 });
+//         }
+//         [MapToApiVersion(1)]
+//         [HttpGet("mass-schedules/personalized")]
+//         [Authorize]
+//         [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
+//         public async Task<IActionResult> GetPersonalizedMassSchedules(
+//             [FromQuery] GetPersonalizedMassSchedulesQuery query)
+//         {
+//             var result =
+//                 await _mediator.Send(query);
+
+//             return Ok(
+//                 new ApiResponse<IEnumerable<PersonalizedMassScheduleItemDto>>
+//                 {
+//                     Message = result.Any()
+//                         ? "Lấy lịch lễ cá nhân hóa thành công."
+//                         : "Không có lịch lễ trong phạm vi lọc hoặc bạn chưa theo dõi nhà thờ nào.",
+//                     Data = result
+//                 });
+//         }
+//         [MapToApiVersion(1)]
+//         [HttpGet("reminder-setting")]
+//         [Authorize]
+//         [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
+//         public async Task<IActionResult> GetReminderSetting()
+//         {
+//             var result =
+//                 await _mediator.Send(
+//                     new GetMassReminderSettingQuery());
+
+//             return Ok(
+//                 new ApiResponse<ReminderSettingView>
+//                 {
+//                     Message = "Lấy cấu hình nhắc lễ thành công.",
+//                     Data = result
+//                 });
+//         }
+//         [MapToApiVersion(1)]
+//         [HttpPut("reminder-setting")]
+//         [Authorize]
+//         [Consumes(MediaTypeNames.Application.Json)]
+//         [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
+//         public async Task<IActionResult> UpdateReminderSetting(
+//             [FromBody] UpdateMassReminderSettingCommand command)
+//         {
+//             var result =
+//                 await _mediator.Send(command)
+//             return Ok(
+//                 new ApiResponse<ReminderSettingView>
+//                 {
+//                     Message =
+//                         "Cập nhật cấu hình nhắc lễ thành công.",
+//                     Data = result
+//                 });
+//         }
+//         [MapToApiVersion(1)]
+
+
+//         [HttpPost("dailyWords")]
+//         [Consumes(MediaTypeNames.Application.Json)]
+//         [ProducesResponseType(statusCode: StatusCodes.Status201Created)]
+//         public async Task<IActionResult> CreateDailyWord(
+//             [FromBody] CreateDailyWordCommand command)
+//         {
+//             await _mediator.Send(command);
+
+//             return StatusCode(
+//                 StatusCodes.Status201Created,
+//                 new
+//                 {
+//                     Message = "Create Success."
+//                 });
+//         }
+
+//         [MapToApiVersion(1)]
+//         [HttpGet("dailyWords/search")]
+//         [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
+//         public async Task<IActionResult> GetDailyWord(
+//             [FromQuery] GetDailyWordCommand command)
+//         {
+//             var daily =
+//                 await _mediator.Send(command);
+
+//             if (daily is null)
+//             {
+//                 return Ok(
+//                     new
+//                     {
+//                         Message = "Not found.",
+//                         Data = ""
+//                     });
+//             }
+
+//             return Ok(
+//                 new ApiResponse<DailyWord>
+//                 {
+//                     Message = "Get success.",
+//                     Data = daily
+//                 });
+//         }
+//     }
+// }
+using Asp.Versioning;
 using Journey_of_faith.Api.dtos;
 using Journey_of_faith.Application.usecases.churchs.commands;
 using Journey_of_faith.Application.usecases.churchs.dtos;
@@ -14,6 +430,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using System.Net.Mime;
+using System.IO; // Đảm bảo đã có using System.IO;
 
 namespace Journey_of_faith.Api.Controllers
 {
@@ -28,16 +445,17 @@ namespace Journey_of_faith.Api.Controllers
         {
             _mediator = mediator;
         }
-        [MapToApiVersion(1)]
+
         [HttpPost]
         [Consumes(MediaTypeNames.Application.Json)]
-        [ProducesResponseType(statusCode: StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status201Created)]
         public async Task<IActionResult> CreateChurch(
             [FromBody] CreateChurchCommand command,
             IFormFile? file)
         {
             if (file != null)
             {
+                // SỬA: dùng System.IO.Path và System.IO.FileMode
                 var path = System.IO.Path.Combine(
                     Directory.GetCurrentDirectory(),
                     "uploads",
@@ -54,7 +472,7 @@ namespace Journey_of_faith.Api.Controllers
                 var fullPath =
                     System.IO.Path.Combine(path, uniqueFile);
 
-                using (var stream = new FileStream(fullPath, FileMode.Create))
+                using (var stream = new FileStream(fullPath, System.IO.FileMode.Create))
                 {
                     await file.CopyToAsync(stream);
                 }
@@ -130,13 +548,14 @@ namespace Journey_of_faith.Api.Controllers
         [MapToApiVersion(1)]
         [HttpPost("dioceses")]
         [Consumes("multipart/form-data")]
-        [ProducesResponseType(statusCode: StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status201Created)]
         public async Task<IActionResult> CreateDiocese(
             [FromForm] CreateDioceseCommand command,
             IFormFile? file)
         {
             if (file != null)
             {
+                // SỬA: tương tự
                 var path = System.IO.Path.Combine(
                     Directory.GetCurrentDirectory(),
                     "uploads",
@@ -153,7 +572,7 @@ namespace Journey_of_faith.Api.Controllers
                 var fullPath =
                     System.IO.Path.Combine(path, uniqueFile);
 
-                using (var stream = new FileStream(fullPath, FileMode.Create))
+                using (var stream = new FileStream(fullPath, System.IO.FileMode.Create))
                 {
                     await file.CopyToAsync(stream);
                 }
@@ -177,6 +596,7 @@ namespace Journey_of_faith.Api.Controllers
         }
         [MapToApiVersion(1)]
         [HttpGet("dioceses")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetDiocese()
         {
             var result =
@@ -192,7 +612,7 @@ namespace Journey_of_faith.Api.Controllers
 
         [MapToApiVersion(1)]
         [HttpGet]
-        [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> SearchChurches(
             [FromQuery] int page,
             [FromQuery] int pageSize,
@@ -210,21 +630,19 @@ namespace Journey_of_faith.Api.Controllers
             return Ok(result);
         }
 
-        [MapToApiVersion(1)]
-
         [HttpPut("{Id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<IActionResult> UpdateChurch(
             [FromBody] UpdateChurchCommand command,
             [FromRoute] int Id)
         {
+            command.Id = Id; // Giả sử property Id tồn tại
             await _mediator.Send(command);
-
             return NoContent();
         }
 
-        [MapToApiVersion(1)]
-
         [HttpDelete("{Id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> DeleteChurch(
             [FromRoute] int Id,
             [FromQuery] bool? force)
@@ -239,9 +657,10 @@ namespace Journey_of_faith.Api.Controllers
 
             return Ok(result);
         }
-        [MapToApiVersion(1)]
+
         [HttpGet("{id:int}")]
-        [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetChurchDetails(
             [FromRoute] int id)
         {
@@ -269,16 +688,15 @@ namespace Journey_of_faith.Api.Controllers
                     Data = church
                 });
         }
-        [MapToApiVersion(1)]
+
         [HttpGet("condition")]
         [Authorize]
-        [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetCondition(
-            [FromQuery] string? churchName, 
+            [FromQuery] string? churchName,
             [FromQuery] string? province,
             [FromQuery] string? ward,
-            [FromQuery] string? time
-        )
+            [FromQuery] string? time)
         {
             var result = await _mediator.Send(
                 new GetChurchWithCondition
@@ -299,52 +717,35 @@ namespace Journey_of_faith.Api.Controllers
             });
         }
 
-        [MapToApiVersion(1)]
         [HttpPost("{churchId:int}/follow")]
         [Authorize]
-        [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
-        public async Task<IActionResult> FollowChurch(
-            [FromRoute] int churchId)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> FollowChurch([FromRoute] int churchId)
         {
-            await _mediator.Send(
-                new FollowChurchCommand
-                {
-                    ChurchId = churchId
-                });
-
-            return Ok(
-                new ApiResponse<object>
-                {
-                    Message =
-                        "Đã thêm nhà thờ vào danh sách theo dõi.",
-                    Data = new { ChurchId = churchId }
-                });
+            await _mediator.Send(new FollowChurchCommand { ChurchId = churchId });
+            return Ok(new ApiResponse<object>
+            {
+                Message = "Đã thêm nhà thờ vào danh sách theo dõi.",
+                Data = new { ChurchId = churchId }
+            });
         }
         [MapToApiVersion(1)]
         [HttpDelete("{churchId:int}/unfollow")]
         [Authorize]
-        [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
-        public async Task<IActionResult> UnfollowChurch(
-            [FromRoute] int churchId)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> UnfollowChurch([FromRoute] int churchId)
         {
-            await _mediator.Send(
-                new UnfollowChurchCommand
-                {
-                    ChurchId = churchId
-                });
-
-            return Ok(
-                new ApiResponse<object>
-                {
-                    Message =
-                        "Đã hủy theo dõi nhà thờ.",
-                    Data = new { ChurchId = churchId }
-                });
+            await _mediator.Send(new UnfollowChurchCommand { ChurchId = churchId });
+            return Ok(new ApiResponse<object>
+            {
+                Message = "Đã hủy theo dõi nhà thờ.",
+                Data = new { ChurchId = churchId }
+            });
         }
-        [MapToApiVersion(1)]
+
         [HttpGet("following")]
         [Authorize]
-        [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetFollowingChurches()
         {
             var result =
@@ -382,25 +783,21 @@ namespace Journey_of_faith.Api.Controllers
         [MapToApiVersion(1)]
         [HttpGet("reminder-setting")]
         [Authorize]
-        [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetReminderSetting()
         {
-            var result =
-                await _mediator.Send(
-                    new GetMassReminderSettingQuery());
-
-            return Ok(
-                new ApiResponse<ReminderSettingView>
-                {
-                    Message = "Lấy cấu hình nhắc lễ thành công.",
-                    Data = result
-                });
+            var result = await _mediator.Send(new GetMassReminderSettingQuery());
+            return Ok(new ApiResponse<ReminderSettingView>
+            {
+                Message = "Lấy cấu hình nhắc lễ thành công.",
+                Data = result
+            });
         }
-        [MapToApiVersion(1)]
+
         [HttpPut("reminder-setting")]
         [Authorize]
         [Consumes(MediaTypeNames.Application.Json)]
-        [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> UpdateReminderSetting(
             [FromBody] UpdateMassReminderSettingCommand command)
         {
@@ -422,47 +819,37 @@ namespace Journey_of_faith.Api.Controllers
 
         [HttpPost("dailyWords")]
         [Consumes(MediaTypeNames.Application.Json)]
-        [ProducesResponseType(statusCode: StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status201Created)]
         public async Task<IActionResult> CreateDailyWord(
             [FromBody] CreateDailyWordCommand command)
         {
-            await _mediator.Send(command);
-
-            return StatusCode(
-                StatusCodes.Status201Created,
-                new
+            var result = await _mediator.Send(command);
+            return StatusCode(StatusCodes.Status201Created,
+                new ApiResponse<object>
                 {
-                    Message = "Create Success."
+                    Message = "Tạo lời Chúa hằng ngày thành công.",
+                    Data = new { Id = result }
                 });
         }
 
-        [MapToApiVersion(1)]
         [HttpGet("dailyWords/search")]
-        [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetDailyWord(
             [FromQuery] GetDailyWordCommand command)
         {
-            var daily =
-                await _mediator.Send(command);
-
+            var daily = await _mediator.Send(command);
             if (daily is null)
             {
-                return Ok(
-                    new
-                    {
-                        Message = "Not found.",
-                        Data = ""
-                    });
-            }
-
-            return Ok(
-                new ApiResponse<DailyWord>
+                return Ok(new ApiResponse<string>
                 {
-                    Message = "Get success.",
-                    Data = daily
+                    Message = "Không tìm thấy lời Chúa.",
+                    Data = null
                 });
+            }
+            return Ok(new ApiResponse<DailyWord>
+            {
+                Message = "Lấy lời Chúa thành công.",
+                Data = daily
+            });
         }
     }
-
-
-}
