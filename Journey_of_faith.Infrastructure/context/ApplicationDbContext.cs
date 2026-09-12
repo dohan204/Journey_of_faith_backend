@@ -41,7 +41,7 @@ namespace Journey_of_faith.Infrastructure.context
         public DbSet<Friendship> Friendships => Set<Friendship>();
         public DbSet<Group> Groups => Set<Group>();
         public DbSet<GroupMember> GroupMembers => Set<GroupMember>();
-
+        public DbSet<Liturgy> Liturgy => Set<Liturgy>();
         // ── Messaging ─────────────────────────────────────────────────────
         public DbSet<Conversation> Conversations => Set<Conversation>();
         public DbSet<ConversationParticipant> ConversationParticipants => Set<ConversationParticipant>();
