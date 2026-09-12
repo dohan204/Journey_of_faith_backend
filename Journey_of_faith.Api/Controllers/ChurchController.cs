@@ -1,4 +1,7 @@
 
+
+using Asp.Versioning;
+
 // using Asp.Versioning;
 // using Journey_of_faith.Api.dtos;
 // using Journey_of_faith.Application.usecases.churchs.commands;
@@ -434,7 +437,6 @@ namespace Journey_of_faith.Api.Controllers
     [ApiVersion(1)]
     [ApiController]
     [Route("api/v{version:apiVersion}/churches")]
-    [Authorize]
     public class ChurchesController : ControllerBase
     {
         private readonly IMediator _mediator;
@@ -493,6 +495,57 @@ namespace Journey_of_faith.Api.Controllers
                 });
         }
 
+        [MapToApiVersion(1)]
+        [HttpPost("mass")]
+        public async Task<IActionResult> CreateMassAndLiturgy([FromBody] CreateMassAndLiturgyCommand command)
+        {
+            var result = await _mediator.Send(command);
+            return StatusCode(
+                StatusCodes.Status201Created,
+                new ApiResponse<bool>
+                {
+                    Message = "Tạo lịch thành công",
+                    Data = result
+                }
+            );
+        }
+        [MapToApiVersion(1)]
+        [HttpGet("massSchedule-today")]
+        public async Task<IActionResult> GetMassScheduleToday()
+        {
+            var result = await _mediator.Send(new GetMassScheduleTodayQuery());
+            return Ok(new ApiResponse<IReadOnlyList<MassScheduleTodayView>>
+            {
+                Data = result,
+                Message = "Lấy dữ liệu thành công"
+            });
+        }
+        [MapToApiVersion(1)]
+        [HttpPost("liturgy")]
+        public async Task<IActionResult> CreateLiturgy([FromBody] CreateLiturgy command)
+        {
+            var result = await _mediator.Send(command);
+            return StatusCode(
+                StatusCodes.Status201Created,
+                new ApiResponse<bool>
+                {
+                    Message = "Tạo phụng vụ thành công",
+                    Data = result
+                }
+            );
+        }
+        [HttpGet("liturgy-today")]
+        [MapToApiVersion(1)]
+        public async Task<IActionResult> GetLiturgyToday()
+        {
+            var result = await _mediator.Send(new GetLiturgyTodayQuery());
+            return Ok(new ApiResponse<Liturgy?>
+            {
+                Data = result,
+                Message = "Lấy bài phụng vụ thành công"
+            });
+        }
+        [MapToApiVersion(1)]
         [HttpPost("dioceses")]
         [Consumes("multipart/form-data")]
         [ProducesResponseType(StatusCodes.Status201Created)]
@@ -800,4 +853,3 @@ namespace Journey_of_faith.Api.Controllers
             });
         }
     }
-}
