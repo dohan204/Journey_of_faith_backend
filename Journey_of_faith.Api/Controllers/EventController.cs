@@ -170,5 +170,35 @@ namespace Journey_of_faith.Api.Controllers
                 Data = events
             });
         }
+
+
+        [MapToApiVersion(1)]
+        [HttpPost("comment")]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> CreateComment([FromBody] CreateEventComment comment)
+        {
+            var result = await _mediator.Send(comment);
+            return StatusCode(
+                StatusCodes.Status201Created,
+                new ApiResponse<bool>
+                {
+                    Message = "Tạo Comment thành công"
+                }
+            );
+        }
+
+        [MapToApiVersion(1)]
+        [HttpGet("{Id}/comment")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetComment([FromRoute]int Id)
+        {
+            var result = await _mediator.Send(new GetCommentForEventQuery {EventId = Id});
+            return Ok(new ApiResponse<List<EventCommentView>>
+            {
+                Message = "Lấy comment thành công",
+                Data = result
+            });
+        } 
     }
 }

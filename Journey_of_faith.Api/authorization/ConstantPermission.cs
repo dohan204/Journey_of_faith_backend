@@ -18,7 +18,7 @@ public static class Permissions
         public const string EDIT = "QUIZZES_EDIT";
         public const string VIEW = "QUIZZES_VIEW";
         public const string DELETE = "QUIZZES_DELETE";
-        public const string SUBMIT = "QUIZZES_SUBMIT";
+        public const string SUBMIT = "QUIZZES_VIEW";
 
     }
     public static class Roles
