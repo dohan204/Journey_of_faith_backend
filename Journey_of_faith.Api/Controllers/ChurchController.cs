@@ -696,7 +696,9 @@ namespace Journey_of_faith.Api.Controllers
             [FromQuery] string? churchName,
             [FromQuery] string? province,
             [FromQuery] string? ward,
-            [FromQuery] string? time)
+            [FromQuery] string? time,
+            [FromQuery] int? page,
+            [FromQuery] int? pageSize)
         {
             var result = await _mediator.Send(
                 new GetChurchWithCondition
@@ -705,8 +707,8 @@ namespace Journey_of_faith.Api.Controllers
                     Province = province,
                     Ward = ward,
                     Time = time,
-                    Page = 1,
-                    PageSize = 10
+                    Page = page.HasValue ? page.Value : 1,
+                    PageSize = pageSize.HasValue ? pageSize.Value : 10
                 }
             );
 

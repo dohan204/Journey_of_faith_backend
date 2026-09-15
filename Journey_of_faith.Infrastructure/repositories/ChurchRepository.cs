@@ -117,50 +117,53 @@ namespace Journey_of_faith.Infrastructure.repositories
         public async Task<bool> CreateMassAndLiturgyAsync(
             IReadOnlyCollection<MassAndLiturgyInsert> dataInsert)
         {
-            await using var transaction = await _dbContext.Database.BeginTransactionAsync();
+            var strategy = _dbContext.Database.CreateExecutionStrategy();
 
-            try
+            return await strategy.ExecuteAsync(async () =>
             {
-                var items = dataInsert.ToList();
+                await using var transaction = await _dbContext.Database.BeginTransactionAsync();
 
-                var data = items.Select(item => new Journey_of_faith.Infrastructure.persistence.entities.faith_notifications.MassSchedule
+                try
                 {
-                    ChurchId = item.MassSchedules.ChurchId,
-                    Date = item.MassSchedules.Date.HasValue
-                        ? DateOnly.FromDateTime(item.MassSchedules.Date.Value)
-                        : (DateOnly?)null,
-                    Time = string.IsNullOrEmpty(item.MassSchedules.Time)
-                        ? default
-                        : TimeOnly.Parse(item.MassSchedules.Time),
-                    MassTypeId = item.MassSchedules.MassTypeId,
-                    Name = item.MassSchedules.Name
-                    
-                }).ToList();
+                    var items = dataInsert.ToList();
 
-                await _dbContext.MassSchedules.AddRangeAsync(data);
-                await _dbContext.SaveChangesAsync(); // Id được set vào `data` sau dòng này
+                    var data = items.Select(item => new Journey_of_faith.Infrastructure.persistence.entities.faith_notifications.MassSchedule
+                    {
+                        ChurchId = item.MassSchedules.ChurchId,
+                        Date = item.MassSchedules.Date.HasValue
+                            ? DateOnly.FromDateTime(item.MassSchedules.Date.Value)
+                            : (DateOnly?)null,
+                        Time = string.IsNullOrEmpty(item.MassSchedules.Time)
+                            ? default
+                            : TimeOnly.Parse(item.MassSchedules.Time),
+                        MassTypeId = item.MassSchedules.MassTypeId,
+                        Name = item.MassSchedules.Name
+                    }).ToList();
 
-                var dataLiturgy = items.Select((item, index) => new Journey_of_faith.Infrastructure.persistence.entities.location.Liturgy
+                    await _dbContext.MassSchedules.AddRangeAsync(data);
+                    await _dbContext.SaveChangesAsync();
+
+                    var dataLiturgy = items.Select((item, index) => new Journey_of_faith.Infrastructure.persistence.entities.location.Liturgy
+                    {
+                        MassScheduleId = data[index].Id,
+                        ReadingOne = item.Liturgies.ReadingOne,
+                        ResponsorialPsalm = item.Liturgies.ResponsorialPsalm,
+                        GoodNew = item.Liturgies.GoodNew,
+                        EndWord = item.Liturgies.EndWord
+                    }).ToList();
+
+                    await _dbContext.Liturgy.AddRangeAsync(dataLiturgy);
+                    await _dbContext.SaveChangesAsync();
+
+                    await transaction.CommitAsync();
+                    return true;
+                }
+                catch
                 {
-                    MassScheduleId = data[index].Id,
-                    ReadingOne = item.Liturgies.ReadingOne,
-                    ResponsorialPsalm = item.Liturgies.ResponsorialPsalm,
-                    GoodNew = item.Liturgies.GoodNew,
-                    EndWord = item.Liturgies.EndWord
-                }).ToList();
-
-                await _dbContext.Liturgy.AddRangeAsync(dataLiturgy);
-                await _dbContext.SaveChangesAsync();
-
-                await transaction.CommitAsync();
-                return true;
-            }
-            catch
-            {
-                await transaction.RollbackAsync();
-                throw;
-            }
-
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+            });
         }
 
         public async Task<IReadOnlyList<MassScheduleTodayView>> GetMassScheduleTodayViewsAsync()

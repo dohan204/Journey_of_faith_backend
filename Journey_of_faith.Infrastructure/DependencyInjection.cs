@@ -39,18 +39,18 @@ namespace Journey_of_faith.Infrastructure
         {
             service.AddDbContext<ApplicationDbContext>(options =>
             {
-                options.UseSqlServer(configuration.GetConnectionString("Connection"));
+                options.UseSqlServer(configuration.GetConnectionString("Connection"), sqlServerOptionsAction: sqloption =>
+                {
+                    sqloption.EnableRetryOnFailure(
+                        maxRetryCount: 5,
+                        maxRetryDelay: TimeSpan.FromSeconds(20),
+                        errorNumbersToAdd: null
+
+                    );
+                });
             });
 
-            //  sqlServerOptionsAction: sqloption =>
-            //     {
-            //         sqloption.EnableRetryOnFailure(
-            //             maxRetryCount: 5,
-            //             maxRetryDelay: TimeSpan.FromSeconds(20),
-            //             errorNumbersToAdd: null
-
-            //         );
-            //     }
+             
 
             service.AddIdentityCore<ApplicationUser>()
                 .AddRoles<ApplicationRole>()

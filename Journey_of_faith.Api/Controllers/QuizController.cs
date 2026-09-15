@@ -90,7 +90,18 @@ namespace Journey_of_faith.Api.Controllers
                 Data = com
             });
         }
-
+        [HttpGet("history-test")]
+        [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
+        [MapToApiVersion(1)]
+        public async Task<IActionResult> GetHistoryTest()
+        {
+            var data = await _mediator.Send(new GetHistoryExamTestQuery());
+            return Ok(new ApiResponse<IReadOnlyList<HistoryExamTest>>
+            {
+                Message = "lay du lieu thanh cong",
+                Data = data
+            });
+        }
         [HttpDelete("{id}")]
         [HasPermission(Permissions.Quizes.DELETE)]
         [ProducesResponseType(statusCode: StatusCodes.Status204NoContent)]

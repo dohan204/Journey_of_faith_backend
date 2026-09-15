@@ -18,27 +18,24 @@ namespace Journey_of_faith.Domain.entities.quiz
 
         public IReadOnlyCollection<AttemptAnswer> AttemptAnswers => _attemptAnswers.AsReadOnly();
         private QuizAttempt() { }
-        public QuizAttempt(int quizId, string userId, DateTime startTime, DateTime endTime, int score)
+        public QuizAttempt(int quizId, Guid userId, DateTime startTime, DateTime endTime, int score)
         {
             if(quizId < 0)
             {
                 throw new DomainException("Mã bài thi không hợp lệ");
             }
-
-            if(string.IsNullOrEmpty(userId))
-            {
-                throw new ArgumentNullException("Mã người dùng không được phép null");
-            }
             if(score < 0)
             {
                 throw new DomainException("Điểm kh được nhỏ hơn 0.");
             }
+            QuizId = quizId;
+            UserId = userId;
             StartTime = startTime;
             EndTime = endTime;
             Score = score;
         }
 
-        public static QuizAttempt Create(int quizId, string userId, DateTime startTime, DateTime endTime, int score)
+        public static QuizAttempt Create(int quizId, Guid userId, DateTime startTime, DateTime endTime, int score)
             => new QuizAttempt(quizId, userId, startTime, endTime, score);
 
 
