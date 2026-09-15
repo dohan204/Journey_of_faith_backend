@@ -45,6 +45,8 @@ namespace Journey_of_faith.Domain.interfaces
         public int CorrectQuestionCount { get; set; }
         public string Message { get; set; } = string.Empty;
     }
+
+    public record HistoryExamTest(string NameExam, int QuestionCount, string StartDate, int CorrectAnswer, int Score);
     public interface IExamRepository
     {
         Task<int> CreateQuiz(Quiz quiz, int HardQuestion, int MediumQuestion, int EasyQuestion);
@@ -52,6 +54,7 @@ namespace Journey_of_faith.Domain.interfaces
         Task<QuizView?> GetDetailsQuiz(int Id);
 
         Task<int> SaveScoreTest(QuizAttempt quiz);
+        Task<IReadOnlyList<HistoryExamTest>> GetHistoryExamTestsAsync(Guid userId);
         Task<bool> DeleteQuiz(int Id);
 
         Task<IEnumerable<Topic>> GetTopicsAsync();

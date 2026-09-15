@@ -30,15 +30,19 @@ public static class NotificationSchedulingExtensions
 
                 quartz.UsePersistentStore(store =>
                 {
+                    // store.ProvisionSchema(); tạo bảng vào trong db nếu chưa tồn tại
+                    // đảm bảo JsonMapData lưu dưới dạng key-value string
                     store.UseProperties = true;
+                    // khi app khởi động quartz kiểm tra xem có đúng Schema mong đợi hay không
                     store.PerformSchemaValidation = true;
+                    // Cấu hình kết nối sql server
                     store.UseSqlServer(sql =>
                     {
-                        sql.ConnectionString = connectionString;
+                        sql.ConnectionString = connectionString; 
                         sql.TablePrefix = "dbo.QRTZ_";
                     });
-                    store.UseSystemTextJsonSerializer();
-                    store.UseClustering();
+                    store.UseSystemTextJsonSerializer(); // Serializer Json cho JobDataMap()
+                    store.UseClustering(); // cho phép nhiều instance app cùng chạy xong xong, cùng trỏ vào 1 db
                 });
             }
             else

@@ -9,7 +9,7 @@ namespace Journey_of_faith.Api.Controllers;
 
 [ApiVersion(1)]
 [ApiController]
-[Authorize(Policy = NotificationSchedulingAuthorization.PolicyName)]
+// [Authorize(Policy = NotificationSchedulingAuthorization.PolicyName)]
 [Route("api/v{version:apiVersion}/notifications/schedules")]
 public sealed class NotificationSchedulesController(INotificationScheduler scheduler) : ControllerBase
 {

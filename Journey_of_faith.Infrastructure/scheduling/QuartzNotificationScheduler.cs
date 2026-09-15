@@ -18,54 +18,61 @@ public sealed class QuartzNotificationScheduler(
     {
         ArgumentNullException.ThrowIfNull(request);
         ValidatePayload(request);
-
-        var now = timeProvider.GetUtcNow();
-        var hasCron = !string.IsNullOrWhiteSpace(request.CronExpression);
-        if (request.RunAt.HasValue == hasCron)
-            throw new BadRequestException("Cung cấp đúng một trong hai: runAt hoặc cronExpression.");
-
-        var id = Guid.NewGuid();
-        var jobKey = JobKeyFor(id);
-        var triggerBuilder = TriggerBuilder.Create()
-            .WithIdentity(TriggerKeyFor(id))
-            .ForJob(jobKey);
-
-        if (request.RunAt is { } runAt)
+        Console.WriteLine("Hello anh em he");
+        try
         {
-            if (runAt <= now)
-                throw new BadRequestException("runAt phải là thời điểm trong tương lai, kèm múi giờ (Z hoặc +07:00).");
+            var now = timeProvider.GetUtcNow();
+            var hasCron = !string.IsNullOrWhiteSpace(request.CronExpression);
+            if (request.RunAt.HasValue == hasCron)
+                throw new BadRequestException("Cung cấp đúng một trong hai: runAt hoặc cronExpression.");
 
-            triggerBuilder.StartAt(runAt.ToUniversalTime())
-                .WithSimpleSchedule(schedule => schedule.WithRepeatCount(0)
-                    .WithMisfireHandlingInstructionFireNow());
+            var id = Guid.NewGuid();
+            var jobKey = JobKeyFor(id);
+            var triggerBuilder = TriggerBuilder.Create()
+                .WithIdentity(TriggerKeyFor(id))
+                .ForJob(jobKey);
+
+            if (request.RunAt is { } runAt)
+            {
+                if (runAt <= now)
+                    throw new BadRequestException("runAt phải là thời điểm trong tương lai, kèm múi giờ (Z hoặc +07:00).");
+
+                triggerBuilder.StartAt(runAt.ToUniversalTime())
+                    .WithSimpleSchedule(schedule => schedule.WithRepeatCount(0)
+                        .WithMisfireHandlingInstructionFireNow());
+            }
+            else
+            {
+                if (request.CronExpression!.Length > 120 ||
+                    !CronExpression.IsValidExpression(request.CronExpression))
+                    throw new BadRequestException("cronExpression không hợp lệ. Quartz dùng 6 hoặc 7 trường, bắt đầu bằng giây.");
+
+                var timeZone = ResolveTimeZone(request.TimeZoneId);
+                var cron = new CronExpression(request.CronExpression) { TimeZone = timeZone };
+                if (cron.GetNextValidTimeAfter(now) is null)
+                    throw new BadRequestException("cronExpression không có lần chạy nào trong tương lai.");
+
+                // Skip missed recurring runs instead of sending a burst after downtime.
+                triggerBuilder.StartAt(now).WithCronSchedule(request.CronExpression, schedule => schedule
+                    .InTimeZone(timeZone)
+                    .WithMisfireHandlingInstructionDoNothing());
+            }
+
+            // A JSON string also works with AdoJobStore's UseProperties=true.
+            var job = JobBuilder.Create<FirebaseNotificationJob>()
+                .WithIdentity(jobKey)
+                .UsingJobData(FirebaseNotificationJob.PayloadKey, JsonSerializer.Serialize(request))
+                .Build();
+            var trigger = triggerBuilder.Build();
+            var scheduler = await schedulerFactory.GetScheduler(cancellationToken);
+            var firstRun = await scheduler.ScheduleJob(job, trigger, cancellationToken);
+
+            return ToResponse(id, request, firstRun, TriggerState.Normal.ToString());
         }
-        else
+        catch (Exception ex)
         {
-            if (request.CronExpression!.Length > 120 ||
-                !CronExpression.IsValidExpression(request.CronExpression))
-                throw new BadRequestException("cronExpression không hợp lệ. Quartz dùng 6 hoặc 7 trường, bắt đầu bằng giây.");
-
-            var timeZone = ResolveTimeZone(request.TimeZoneId);
-            var cron = new CronExpression(request.CronExpression) { TimeZone = timeZone };
-            if (cron.GetNextValidTimeAfter(now) is null)
-                throw new BadRequestException("cronExpression không có lần chạy nào trong tương lai.");
-
-            // Skip missed recurring runs instead of sending a burst after downtime.
-            triggerBuilder.StartAt(now).WithCronSchedule(request.CronExpression, schedule => schedule
-                .InTimeZone(timeZone)
-                .WithMisfireHandlingInstructionDoNothing());
+            throw new Exception(ex.Message.ToString());
         }
-
-        // A JSON string also works with AdoJobStore's UseProperties=true.
-        var job = JobBuilder.Create<FirebaseNotificationJob>()
-            .WithIdentity(jobKey)
-            .UsingJobData(FirebaseNotificationJob.PayloadKey, JsonSerializer.Serialize(request))
-            .Build();
-        var trigger = triggerBuilder.Build();
-        var scheduler = await schedulerFactory.GetScheduler(cancellationToken);
-        var firstRun = await scheduler.ScheduleJob(job, trigger, cancellationToken);
-
-        return ToResponse(id, request, firstRun, TriggerState.Normal.ToString());
     }
 
     public async Task<ScheduledNotificationResponse?> GetAsync(

@@ -199,9 +199,9 @@ builder.Services.AddInfrastructure(builder.Configuration);
 
 builder.Services.AddFirebaseService(builder.Configuration);
 builder.Services.AddRegisterService(builder.Configuration);
-// builder.Services.AddNotificationScheduling(builder.Configuration);
+builder.Services.AddNotificationScheduling(builder.Configuration);
 
-builder.Services.AddNotificationSchedulingAuthorization();
+// builder.Services.AddNotificationSchedulingAuthorization();
 
 builder.Services.AddApplication();
 
