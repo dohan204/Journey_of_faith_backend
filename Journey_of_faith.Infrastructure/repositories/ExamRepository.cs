@@ -5,6 +5,7 @@ using Journey_of_faith.Domain.interfaces;
 using Journey_of_faith.Infrastructure.common;
 using Journey_of_faith.Infrastructure.dtos.quiz;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
@@ -23,8 +24,9 @@ namespace Journey_of_faith.Infrastructure.repositories
             using var transaction = connection.BeginTransaction();
             try
             {
-                var Id = await connection.ExecuteScalarAsync<int>("CreateQuiz", new {
-                    quiz.Title, 
+                var Id = await connection.ExecuteScalarAsync<int>("CreateQuiz", new
+                {
+                    quiz.Title,
                     quiz.TopicId,
                     quiz.Description,
                     quiz.TimeLimit,
@@ -32,13 +34,14 @@ namespace Journey_of_faith.Infrastructure.repositories
                     HardQuestion,
                     MediumQuestion,
                     EasyQuestion
-                }, 
-                transaction, 
+                },
+                transaction,
                 commandType: System.Data.CommandType.StoredProcedure);
 
                 transaction.Commit();
                 return Id;
-            } catch
+            }
+            catch
             {
                 transaction.Rollback();
                 throw;
@@ -114,21 +117,24 @@ namespace Journey_of_faith.Infrastructure.repositories
                 var answer = (await multi.ReadAsync<AnsewrQuestion>()).ToList();
                 Console.WriteLine(answer);
                 var answerLookUp = answer.ToLookup(a => a.QuestionId);
-                foreach(var p in questions)
+                foreach (var p in questions)
                 {
                     p.Ansewrs = answerLookUp[p.Id].ToList();
                 }
                 quiz.Questions = questions;
                 return quiz;
             }
-            
+
         }
 
 
         public async Task<int> SaveScoreTest(QuizAttempt quizAttempt)
         {
             using var connection = _factory.CreateConnection();
+            connection.Open();
             using var transaction = connection.BeginTransaction();
+            Console.WriteLine($"quizId: {quizAttempt.QuizId}");
+            Console.WriteLine($"userId: {quizAttempt.UserId}");
             try
             {
                 var quizAttemp = await connection
@@ -144,8 +150,8 @@ namespace Journey_of_faith.Infrastructure.repositories
                     EndTime = quizAttempt.EndTime,
                     Score = quizAttempt.Score,
                 }, transaction: transaction);
-                
-                foreach(var attemptAnswer in quizAttempt.AttemptAnswers)
+
+                foreach (var attemptAnswer in quizAttempt.AttemptAnswers)
                 {
                     await connection.ExecuteAsync($@"
                         Insert into [{name.Schema}].[{QuizTalbe.AttemptAnswer}] (AttemptId, QuestionId, AnswerId, IsCorrect)
@@ -161,13 +167,25 @@ namespace Journey_of_faith.Infrastructure.repositories
 
                 transaction.Commit();
                 return quizAttemp;
-            } catch
+            }
+            catch (Exception ex) when (ex is SqlException)
             {
                 transaction.Rollback();
                 throw;
             }
         }
+        public async Task<IReadOnlyList<HistoryExamTest>> GetHistoryExamTestsAsync(Guid userId)
+        {
+            using var connection = _factory.CreateConnection();
 
+            var data = await connection.QueryAsync<dynamic>(
+                "spGetHistoryExam",
+                new { UserId = userId },
+                commandType: System.Data.CommandType.StoredProcedure
+            );
+            return data.Select(e => new HistoryExamTest(e.NameExam, e.QuestionCount, e.StartTime.ToString("dd-MM-yyyy HH:mm"), e.CorrectAnswer, e.Score)).ToList();
+
+        }
         public async Task<bool> DeleteQuiz(int Id)
         {
             using var connection = _factory.CreateConnection();
@@ -175,7 +193,7 @@ namespace Journey_of_faith.Infrastructure.repositories
                 UPDATE [{name.Schema}].[{QuizTalbe.Quiz}] SET
                 IsDeleted = @IsDeleted, DeletedAt = @DeletedAt
                 Where Id = @Id and IsDeleted = 0
-            ", new { IsDeleted = true, DeletedAt = DateTime.Now, Id = Id});
+            ", new { IsDeleted = true, DeletedAt = DateTime.Now, Id = Id });
 
             return isDelete > 0;
         }
@@ -237,7 +255,7 @@ namespace Journey_of_faith.Infrastructure.repositories
         public string ImageUrl { get; set; } = string.Empty;
     }
 
-    
+
 
 }
 

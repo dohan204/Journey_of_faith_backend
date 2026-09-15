@@ -24,7 +24,7 @@ namespace Journey_of_faith.Application.usecases.quizs.commands
         public async Task<SubmitResult> Handle(SubmitExamCommand command, CancellationToken token)
         {
 
-            if(!Guid.TryParse(_currentUser.UserId, out var userId))
+            if(!Guid.TryParse(_currentUser.UserId, out Guid userId))
             {
                 throw new UnauthorizationException("Người dùng không hợp lệ, không thể thực hiện chấm bài");
             }
@@ -55,7 +55,7 @@ namespace Journey_of_faith.Application.usecases.quizs.commands
 
             var totalCount = (double)correctAnswer / quiz.QuestionCount * 10;
             
-            var quizAttempt = QuizAttempt.Create(quiz.Id, userId.ToString(), DateTime.UtcNow, DateTime.UtcNow, (int)totalCount);
+            var quizAttempt = QuizAttempt.Create(quiz.Id, userId, DateTime.UtcNow, DateTime.UtcNow, (int)totalCount);
 
             
 
