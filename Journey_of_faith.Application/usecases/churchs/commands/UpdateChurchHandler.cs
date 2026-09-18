@@ -28,19 +28,21 @@ public class UpdateChurchHandler : IRequestHandler<UpdateChurchCommand, int>
     {
         try
         {
-            if (!Guid.TryParse(currentUserService.UserId, out var userId))
-            {
-                throw new UnauthorizationException("Người dùng không hợp lệ");
-            }
+            // if (!Guid.TryParse(currentUserService.UserId, out var userId))
+            // {
+            //     throw new UnauthorizationException("Người dùng không hợp lệ");
+            // }
             foreach(var mas in command.MassSchedules)
             {
                 _logger.LogError("Id: {0}, name: {1}, time: {2}", mas.Id, mas.Name, mas.Time);
             }
+            var userId = Guid.NewGuid();
             var listMassSche = command.MassSchedules.Select(e => new MassSchedule
             {
                 Id = e.Id  ?? 0,
                 Name = e?.Name ?? string.Empty,
                 Time = e?.Time ?? string.Empty,
+
                 MassTypeId = 1
             }).ToList();
 
