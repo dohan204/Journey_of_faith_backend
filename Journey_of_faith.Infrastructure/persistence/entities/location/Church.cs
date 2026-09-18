@@ -30,5 +30,6 @@ namespace Journey_of_faith.Infrastructure.persistence.entities.location
         public ICollection<UserChurch> UserChurches { get; set; } = [];
         public ICollection<MassSchedule> MassSchedules { get; set; } = [];
         public ICollection<LiveStream> LiveStreams { get; set; } = [];
+        public ICollection<ChurchImage> ChurchImages{ get; set; } = [];
     }
 }

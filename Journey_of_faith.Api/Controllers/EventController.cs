@@ -43,8 +43,8 @@ namespace Journey_of_faith.Api.Controllers
         }
         [MapToApiVersion(1)]
         [HttpGet("category")]
-        [HasPermission(Permissions.Event.VIEW_CATEGORY)]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [AllowAnonymous]
         public async Task<IActionResult> GetCategories()
         {
             var categories = await _mediator.Send(new GetEventCategoriesQuery());
@@ -98,8 +98,8 @@ namespace Journey_of_faith.Api.Controllers
         }
         [MapToApiVersion(1)]
         [HttpGet]
-        [HasPermission(Permissions.Event.VIEW)]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [AllowAnonymous]
         public async Task<IActionResult> GetEvents([FromQuery] GetEventsQuery query)
         {
             var events = await _mediator.Send(query);
@@ -111,8 +111,8 @@ namespace Journey_of_faith.Api.Controllers
         }
         [MapToApiVersion(1)]
         [HttpGet("{id:int}")]
-        [HasPermission(Permissions.Event.VIEW)]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [AllowAnonymous]
         public async Task<IActionResult> GetDetails([FromRoute] int id)
         {
             var details = await _mediator.Send(new GetEventDetailsQuery { EventId = id });
@@ -190,6 +190,7 @@ namespace Journey_of_faith.Api.Controllers
 
         [MapToApiVersion(1)]
         [HttpGet("{Id}/comment")]
+        [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetComment([FromRoute]int Id)
         {

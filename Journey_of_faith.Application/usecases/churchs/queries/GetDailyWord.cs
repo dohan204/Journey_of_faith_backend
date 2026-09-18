@@ -5,7 +5,6 @@ namespace Journey_of_faith.Application.usecases.churchs.queries;
 
 public class GetDailyWordCommand : IRequest<DailyWord?>
 {
-    public DateTime Date {get; set;}
 }
 
 
@@ -20,6 +19,6 @@ public class GetDailyWordHandler : IRequestHandler<GetDailyWordCommand, DailyWor
 
     public async Task<DailyWord?> Handle(GetDailyWordCommand command, CancellationToken cancellationToken)
     {
-        return await churchRepository.GetDailyWorldAsync(command.Date);
+        return await churchRepository.GetDailyWorldAsync();
     }
 }

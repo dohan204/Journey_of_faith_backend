@@ -179,11 +179,17 @@ SqlMapper.AddTypeHandler(new GuidTypeHandler());
 
 builder.Services.AddHttpContextAccessor();
 
+string[] origins = builder
+    .Configuration.GetSection("Cors:AllowedOrigins")
+    .Get<string[]>() ?? [];
+Console.Error.WriteLine(string.Join(", ", origins));
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(name: "allowFrontend", policy =>
         policy
-            .AllowAnyOrigin()
+            .WithOrigins(
+                origins
+            )
             .AllowAnyMethod()
             .AllowAnyHeader()
     );
@@ -342,10 +348,14 @@ var currentDirectoryFile =
         "uploads"
     );
 
-if (!Directory.Exists(currentDirectoryFile))
-{
-    Directory.CreateDirectory(currentDirectoryFile);
-}
+Directory.CreateDirectory(currentDirectoryFile);
+
+var churchUploadDirectory = System.IO.Path.Combine(
+    currentDirectoryFile,
+    "churchs"
+);
+
+Directory.CreateDirectory(churchUploadDirectory);
 
 app.UseStaticFiles(new StaticFileOptions
 {
