@@ -30,9 +30,12 @@ namespace Journey_of_faith.Api.Controllers
         public async Task<IActionResult> Login([FromBody] UserLoginQuery query)
         {
             var login = await _me.Send(query);
-            return Ok(login);
+            return Ok(new ApiResponse<UserLoginResponse>
+            {
+                Message = "Đăng nhập thành công",
+                Data = login
+            });
         }
-
         [MapToApiVersion(1)]
         [AllowAnonymous]
         [HttpPost("refresh")]

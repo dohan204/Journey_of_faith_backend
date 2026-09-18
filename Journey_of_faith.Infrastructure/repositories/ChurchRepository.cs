@@ -47,6 +47,9 @@ namespace Journey_of_faith.Infrastructure.repositories
         {
             return await ExecuteAsync(async connection =>
             {
+                connection.Open();
+                using var transaction = connection.BeginTransaction();
+
                 try
                 {
                     var churchId = await connection.ExecuteScalarAsync<int>("spCreateChurchAndMassSchedule", new
@@ -57,24 +60,27 @@ namespace Journey_of_faith.Infrastructure.repositories
                         Address = church.Address,
                         CreatorUserId = (Guid)church.CreatorUserId,
                         Boss = church.Boss,
-                        Description = church.Description
-                    }, commandType: CommandType.StoredProcedure);
+                        Description = church.Description,
+                        Longitude = church.GeoLocation.Longitude,
+                        Latitude = church.GeoLocation.Latitude
+                    }, transaction: transaction, commandType: CommandType.StoredProcedure);
 
-                    if (churchId == 0) return 0;
-                    var massSchedules = church.MassSchedules.Select(e => new MassSchedule
+                    foreach (var churchImage in church.ChurchImages)
                     {
-                        ChurchId = churchId,
-                        Name = e.Name,
-                        Time = e.Time,
-                        MassTypeId = 1,
-                        CreationTime = DateTime.Now,
-                        CreatorUserId = church.CreatorUserId,
-                    });
-                    await connection.BulkInsertAsync<MassSchedule>(massSchedules);
+                        churchImage.ChurchId = churchId;
+                    }
+                    await connection.ExecuteAsync(@"
+                        Insert Into [jcodepro_journey_of_faith].[ChurchImages] (ChurchId, ImageName, CreatedUser, CreatedAt)
+                        Values (@ChurchId, @ImageName, @CreatedUser, @CreatedAt);
+                    ", church.ChurchImages, transaction: transaction);
+
+                    transaction.Commit();
                     return churchId;
+
                 }
                 catch (Exception ex)
                 {
+                    transaction.Rollback();
                     Console.WriteLine(ex);
                     throw;
                 }
@@ -84,19 +90,19 @@ namespace Journey_of_faith.Infrastructure.repositories
         {
             return await ExecuteAsync(async connection =>
             {
-               await connection.ExecuteAsync(@"
+                await connection.ExecuteAsync(@"
                   Insert into [jcodepro_journey_of_faith].[Liturgy] (ReadingOne, ResponsorialPsalm, GoodNew, EndWord, DateActive)
                   Values(@ReadingOne, @ResponsorialPsalm, @GoodNew, @EndWord, @DateActive)
                ", new
-               {
+                {
 
-                  ReadingOne = liturgy.ReadingOne,
-                  ResponsorialPsalm = liturgy.ResponsorialPsalm,
-                  GoodNew = liturgy.GoodNew,
-                  EndWord = liturgy.EndWord,
-                  DateActive = liturgy.DateActive,
-               }) ;
-               return true;
+                    ReadingOne = liturgy.ReadingOne,
+                    ResponsorialPsalm = liturgy.ResponsorialPsalm,
+                    GoodNew = liturgy.GoodNew,
+                    EndWord = liturgy.EndWord,
+                    DateActive = liturgy.DateActive,
+                });
+                return true;
             });
         }
 
@@ -107,10 +113,10 @@ namespace Journey_of_faith.Infrastructure.repositories
             {
                 var currentDate = DateTime.Now.ToString("yyyy-MM-dd");
                 Console.WriteLine($"currentDate: {currentDate}");
-                var data =  await connection.QueryFirstOrDefaultAsync<Liturgy?>(@"
+                var data = await connection.QueryFirstOrDefaultAsync<Liturgy?>(@"
                     Select * from [jcodepro_journey_of_faith].[Liturgy]
                     Where DateActive = @Date
-                ", new {Date = currentDate});
+                ", new { Date = currentDate });
                 return data != null ? data : null;
             });
         }
@@ -170,12 +176,12 @@ namespace Journey_of_faith.Infrastructure.repositories
         {
             return await ExecuteAsync(async connection =>
             {
-               var currentDate = DateTime.Now.ToString("yyyy-MM-dd");
+                var currentDate = DateTime.Now.ToString("yyyy-MM-dd");
                 var massScheduleToday = await connection.QueryAsync<dynamic>(@"
                     Select m.Name as MassName, m.Time, c.Name as ChurchName From [jcodepro_journey_of_faith].[MassSchedule] m
                     Inner join [jcodepro_journey_of_faith].[Church] c on m.ChurchId = c.Id
                     Where m.Date = @CurrentDate
-                ", new { CurrentDate = currentDate});
+                ", new { CurrentDate = currentDate });
 
                 return massScheduleToday.Select(e => new MassScheduleTodayView(e.Time, e.MassName, e.ChurchName, null)).ToList();
             });
@@ -222,8 +228,8 @@ namespace Journey_of_faith.Infrastructure.repositories
                     (@"
                         Select * from [jcodepro_journey_of_faith].[Liturgy] 
                         Where MassScheduleId in @MassScheduleIds
-                    ", new {MassScheduleIds = massSchedules.Select(e => e.Id).ToList()})).ToLookup(e => e.MassScheduleId, e => e);
-                foreach(var mass in massSchedules)
+                    ", new { MassScheduleIds = massSchedules.Select(e => e.Id).ToList() })).ToLookup(e => e.MassScheduleId, e => e);
+                foreach (var mass in massSchedules)
                 {
                     mass.Liturgy = liturgy[mass.Id].FirstOrDefault();
                 }
@@ -256,36 +262,46 @@ namespace Journey_of_faith.Infrastructure.repositories
                     Page = page,
                     PageSize = pageSize
                 }, commandType: CommandType.StoredProcedure);
-
-                var massSchedules = await connection.QueryAsync<MassSchedule>(@"
-                    Select * from [jcodepro_journey_of_faith].[MassSchedule]
-                    Where ChurchId in @ChurchIds And Time Like N'%@Time%'
-                ", new
+                var countChurches = await connection.ExecuteScalarAsync<int>(@"
+                    Select Count(*) From [jcodepro_journey_of_faith].[Church]
+                ");
+                var massSchedules = await connection.QueryAsync<MassSchedule>(
+                """
+                SELECT *
+                FROM [jcodepro_journey_of_faith].[MassSchedule]
+                WHERE ChurchId IN @ChurchIds
+                AND (@Time IS NULL OR [Time] LIKE '%' + @Time + '%')
+                """,
+                new
                 {
                     ChurchIds = churches.Select(e => e.Id).ToArray(),
-                    Time = time
+                    Time = string.IsNullOrWhiteSpace(time) ? null : time
                 });
                 var liturgies = (await connection.QueryAsync<Liturgy>
                     (@"
                         Select * from [jcodepro_journey_of_faith].[Liturgy] 
                         Where MassScheduleId in @MassScheduleIds
-                    ", new {MassScheduleIds = massSchedules.Select(e => e.Id).ToList()})).ToLookup(e => e.MassScheduleId, e => e);
-                foreach(var mass in massSchedules)
+                    ", new { MassScheduleIds = massSchedules.Select(e => e.Id).ToList() })).ToLookup(e => e.MassScheduleId, e => e);
+                foreach (var mass in massSchedules)
                 {
                     mass.Liturgy = liturgies[mass.Id].FirstOrDefault();
                 }
-                var groupSchedule = massSchedules.ToLookup(e => e.ChurchId);
+                var groupSchedule = massSchedules.ToLookup(e => e.ChurchId, e=>e);
+                var churchImages = (await connection.QueryAsync<ChurchImage>(@"
+                    Select * From [jcodepro_journey_of_faith].[ChurchImages]
+                    Where ChurchId in @Id
+                ", new { Id = churches.Select(e => e.Id).ToList() })).ToLookup(e => e.ChurchId, e => e);
                 foreach (var church in churches)
                 {
                     church.SetMassSchedule(groupSchedule[church.Id].ToList());
+                    church.SetImages(churchImages[church.Id].ToList());
                 }
-
                 return new PagedResult<Church>
                 {
                     Data = churches.ToList(),
                     Page = page,
                     PageSize = pageSize,
-                    TotalCount = churches.Count(),
+                    TotalCount = countChurches,
                 };
             });
         }
@@ -317,6 +333,10 @@ namespace Journey_of_faith.Infrastructure.repositories
                     SELECT *
                     FROM [{_schemaName.Schema}].[{TableTopicChurch.MassSchedule}]
                     WHERE ChurchId = @Id AND IsDeleted = 0;
+
+                    SELECT *
+                    FROM [{_schemaName.Schema}].[{TableTopicChurch.ChurchImages}]
+                    WHERE ChurchId = @Id;
                 ", new { Id = id });
 
                 var church = await multiple.ReadSingleOrDefaultAsync<Church>();
@@ -326,7 +346,9 @@ namespace Journey_of_faith.Infrastructure.repositories
                 }
 
                 var massSchedules = (await multiple.ReadAsync<MassSchedule>()).ToList();
+                var churchImages = (await multiple.ReadAsync<ChurchImage>()).ToList();
                 church.SetMassSchedule(massSchedules);
+                church.SetImages(churchImages);
                 return church;
             });
         }
@@ -335,7 +357,10 @@ namespace Journey_of_faith.Infrastructure.repositories
         {
             return await ExecuteAsync(async connection =>
             {
-                DataTable massScheduleTable = new DataTable();
+                connection.Open();
+                using var transaction = connection.BeginTransaction();
+
+                var massScheduleTable = new DataTable();
                 massScheduleTable.Columns.Add("Id", typeof(int));
                 massScheduleTable.Columns.Add("Name", typeof(string));
                 massScheduleTable.Columns.Add("Time", typeof(string));
@@ -352,24 +377,50 @@ namespace Journey_of_faith.Infrastructure.repositories
                 }
 
 
-                var parameters = new DynamicParameters();
-                parameters.Add("@Id", church.Id);
-                parameters.Add("@Name", church.Name);
-                parameters.Add("@Email", church.Email);
-                parameters.Add("@Address", church.Address);
-                parameters.Add("@DioceseId", church.DioceseId);
-                parameters.Add("@Longitude", church.GeoLocation.Longitude);
-                parameters.Add("@Latitude", church.GeoLocation.Latitude);
-                parameters.Add("@Boss", church.Boss);
-                parameters.Add("@Description", church.Description);
-                parameters.Add("@LastModifierUserId", userId);
-                parameters.Add("@MassSchedules", massScheduleTable.AsTableValuedParameter("[jcodepro_journey_of_faith].[MassScheduleType]"));
+                try
+                {
+                    var parameters = new DynamicParameters();
+                    parameters.Add("@Id", church.Id);
+                    parameters.Add("@Name", church.Name);
+                    parameters.Add("@Email", church.Email);
+                    parameters.Add("@Address", church.Address);
+                    parameters.Add("@DioceseId", church.DioceseId);
+                    parameters.Add("@Longitude", church.GeoLocation.Longitude);
+                    parameters.Add("@Latitude", church.GeoLocation.Latitude);
+                    parameters.Add("@Boss", church.Boss);
+                    parameters.Add("@Description", church.Description);
+                    parameters.Add("@LastModifierUserId", userId);
+                    parameters.Add("@MassSchedules", massScheduleTable.AsTableValuedParameter("[jcodepro_journey_of_faith].[MassScheduleType]"));
 
-                return await connection.ExecuteAsync(
-                    "[dbo].[spUpdateChurch]",
-                    parameters,
-                    commandType: CommandType.StoredProcedure
-                );
+                    var result = await connection.ExecuteAsync(
+                        "[dbo].[spUpdateChurch]",
+                        parameters,
+                        transaction: transaction,
+                        commandType: CommandType.StoredProcedure);
+
+                    await connection.ExecuteAsync($@"
+                        DELETE FROM [{_schemaName.Schema}].[{TableTopicChurch.ChurchImages}]
+                        WHERE ChurchId = @ChurchId;
+                    ", new { ChurchId = church.Id }, transaction: transaction);
+
+                    if (church.ChurchImages.Count > 0)
+                    {
+                        await connection.ExecuteAsync($@"
+                            INSERT INTO [{_schemaName.Schema}].[{TableTopicChurch.ChurchImages}]
+                                (ChurchId, ImageName, CreatedUser, CreatedAt)
+                            VALUES
+                                (@ChurchId, @ImageName, @CreatedUser, @CreatedAt);
+                        ", church.ChurchImages, transaction: transaction);
+                    }
+
+                    transaction.Commit();
+                    return result;
+                }
+                catch
+                {
+                    transaction.Rollback();
+                    throw;
+                }
             });
         }
         public async Task<bool> DeleteChurchAsync(int Id, bool? force)
@@ -727,11 +778,11 @@ namespace Journey_of_faith.Infrastructure.repositories
                     (@"
                         Select * from [jcodepro_journey_of_faith].[Liturgy] 
                         Where MassScheduleId in @MassScheduleIds
-                    ", new {MassScheduleIds = massSchedules.Select(e => e.Id).ToList()})).ToLookup(e => e.MassScheduleId, e => e);
-                foreach(var mass in massSchedules)
+                    ", new { MassScheduleIds = massSchedules.Select(e => e.Id).ToList() })).ToLookup(e => e.MassScheduleId, e => e);
+                foreach (var mass in massSchedules)
                 {
                     mass.Liturgy = liturgies[mass.Id].FirstOrDefault();
-                } 
+                }
                 var massMap = massSchedules.ToLookup(e => e.ChurchId);
                 foreach (var church in churches)
                 {
@@ -975,11 +1026,11 @@ namespace Journey_of_faith.Infrastructure.repositories
             });
         }
 
-        public async Task<DailyWord?> GetDailyWorldAsync(DateTime dateTime)
+        public async Task<DailyWord?> GetDailyWorldAsync()
         {
             return await QueryAsync<DailyWord>(async connection =>
             {
-                var command = new CommandDefinition("sp_GetDailyWordByDate", new { Date = dateTime }, commandType: CommandType.StoredProcedure);
+                var command = new CommandDefinition("sp_GetDailyWordByDate", commandType: CommandType.StoredProcedure);
                 return
                      await connection.QueryFirstOrDefaultAsync<DailyWord>(command);
             });
@@ -997,6 +1048,7 @@ namespace Journey_of_faith.Infrastructure.repositories
         public const string NotificationPreference = "NotificationPreference";
         public const string ReminderSetting = "ReminderSetting";
         public const string Liturgy = "Liturgy";
+        public const string ChurchImages = "ChurchImages";
     }
 
     public class ChurchViewModel

@@ -1,60 +1,155 @@
-using System.Diagnostics.CodeAnalysis;
-using System.Runtime.CompilerServices;
+using Google.Apis.Auth.OAuth2;
+using Google.Apis.Auth.OAuth2.Flows;
+using Google.Apis.Auth.OAuth2.Responses;
+using Google.Apis.Drive.v3;
+using Google.Apis.Services;
 using Journey_of_faith.Application.common.interfaces;
+using Journey_of_faith.Application.common.untils;
 using Journey_of_faith.Application.exceptions;
 using Journey_of_faith.Domain.entities.location;
 using Journey_of_faith.Domain.entities.masslive;
 using Journey_of_faith.Domain.interfaces;
 using MediatR;
-using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Configuration;
+using System.Collections.Generic;
+using System.IO;
 
 namespace Journey_of_faith.Application.usecases.churchs.commands;
 
-
 public class UpdateChurchHandler : IRequestHandler<UpdateChurchCommand, int>
 {
-    private readonly IChurchRepository churchRepository;
-    private readonly ICurrentUserService currentUserService;
-    private readonly ILogger<UpdateChurchHandler> _logger;
-    public UpdateChurchHandler(IChurchRepository churchRepository, ICurrentUserService currentUserService, ILogger<UpdateChurchHandler> logger)
+    private static readonly string[] Scopes = { DriveService.Scope.Drive };
+    private readonly IChurchRepository _repo;
+    private readonly ICurrentUserService _currentUserService;
+    private readonly IConfiguration configuration;
+
+    public UpdateChurchHandler(
+        IChurchRepository repo,
+        ICurrentUserService currentUserService,
+        IConfiguration configuration)
     {
-        this.churchRepository = churchRepository;
-        this.currentUserService = currentUserService;
-        this._logger = logger;
+        _repo = repo;
+        _currentUserService = currentUserService;
+        this.configuration = configuration;
     }
 
-
-    public async Task<int> Handle(UpdateChurchCommand command, CancellationToken cancellationToken)
+    public async Task<int> Handle(UpdateChurchCommand command, CancellationToken token)
     {
+        if (!Guid.TryParse(_currentUserService.UserId, out var userId))
+        {
+            throw new UnauthorizationException("Người dùng không hợp lệ");
+        }
+        if (!await _repo.GetDioceseExistsAsync(command.DioceseId))
+        {
+            throw new NotFoundException("Không có giáo phận mà nhà thờ đăng ký.");
+        }
+
+        var settings = configuration.GetSection("GoogleDrive");
+        string Required(string key) =>
+            !string.IsNullOrWhiteSpace(settings[key])
+                ? settings[key]!.Trim()
+                : throw new InvalidOperationException($"Thiếu cấu hình GoogleDrive:{key}.");
+
+        var parentFolderId = Required("ParentFolderId");
+        using var flow = new GoogleAuthorizationCodeFlow(
+            new GoogleAuthorizationCodeFlow.Initializer
+            {
+                ClientSecrets = new ClientSecrets
+                {
+                    ClientId = Required("ClientId"),
+                    ClientSecret = Required("ClientSecret")
+                },
+                Scopes = Scopes
+            });
+        var credential = new UserCredential(flow, "church-drive-owner",
+            new TokenResponse { RefreshToken = Required("RefreshToken") });
+        using var driveService = new DriveService(new BaseClientService.Initializer
+        {
+            HttpClientInitializer = credential,
+            ApplicationName = "JourneyOfFaith"
+        });
+
+        string googleFolderId;
         try
         {
-            if (!Guid.TryParse(currentUserService.UserId, out var userId))
+            var churchName = command.Name ?? string.Empty;
+            var folderMetadata = new Google.Apis.Drive.v3.Data.File
             {
-                throw new UnauthorizationException("Người dùng không hợp lệ");
-            }
-            foreach(var mas in command.MassSchedules)
-            {
-                _logger.LogError("Id: {0}, name: {1}, time: {2}", mas.Id, mas.Name, mas.Time);
-            }
-            var listMassSche = command.MassSchedules.Select(e => new MassSchedule
-            {
-                Id = e.Id  ?? 0,
-                Name = e?.Name ?? string.Empty,
-                Time = e?.Time ?? string.Empty,
-                MassTypeId = 1
-            }).ToList();
+                Name = $"Church_{churchName.RemoveVietnameseSigns().Replace(" ", "_")}_{Guid.NewGuid().ToString()[..6]}",
+                MimeType = "application/vnd.google-apps.folder",
+                Parents = new List<string> { parentFolderId }
+            };
 
-            _logger.LogError("data update: {0}", command);
-            _logger.LogWarning("MassSchedule: {0}", listMassSche);
-            var church = new Church(command.Id, command.Name, command.Email, command.Address, command.DioceseId, command.Boss, command.Description, userId, listMassSche);
-            church.SetLocation(command?.Latitude ?? 0, command?.Longitude ?? 0);
-
-            return await churchRepository.UpdateAsync(church, userId);
-        } catch (Exception ex)
-        {
-            Console.WriteLine(ex.ToString());
-            _logger.LogError("error log: {0}", ex.ToString());
-            return 0;
+            var folderRequest = driveService.Files.Create(folderMetadata);
+            folderRequest.Fields = "id";
+            var folder = await folderRequest.ExecuteAsync(token);
+            googleFolderId = folder.Id;
         }
+        catch (Exception ex)
+        {
+            throw new Exception($"Tạo thư mục trên Google Drive thất bại: {ex.Message}", ex);
+        }
+
+        var uploadedImageIds = new List<string>();
+        var uploadFiles = command.Files ?? [];
+
+        foreach (var file in uploadFiles)
+        {
+            var fileMetadata = new Google.Apis.Drive.v3.Data.File
+            {
+                Name = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}",
+                MimeType = file.ContentType,
+                Parents = new List<string> { googleFolderId }
+            };
+
+            using var fileStream = file.OpenReadStream();
+            var uploadRequest = driveService.Files.Create(fileMetadata, fileStream, file.ContentType);
+            uploadRequest.Fields = "id";
+
+            var uploadProcess = await uploadRequest.UploadAsync(token);
+            token.ThrowIfCancellationRequested();
+            if (uploadProcess.Status != Google.Apis.Upload.UploadStatus.Completed ||
+                string.IsNullOrWhiteSpace(uploadRequest.ResponseBody?.Id))
+            {
+                throw new InvalidOperationException(
+                    $"Tải ảnh {file.FileName} lên Drive thất bại.", uploadProcess.Exception);
+            }
+
+            uploadedImageIds.Add(uploadRequest.ResponseBody.Id);
+        }
+
+        var massSchedules = command.MassSchedules
+            .Select(schedule => new MassSchedule
+            {
+                Id = schedule.Id ?? 0,
+                Name = schedule.Name ?? string.Empty,
+                Time = schedule.Time ?? string.Empty,
+                MassTypeId = 1
+            })
+            .ToList();
+
+        var church = new Church(
+            command.Id,
+            command.Name ?? string.Empty,
+            command.Email ?? string.Empty,
+            command.Address ?? string.Empty,
+            command.DioceseId,
+            command.Boss ?? string.Empty,
+            command.Description ?? string.Empty,
+            userId,
+            massSchedules);
+
+        church.SetLocation(command.Latitude ?? 0, command.Longitude ?? 0);
+        church.SetImages(uploadedImageIds
+            .Select(driveId => new ChurchImage
+            {
+                ChurchId = command.Id,
+                ImageName = driveId,
+                CreatedUser = userId,
+                CreatedAt = DateTime.UtcNow
+            })
+            .ToList());
+
+        return await _repo.UpdateAsync(church, userId);
     }
 }
