@@ -2,9 +2,7 @@
 using Journey_of_faith.Application.common.interfaces;
 using Journey_of_faith.Domain.entities.masslive;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using Microsoft.AspNetCore.Http;
 
 namespace Journey_of_faith.Application.usecases.churchs.commands
 {
@@ -21,6 +19,8 @@ namespace Journey_of_faith.Application.usecases.churchs.commands
         public Guid CreatorUser { get; set; }
         public Guid LastModifierUserId { get; set; }
         public List<MassSchedule>? MassSchedules {get; set;}
+        public List<string> ChurchImages { get; set; } = [];
+        public List<IFormFile>? Files { get; set; }
         public string? Description {get; set;}
 
         public string[] CacheKeys => ["churches-name"];

@@ -16,7 +16,7 @@ namespace Journey_of_faith.Domain.entities.location
         public string? Boss {get; private set;}
         public string? Description {get; private set;}
         public GeoLocation GeoLocation { get; private set; }
-
+        private List<ChurchImage> churchImages = new List<ChurchImage>();
         private List<MassSchedule> _massSchedules = new();
         private List<LiveStream> _liveStreams = new();
         private readonly List<User> _users = new();
@@ -26,12 +26,12 @@ namespace Journey_of_faith.Domain.entities.location
         public IReadOnlyCollection<LiveStream> LiveStreams => _liveStreams.AsReadOnly();
         public IReadOnlyCollection<User> Users => _users.AsReadOnly();
         public IReadOnlyCollection<UserChurch> UserChurches => _userChurches.AsReadOnly();
+        public IReadOnlyCollection<ChurchImage> ChurchImages => churchImages.AsReadOnly();
 
         private Church() { }
         public Church(string name, string thumbnail, 
             string website, string address, int discoceId, float latitude, 
-            float longtitude, Guid Userid, Guid modifier, string boss, string description, 
-            List<MassSchedule>? massSchedules
+            float longtitude, Guid Userid, Guid modifier, string boss, string description
             )
         {
             if(string.IsNullOrEmpty(name))
@@ -59,7 +59,6 @@ namespace Journey_of_faith.Domain.entities.location
             LastModifierUserId = modifier;
             Boss = boss;
             Description = description;
-            _massSchedules = massSchedules;
         }
         public Church(int id, string name, string email, string address, int discoceId, string boss, string description, Guid lastModifier, List<MassSchedule> massSchedules)
         {
@@ -109,10 +108,15 @@ namespace Journey_of_faith.Domain.entities.location
             _users.Add(user);
         }
 
+        public void SetImages(List<ChurchImage> images)
+        {
+            churchImages = images;
+        }
+
 
         public void SetMassSchedule(List<MassSchedule> massSchedules)
         {
-            _massSchedules.AddRange(massSchedules);
+            _massSchedules = massSchedules;
         }
 
         public void AddMassSchedule(MassSchedule ms) => _massSchedules.Add(ms);

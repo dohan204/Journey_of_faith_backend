@@ -41,7 +41,6 @@ namespace Journey_of_faith.Api.Controllers
         }
 
         [HttpGet]
-        [HasPermission(Permissions.Quizes.VIEW)]
         [ProducesResponseType(typeof(ApiResponse<IEnumerable<QuizView>>), StatusCodes.Status200OK)]
         [MapToApiVersion(1)]
         public async Task<IActionResult> GetAll()
@@ -53,9 +52,7 @@ namespace Journey_of_faith.Api.Controllers
                 Data = quizzes
             });
         }
-
         [HttpGet("{id}/details")]
-        [HasPermission(Permissions.Quizes.VIEW)]
         [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
         [MapToApiVersion(1)]
         public async Task<IActionResult> GetDetails(int id)
@@ -69,14 +66,12 @@ namespace Journey_of_faith.Api.Controllers
                     Data = details
                 });
             }
-
             return Ok(new ApiResponse<QuizView>
             {
                 Message = "Lấy dữ liệu thành công",
                 Data = details
             });
         }
-
         [HttpPost("submit")]
         [HasPermission(Permissions.Quizes.SUBMIT)]
         [ProducesResponseType(statusCode: StatusCodes.Status201Created)]
@@ -113,7 +108,6 @@ namespace Journey_of_faith.Api.Controllers
         }
 
         [HttpGet("topics")]
-        [HasPermission(Permissions.Quizes.VIEW)]
         [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
         [MapToApiVersion(1)]
         public async Task<IActionResult> GetTopics()

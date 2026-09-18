@@ -1,4 +1,5 @@
 ﻿using Journey_of_faith.Infrastructure.persistence.entities.faith_notifications;
+using Journey_of_faith.Infrastructure.persistence.entities.location;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System;
@@ -187,6 +188,19 @@ namespace Journey_of_faith.Infrastructure.persistence.configurations
                 .WithMany(u => u.ReminderSettings)
                 .HasForeignKey(rs => rs.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+        }
+    }
+
+    public class ChurchImageConfiguration : IEntityTypeConfiguration<ChurchImage>
+    {
+        public void Configure(EntityTypeBuilder<ChurchImage> builder)
+        {
+            builder.ToTable("ChurchImages");
+            builder.HasKey(e => e.Id);
+            builder.HasOne(e => e.Church)
+                .WithMany(e => e.ChurchImages)
+                .HasForeignKey(e => e.ChurchId)
+                .OnDelete(deleteBehavior: DeleteBehavior.Cascade);
         }
     }
 
