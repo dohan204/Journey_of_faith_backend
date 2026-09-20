@@ -11,5 +11,6 @@ namespace Journey_of_faith.Domain.entities.notifications
         public int LevelId { get; set; }
         public string? Thumbnail { get; set; }
         public string? Address { get; set; }
+        public SchoolLevel Level { get; set; } = null!;
     }
 }

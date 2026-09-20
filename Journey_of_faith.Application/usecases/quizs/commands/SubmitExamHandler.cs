@@ -14,10 +14,12 @@ namespace Journey_of_faith.Application.usecases.quizs.commands
     public class SubmitExamHandler : IRequestHandler<SubmitExamCommand, SubmitResult>
     {
         private readonly IExamRepository _repo;
+        private readonly IExamQueries _queries;
         private readonly ICurrentUserService _currentUser;
-        public SubmitExamHandler(IExamRepository repo, ICurrentUserService currentUserService)
+        public SubmitExamHandler(IExamRepository repo, IExamQueries queries, ICurrentUserService currentUserService)
         {
             _repo = repo;
+            _queries = queries;
             _currentUser = currentUserService;
         }
 
@@ -28,7 +30,7 @@ namespace Journey_of_faith.Application.usecases.quizs.commands
             {
                 throw new UnauthorizationException("Người dùng không hợp lệ, không thể thực hiện chấm bài");
             }
-            var quiz = await _repo.GetDetailsQuiz(command.QuizId);
+            var quiz = await _queries.GetQuizDetailsAsync(command.QuizId, token);
 
             if(quiz is null)
             {
@@ -41,7 +43,7 @@ namespace Journey_of_faith.Application.usecases.quizs.commands
             {
                 if(command.QuestionAnswer.TryGetValue(quesiton.Id, out var answer))
                 {
-                    var dataCorrect = quesiton.Ansewrs.FirstOrDefault(e => e.IsCorrect);
+                    var dataCorrect = quesiton.Answers.FirstOrDefault(e => e.IsCorrect);
 
                     if(dataCorrect is not null && answer == dataCorrect.Id)
                     {
@@ -63,11 +65,11 @@ namespace Journey_of_faith.Application.usecases.quizs.commands
             {
                 if(command.QuestionAnswer.TryGetValue(quesiton.Id, out var answer))
                 {
-                    var correctAnswr = quesiton.Ansewrs.FirstOrDefault(e => e.IsCorrect);
+                    var correctAnswr = quesiton.Answers.FirstOrDefault(e => e.IsCorrect);
 
                     bool userAnswer = correctAnswr is not null && correctAnswr.Id == answer;
 
-                    quizAttempt.AddAttemptAnswer((int)quizAttempt.Id, quesiton.Id, answer, userAnswer);
+                    quizAttempt.AddAttemptAnswer(quizAttempt.Id, quesiton.Id, answer, userAnswer);
                 }
             }
 

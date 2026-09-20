@@ -7,4 +7,5 @@ public class ChurchImage
     public string ImageName {get; set;}
     public Guid CreatedUser {get; set;}
     public DateTime CreatedAt {get; set;}
+    public Church Church { get; set; } = null!;
 }

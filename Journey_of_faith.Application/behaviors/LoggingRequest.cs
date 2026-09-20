@@ -1,23 +1,59 @@
-﻿using MediatR;
+using System.Diagnostics;
+using MediatR;
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
 
-namespace Journey_of_faith.Application.behaviors
+namespace Journey_of_faith.Application.behaviors;
+
+public class LoggingRequestBehavior<TRequest, TResponse>(
+    ILogger<LoggingRequestBehavior<TRequest, TResponse>> logger)
+    : IPipelineBehavior<TRequest, TResponse>
+    where TRequest : class
 {
-    public class LoggingRequestBehavior<TRequest, TResponse> (ILogger<LoggingRequestBehavior<TRequest, TResponse>> _logger)
-        : IPipelineBehavior<TRequest, TResponse> where TRequest: class
+    public async Task<TResponse> Handle(
+        TRequest request,
+        RequestHandlerDelegate<TResponse> next,
+        CancellationToken token)
     {
-        public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken token)
+        var requestName = typeof(TRequest).Name;
+        var requestId = Guid.NewGuid().ToString("N");
+        var stopwatch = Stopwatch.StartNew();
+
+        using var scope = logger.BeginScope(new Dictionary<string, object>
         {
-            var requestId = Guid.NewGuid();
+            ["RequestId"] = requestId,
+            ["RequestName"] = requestName
+        });
 
-            var requestJson = JsonSerializer.Serialize(request);
-            _logger.LogInformation("Start into request mediatR: {0}, id: {id}", requestId, requestJson);
+        logger.LogInformation("Handling application request {RequestName}", requestName);
+
+        try
+        {
             var response = await next();
-
-            var responseJson = JsonSerializer.Serialize(response);
-            _logger.LogInformation("Response for {Correlation}: {Response}", requestId, responseJson);
+            stopwatch.Stop();
+            logger.LogInformation(
+                "Handled application request {RequestName} in {ElapsedMilliseconds} ms",
+                requestName,
+                stopwatch.ElapsedMilliseconds);
             return response;
+        }
+        catch (OperationCanceledException) when (token.IsCancellationRequested)
+        {
+            stopwatch.Stop();
+            logger.LogWarning(
+                "Application request {RequestName} was cancelled after {ElapsedMilliseconds} ms",
+                requestName,
+                stopwatch.ElapsedMilliseconds);
+            throw;
+        }
+        catch (Exception exception)
+        {
+            stopwatch.Stop();
+            logger.LogError(
+                exception,
+                "Application request {RequestName} failed after {ElapsedMilliseconds} ms",
+                requestName,
+                stopwatch.ElapsedMilliseconds);
+            throw;
         }
     }
 }

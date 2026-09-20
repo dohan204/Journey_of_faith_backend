@@ -16,7 +16,7 @@ namespace Journey_of_faith.Domain.entities.social
         private readonly List<GroupMember> _groupMembers = new();
         private readonly List<Conversation> _conversations = new();
 
-        public IReadOnlyCollection<GroupMember> GroupMembers => _groupMembers.AsReadOnly();
+        public IReadOnlyCollection<GroupMember> Members => _groupMembers.AsReadOnly();
         public IReadOnlyCollection<Conversation> Conversations => _conversations.AsReadOnly();
     }
 }

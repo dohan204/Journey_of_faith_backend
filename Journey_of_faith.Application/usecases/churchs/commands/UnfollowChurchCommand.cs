@@ -1,6 +1,7 @@
 using FluentValidation;
 using Journey_of_faith.Application.common.interfaces;
 using Journey_of_faith.Application.exceptions;
+using Journey_of_faith.Application.usecases.churchs;
 using Journey_of_faith.Domain.interfaces;
 using MediatR;
 
@@ -25,11 +26,19 @@ namespace Journey_of_faith.Application.usecases.churchs.commands
     {
         private readonly IChurchRepository _churchRepository;
         private readonly ICurrentUserService _currentUserService;
+        private readonly IChurchQueries _churchQueries;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public UnfollowChurchHandler(IChurchRepository churchRepository, ICurrentUserService currentUserService)
+        public UnfollowChurchHandler(
+            IChurchRepository churchRepository,
+            ICurrentUserService currentUserService,
+            IChurchQueries churchQueries,
+            IUnitOfWork unitOfWork)
         {
             _churchRepository = churchRepository;
             _currentUserService = currentUserService;
+            _churchQueries = churchQueries;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<bool> Handle(UnfollowChurchCommand request, CancellationToken cancellationToken)
@@ -39,17 +48,23 @@ namespace Journey_of_faith.Application.usecases.churchs.commands
                 throw new UnauthorizationException("Không xác định được người dùng hiện tại.");
             }
 
-            if (!await _churchRepository.ChurchExistsAsync(request.ChurchId))
+            if (!await _churchQueries.ChurchExistsAsync(request.ChurchId, cancellationToken))
             {
                 throw new NotFoundException("Không tìm thấy nhà thờ.");
             }
 
-            if (!await _churchRepository.IsFollowingChurchAsync(userId, request.ChurchId))
+            if (!await _churchQueries.IsFollowingChurchAsync(userId, request.ChurchId, cancellationToken))
             {
                 throw new NotFoundException("Nhà thờ chưa có trong danh sách theo dõi.");
             }
 
-            return await _churchRepository.UnfollowChurchAsync(userId, request.ChurchId);
+            if (!await _churchRepository.UnfollowChurchAsync(userId, request.ChurchId, cancellationToken))
+            {
+                return false;
+            }
+
+            await _unitOfWork.SaveChangeAsync(cancellationToken);
+            return true;
         }
     }
 }

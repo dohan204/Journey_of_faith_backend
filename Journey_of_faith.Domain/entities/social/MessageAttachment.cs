@@ -12,5 +12,6 @@ namespace Journey_of_faith.Domain.entities.social
         public string? FileName { get; set; }
         public long? FileSize { get; set; }
         public string? FileType { get; set; }
+        public Message Message { get; set; } = null!;
     }
 }

@@ -1,22 +1,22 @@
-using Journey_of_faith.Domain.interfaces;
+using Journey_of_faith.Application.common.dtos.church;
 using MediatR;
 
 namespace Journey_of_faith.Application.usecases.churchs.queries;
 
 
-public class GetMassScheduleTodayQuery : IRequest<IReadOnlyList<MassScheduleTodayView>> {}
+public class GetMassScheduleTodayQuery : IRequest<IReadOnlyList<MassScheduleTodayDto>> {}
 
 
-public class GetMassScheduleTodayHandler : IRequestHandler<GetMassScheduleTodayQuery, IReadOnlyList<MassScheduleTodayView>>
+public class GetMassScheduleTodayHandler : IRequestHandler<GetMassScheduleTodayQuery, IReadOnlyList<MassScheduleTodayDto>>
 {
-    private readonly IChurchRepository churchRepository;
-    public GetMassScheduleTodayHandler(IChurchRepository churchRepository)
+    private readonly IChurchQueries churchQueries;
+    public GetMassScheduleTodayHandler(IChurchQueries churchQueries)
     {
-        this.churchRepository = churchRepository;
+        this.churchQueries = churchQueries;
     }
 
-    public async Task<IReadOnlyList<MassScheduleTodayView>> Handle(GetMassScheduleTodayQuery request, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<MassScheduleTodayDto>> Handle(GetMassScheduleTodayQuery request, CancellationToken cancellationToken)
     {
-        return await churchRepository.GetMassScheduleTodayViewsAsync();
+        return await churchQueries.GetMassScheduleTodayViewsAsync(cancellationToken);
     }
 }

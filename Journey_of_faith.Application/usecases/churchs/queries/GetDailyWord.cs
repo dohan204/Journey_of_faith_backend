@@ -1,24 +1,16 @@
+using Journey_of_faith.Application.common.dtos.church;
 using MediatR;
-using Journey_of_faith.Domain.entities.catholic;
-using Journey_of_faith.Domain.interfaces;
+
 namespace Journey_of_faith.Application.usecases.churchs.queries;
 
-public class GetDailyWordCommand : IRequest<DailyWord?>
+public class GetDailyWordCommand : IRequest<DailyWordViewDto?>;
+
+public class GetDailyWordHandler : IRequestHandler<GetDailyWordCommand, DailyWordViewDto?>
 {
-}
+    private readonly IChurchQueries _churchQueries;
 
+    public GetDailyWordHandler(IChurchQueries churchQueries) => _churchQueries = churchQueries;
 
-public class GetDailyWordHandler : IRequestHandler<GetDailyWordCommand, DailyWord?>
-{
-    private readonly IChurchRepository churchRepository;
-    public GetDailyWordHandler(IChurchRepository churchRepository)
-    {
-        this.churchRepository = churchRepository;
-    }
-
-
-    public async Task<DailyWord?> Handle(GetDailyWordCommand command, CancellationToken cancellationToken)
-    {
-        return await churchRepository.GetDailyWorldAsync();
-    }
+    public Task<DailyWordViewDto?> Handle(GetDailyWordCommand request, CancellationToken cancellationToken)
+        => _churchQueries.GetDailyWordAsync(cancellationToken);
 }

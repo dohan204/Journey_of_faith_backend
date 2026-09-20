@@ -3,22 +3,29 @@ using System.Text.RegularExpressions;
 using Journey_of_faith.Application.common.interfaces;
 using Journey_of_faith.Application.exceptions;
 using Journey_of_faith.Application.usecases.notifications;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Quartz;
 
 namespace Journey_of_faith.Infrastructure.scheduling;
 
 public sealed class QuartzNotificationScheduler(
     ISchedulerFactory schedulerFactory,
-    TimeProvider timeProvider) : INotificationScheduler
+    TimeProvider timeProvider,
+    ILogger<QuartzNotificationScheduler> logger) : INotificationScheduler
 {
     private const string Group = "firebase-notifications";
+
+    public QuartzNotificationScheduler(ISchedulerFactory schedulerFactory, TimeProvider timeProvider)
+        : this(schedulerFactory, timeProvider, NullLogger<QuartzNotificationScheduler>.Instance)
+    {
+    }
 
     public async Task<ScheduledNotificationResponse> ScheduleAsync(
         ScheduleNotificationRequest request, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
         ValidatePayload(request);
-        Console.WriteLine("Hello anh em he");
         try
         {
             var now = timeProvider.GetUtcNow();
@@ -67,11 +74,16 @@ public sealed class QuartzNotificationScheduler(
             var scheduler = await schedulerFactory.GetScheduler(cancellationToken);
             var firstRun = await scheduler.ScheduleJob(job, trigger, cancellationToken);
 
+            logger.LogInformation(
+                "Scheduled notification {NotificationId} for {FirstRunUtc}",
+                id,
+                firstRun);
             return ToResponse(id, request, firstRun, TriggerState.Normal.ToString());
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            throw new Exception(ex.Message.ToString());
+            logger.LogError(exception, "Failed to schedule notification");
+            throw;
         }
     }
 

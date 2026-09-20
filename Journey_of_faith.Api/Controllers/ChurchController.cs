@@ -13,7 +13,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using System.Net.Mime;
 using System.IO;
-using Journey_of_faith.Domain.entities; // Đảm bảo đã có using System.IO;
+using Journey_of_faith.Domain.entities;
+using Journey_of_faith.Infrastructure.repositories;
+using Journey_of_faith.Application.common.dtos.church; // Đảm bảo đã có using System.IO;
 
 namespace Journey_of_faith.Api.Controllers
 {
@@ -53,13 +55,13 @@ namespace Journey_of_faith.Api.Controllers
         [Authorize]
         public async Task<IActionResult> CreateMassAndLiturgy([FromBody] CreateMassAndLiturgyCommand command)
         {
-            var result = await _mediator.Send(command);
+            await _mediator.Send(command);
             return StatusCode(
                 StatusCodes.Status201Created,
                 new ApiResponse<bool>
                 {
                     Message = "Tạo lịch thành công",
-                    Data = result
+                    Data = true
                 }
             );
         }
@@ -69,7 +71,7 @@ namespace Journey_of_faith.Api.Controllers
         public async Task<IActionResult> GetMassScheduleToday()
         {
             var result = await _mediator.Send(new GetMassScheduleTodayQuery());
-            return Ok(new ApiResponse<IReadOnlyList<MassScheduleTodayView>>
+            return Ok(new ApiResponse<IReadOnlyList<MassScheduleTodayDto>>
             {
                 Data = result,
                 Message = "Lấy dữ liệu thành công"
@@ -96,7 +98,7 @@ namespace Journey_of_faith.Api.Controllers
         public async Task<IActionResult> GetLiturgyToday()
         {
             var result = await _mediator.Send(new GetLiturgyTodayQuery());
-            return Ok(new ApiResponse<Liturgy?>
+            return Ok(new ApiResponse<LiturgyViewDto?>
             {
                 Data = result,
                 Message = "Lấy bài phụng vụ thành công"
@@ -162,7 +164,7 @@ namespace Journey_of_faith.Api.Controllers
                 await _mediator.Send(new GetDioceseQuery());
 
             return Ok(
-                new ApiResponse<IEnumerable<Diocese>>
+                new ApiResponse<IEnumerable<DioceseViewDto>>
                 {
                     Message = "Lấy dữ liệu thành công.",
                     Data = result
@@ -243,7 +245,7 @@ namespace Journey_of_faith.Api.Controllers
             }
 
             return Ok(
-                new ApiResponse<Church>
+                new ApiResponse<ChurchViewDto>
                 {
                     Message = "Lấy chi tiết nhà thờ thành công.",
                     Data = church
@@ -273,7 +275,7 @@ namespace Journey_of_faith.Api.Controllers
                 }
             );
 
-            return Ok(new ApiResponse<PagedResult<Church>>
+            return Ok(new ApiResponse<PagedResult<ChurchViewDto>>
             {
                 Data = result,
                 Message = "Lấy dữ liệu thành công"
@@ -316,7 +318,7 @@ namespace Journey_of_faith.Api.Controllers
                     new GetFollowedChurchesQuery());
 
             return Ok(
-                new ApiResponse<IEnumerable<Church>>
+                new ApiResponse<IEnumerable<ChurchViewDto>>
                 {
                     Message = result.Any()
                         ? "Lấy danh sách nhà thờ theo dõi thành công."
@@ -350,7 +352,7 @@ namespace Journey_of_faith.Api.Controllers
         public async Task<IActionResult> GetReminderSetting()
         {
             var result = await _mediator.Send(new GetMassReminderSettingQuery());
-            return Ok(new ApiResponse<ReminderSettingView>
+            return Ok(new ApiResponse<ReminderSettingDto>
             {
                 Message = "Lấy cấu hình nhắc lễ thành công.",
                 Data = result
@@ -370,7 +372,7 @@ namespace Journey_of_faith.Api.Controllers
 
 
             return Ok(
-                new ApiResponse<ReminderSettingView>
+                new ApiResponse<ReminderSettingDto>
                 {
                     Message =
                         "Cập nhật cấu hình nhắc lễ thành công.",
@@ -410,7 +412,7 @@ namespace Journey_of_faith.Api.Controllers
                     Data = null
                 });
             }
-            return Ok(new ApiResponse<DailyWord>
+            return Ok(new ApiResponse<DailyWordViewDto>
             {
                 Message = "Lấy lời Chúa thành công.",
                 Data = daily

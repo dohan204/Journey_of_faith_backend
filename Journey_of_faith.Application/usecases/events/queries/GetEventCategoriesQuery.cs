@@ -1,24 +1,24 @@
-using Journey_of_faith.Domain.interfaces;
+using Journey_of_faith.Application.common.dtos.Events;
 using MediatR;
 
 namespace Journey_of_faith.Application.usecases.events.queries
 {
-    public class GetEventCategoriesQuery : IRequest<IEnumerable<EventCategoryView>>
+    public class GetEventCategoriesQuery : IRequest<IEnumerable<EventCategoryDto>>
     {
     }
 
-    public class GetEventCategoriesHandler : IRequestHandler<GetEventCategoriesQuery, IEnumerable<EventCategoryView>>
+    public class GetEventCategoriesHandler : IRequestHandler<GetEventCategoriesQuery, IEnumerable<EventCategoryDto>>
     {
-        private readonly IEventRepository _eventRepository;
+        private readonly IEventQueries _eventQueries;
 
-        public GetEventCategoriesHandler(IEventRepository eventRepository)
+        public GetEventCategoriesHandler(IEventQueries eventQueries)
         {
-            _eventRepository = eventRepository;
+            _eventQueries = eventQueries;
         }
 
-        public async Task<IEnumerable<EventCategoryView>> Handle(GetEventCategoriesQuery request, CancellationToken cancellationToken)
+        public async Task<IEnumerable<EventCategoryDto>> Handle(GetEventCategoriesQuery request, CancellationToken cancellationToken)
         {
-            return await _eventRepository.GetCategoriesAsync();
+            return await _eventQueries.GetCategoriesAsync(cancellationToken);
         }
     }
 }

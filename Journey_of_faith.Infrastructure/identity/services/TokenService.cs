@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
@@ -8,7 +9,7 @@ using System.Text;
 
 namespace Journey_of_faith.Infrastructure.identity.services
 {
-    public class TokenService(IConfiguration config)
+    public class TokenService(IConfiguration config, ILogger<TokenService> logger)
     {
 
         public string GenerateToken(ApplicationUser user, List<string> roles, List<string> claims)
@@ -52,7 +53,9 @@ namespace Journey_of_faith.Infrastructure.identity.services
             );
 
 
-            return new JwtSecurityTokenHandler().WriteToken(token);
+            var serializedToken = new JwtSecurityTokenHandler().WriteToken(token);
+            logger.LogInformation("Generated access token for user {UserId}", user.Id);
+            return serializedToken;
         }
 
 
@@ -66,6 +69,7 @@ namespace Journey_of_faith.Infrastructure.identity.services
                 UserId = userId
             };
 
+            logger.LogInformation("Generated refresh token for user {UserId}", userId);
             return refreshToken;
         }
     }

@@ -11,9 +11,11 @@ namespace Journey_of_faith.Application.usecases.quizs.commands
     public class CreateTopicHandler : IRequestHandler<CreateTopicCommand, int>
     {
         private readonly IExamRepository examRepository;
-        public CreateTopicHandler(IExamRepository examRepository)
+        private readonly IExamQueries examQueries;
+        public CreateTopicHandler(IExamRepository examRepository, IExamQueries examQueries)
         {
             this.examRepository = examRepository;
+            this.examQueries = examQueries;
         }
 
 
@@ -21,15 +23,15 @@ namespace Journey_of_faith.Application.usecases.quizs.commands
         {
             var topic = new Topic(command.TopicName, command.QuizCount);
 
-            await CheckNameExists(topic.TopicName);
+            await CheckNameExists(topic.TopicName, cancellationToken);
 
             return await examRepository.CreateTopicAsync(topic);
 
         }
 
-        private async Task<bool> CheckNameExists(string name)
+        private async Task<bool> CheckNameExists(string name, CancellationToken cancellationToken)
         {
-            if(await examRepository.ExistsNameAsync(name))
+            if(await examQueries.TopicNameExistsAsync(name, cancellationToken))
             {
                 throw new ConfictException("Tên chủ đề đã tồn tại");
             }

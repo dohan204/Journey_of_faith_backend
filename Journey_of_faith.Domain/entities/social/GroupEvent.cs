@@ -8,8 +8,9 @@ namespace Journey_of_faith.Domain.entities.social
     {
         public long Id { get; set; }
         public long ConversationId { get; set; }
-        public long UserId { get; set; }
+        public Guid UserId { get; set; }
         public int? ActionType { get; set; }
         public DateTime? ActionTime { get; set; }
+        public Conversation Conversation { get; set; } = null!;
     }
 }

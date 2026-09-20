@@ -14,14 +14,16 @@ public class CreateRoleCommand : IRequest<string>
 public class CreateRoleHandler : IRequestHandler<CreateRoleCommand, string>
 {
     private readonly IRoleRepository roleRepository;
-    public CreateRoleHandler(IRoleRepository roleRepository)
+    private readonly IRoleQueries roleQueries;
+    public CreateRoleHandler(IRoleRepository roleRepository, IRoleQueries roleQueries)
     {
         this.roleRepository = roleRepository;
+        this.roleQueries = roleQueries;
     }
 
     public async Task<string> Handle(CreateRoleCommand command, CancellationToken cancellationToken)
     {
-        if(await roleRepository.NameExists(command.Name))
+        if(await roleQueries.NameExistsAsync(command.Name, cancellationToken))
         {
             throw new ConfictException("Tên vai trò đã tồn tại");
         }

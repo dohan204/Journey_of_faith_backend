@@ -1,5 +1,7 @@
-﻿using Journey_of_faith.Infrastructure.identity;
-using Journey_of_faith.Infrastructure.persistence.entities.location;
+﻿using Journey_of_faith.Domain.entities.location;
+using Journey_of_faith.Domain.entities;
+using Journey_of_faith.Domain.entities.notifications;
+using Journey_of_faith.Infrastructure.identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System;
@@ -22,32 +24,22 @@ namespace Journey_of_faith.Infrastructure.persistence.configurations
 
             // FK -> Church (SET NULL on delete)
             builder.HasOne(u => u.Church)
-                .WithMany(c => c.Users)
+                .WithMany()
                 .HasForeignKey(u => u.ChurchId)
                 .OnDelete(DeleteBehavior.SetNull);
 
             // FK -> Province (CASCADE)
             builder.HasOne(u => u.Province)
-                .WithMany(p => p.Users)
+                .WithMany()
                 .HasForeignKey(u => u.ProvinceId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             // FK -> School (CASCADE)
             builder.HasOne(u => u.School)
-                .WithMany(s => s.Users)
+                .WithMany()
                 .HasForeignKey(u => u.SchoolId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Friendship (2 FK về cùng bảng)
-            builder.HasMany(u => u.Friendships)
-                .WithOne(f => f.User)
-                .HasForeignKey(f => f.UserId)
-                .OnDelete(DeleteBehavior.NoAction);
-
-            builder.HasMany(u => u.FriendOf)
-                .WithOne(f => f.Friend)
-                .HasForeignKey(f => f.FriendId)
-                .OnDelete(DeleteBehavior.NoAction);
         }
     }
 
@@ -87,11 +79,20 @@ namespace Journey_of_faith.Infrastructure.persistence.configurations
             builder.HasKey(c => c.Id);
             builder.Property(c => c.Name).HasMaxLength(150).IsRequired();
             builder.Property(c => c.Thumbnail).HasMaxLength(300);
-            builder.Property(c => c.Website).HasMaxLength(500);
+            builder.Property(c => c.Email).HasMaxLength(500);
             builder.Property(c => c.Address).HasMaxLength(255);
             builder.Property(c => c.IsDeleted).HasDefaultValue(false);
             builder.Property(c => c.CreationTime).HasDefaultValueSql("getdate()");
             builder.Property(c => c.LastModificationTime).HasDefaultValueSql("getdate()");
+
+            builder.OwnsOne(c => c.GeoLocation, location =>
+            {
+                location.Property(value => value.Latitude)
+                    .HasColumnName("Latitude");
+                location.Property(value => value.Longitude)
+                    .HasColumnName("Longitude");
+            });
+            builder.Navigation(c => c.GeoLocation).IsRequired();
 
             builder.HasOne(c => c.Diocese)
                 .WithMany(d => d.Churches)
@@ -134,8 +135,8 @@ namespace Journey_of_faith.Infrastructure.persistence.configurations
             builder.ToTable("UserChurch");
             builder.HasKey(uc => new { uc.UserId, uc.ChurchId });
 
-            builder.HasOne(uc => uc.User)
-                .WithMany(u => u.UserChurches)
+            builder.HasOne<ApplicationUser>()
+                .WithMany()
                 .HasForeignKey(uc => uc.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
@@ -152,8 +153,8 @@ namespace Journey_of_faith.Infrastructure.persistence.configurations
         {
             build.HasKey(e => e.Id);
 
-            build.HasOne(e => e.ApplicationUser)
-                .WithMany(e => e.userActives)
+            build.HasOne<ApplicationUser>()
+                .WithMany()
                 .HasForeignKey(e => e.ApplicationUserId);
         }
     }

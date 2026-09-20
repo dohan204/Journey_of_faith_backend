@@ -11,6 +11,7 @@ namespace Journey_of_faith.Domain.entities.quiz
         public string Name { get; private set; } = string.Empty;
         public string Code {get; private set; } = string.Empty;
         public int Score { get; private set; } = 0;
+        public ICollection<Question> Questions { get; set; } = [];
         private QuizLevel() { }
         public QuizLevel(string name, string code, int score)
         {

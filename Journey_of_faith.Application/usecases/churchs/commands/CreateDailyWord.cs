@@ -1,6 +1,7 @@
 using FluentValidation;
 using Journey_of_faith.Domain.entities.catholic;
 using Journey_of_faith.Domain.interfaces;
+using Journey_of_faith.Application.common.interfaces;
 using MediatR;
 
 namespace Journey_of_faith.Application.usecases.churchs.commands;
@@ -32,14 +33,18 @@ public class CreateDailyWordValidator : AbstractValidator<CreateDailyWordCommand
 public class CreateDailyWordHandler : IRequestHandler< CreateDailyWordCommand,bool>
 {
     private readonly IChurchRepository churchRepository;
-    public CreateDailyWordHandler(IChurchRepository churchRepository)
+    private readonly IUnitOfWork unitOfWork;
+    public CreateDailyWordHandler(IChurchRepository churchRepository, IUnitOfWork unitOfWork)
     {
         this.churchRepository = churchRepository;
+        this.unitOfWork = unitOfWork;
     }
 
     public async Task<bool> Handle(CreateDailyWordCommand command, CancellationToken cancellationToken)
     {
         var dailyWord = new DailyWord(command.Date, command.Title, command.Content, command.Gospel);
-        return await churchRepository.CreateDailyWorld(dailyWord);
+        await churchRepository.AddAsync(dailyWord, cancellationToken);
+        await unitOfWork.SaveChangeAsync(cancellationToken);
+        return true;
     }
 }

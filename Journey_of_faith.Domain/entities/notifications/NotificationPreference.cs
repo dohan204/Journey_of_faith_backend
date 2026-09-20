@@ -7,7 +7,7 @@ namespace Journey_of_faith.Domain.entities.notifications
     public class NotificationPreference
     {
         public int Id { get; set; }
-        public long UserId { get; set; }
+        public Guid UserId { get; set; }
         public bool MassReminder { get; set; }
         public bool FeastReminder { get; set; }
         public bool DailyWord { get; set; }

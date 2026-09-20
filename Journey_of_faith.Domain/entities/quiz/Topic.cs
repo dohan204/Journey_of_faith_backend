@@ -8,6 +8,7 @@ namespace Journey_of_faith.Domain.entities.quiz
     {
         public string TopicName { get; set; } = string.Empty;
         public int? QuizCount { get; set; }
+        public ICollection<Quiz> Quizs { get; set; } = [];
 
         public Topic()
         {

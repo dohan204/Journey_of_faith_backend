@@ -8,12 +8,12 @@ namespace Journey_of_faith.Domain.entities.quiz
     public class AttemptAnswer
     {
         public long Id { get; set; }
-        public int AttempId { get; set; }
+        public long AttemptId { get; set; }
         public int QuestionId { get; set; }
         public int AnswerId { get; set; }
         public bool IsCorrect { get; set; }
 
-        public AttemptAnswer(int attemptId, int questionId, int answerId, bool isCorrct)
+        public AttemptAnswer(long attemptId, int questionId, int answerId, bool isCorrect)
         {
             if(attemptId < 0)
             {
@@ -29,13 +29,15 @@ namespace Journey_of_faith.Domain.entities.quiz
             {
                 throw new DomainException("Mã đáp án không hợp lệ");
             }
-            AttempId = attemptId;
+            AttemptId = attemptId;
             QuestionId = questionId;
             AnswerId = answerId;
-            IsCorrect = isCorrct;
+            IsCorrect = isCorrect;
         }
 
-        public static AttemptAnswer Create(int attemptId, int questionId, int answerId, bool isCorrct)
-            => new AttemptAnswer(attemptId, questionId, answerId, isCorrct);
+        public QuizAttempt Attempt { get; set; } = null!;
+
+        public static AttemptAnswer Create(long attemptId, int questionId, int answerId, bool isCorrect)
+            => new AttemptAnswer(attemptId, questionId, answerId, isCorrect);
     }
 }

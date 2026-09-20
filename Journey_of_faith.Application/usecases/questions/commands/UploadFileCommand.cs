@@ -19,9 +19,11 @@ public class UploadFileCommand : IRequest<bool>
 public class UploadFileHandler : IRequestHandler<UploadFileCommand, bool>
 {
     private readonly IQuestionRepository questionRepository;
-    public UploadFileHandler(IQuestionRepository questionRepository)
+    private readonly IQuestionQueries questionQueries;
+    public UploadFileHandler(IQuestionRepository questionRepository, IQuestionQueries questionQueries)
     {
         this.questionRepository = questionRepository;
+        this.questionQueries = questionQueries;
     }
     public async Task<bool> Handle(UploadFileCommand command, CancellationToken cancellationToken)
     {
@@ -138,19 +140,19 @@ public class UploadFileHandler : IRequestHandler<UploadFileCommand, bool>
 
     private async Task<Dictionary<string, int>> GetQuestionCateogries()
     {
-        var categories = await this.questionRepository.GetAllCategoryQuestion();
+        var categories = await this.questionQueries.GetQuestionCategoriesAsync();
         return categories
                     .ToDictionary(e => e.Name, e => e.Id);
     }
     private async Task<Dictionary<string, int>> GetQuestionType()
     {
-        var categories = await this.questionRepository.GetAllTypeQuestion();
+        var categories = await this.questionQueries.GetQuestionTypesAsync();
         return categories
                     .ToDictionary(e => e.Name, e => e.Id);
     }
     private async Task<Dictionary<string, int>> GetQuestionLevel()
     {
-        var categories = await this.questionRepository.GetLevelsAsync();
+        var categories = await this.questionQueries.GetLevelsAsync();
         return categories
                     .ToDictionary(e => e.Name, e => e.Id);
     }

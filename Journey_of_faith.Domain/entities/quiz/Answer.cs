@@ -12,6 +12,7 @@ namespace Journey_of_faith.Domain.entities.quiz
         public bool IsCorrect { get; private set; }
         public string? ImageUrl { get; private set; }
         public string? Explanation { get; private set; }
+        public Question Question { get; set; } = null!;
 
         public Answer() { }
         public Answer(int questionId, string content, bool IsCorrect)

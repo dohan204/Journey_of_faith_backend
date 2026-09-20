@@ -6,6 +6,7 @@ using Journey_of_faith.Api.authorization;
 using Journey_of_faith.Api.dtos;
 using Journey_of_faith.Application.usecases.auth.commands;
 using Journey_of_faith.Application.usecases.auth.queries;
+using Journey_of_faith.Application.common.dtos;
 using Journey_of_faith.Domain.dtos;
 using Journey_of_faith.Domain.entities;
 using MediatR;
@@ -58,7 +59,7 @@ namespace Journey_of_faith.Api.Controllers
         public async Task<IActionResult> GetRoles([FromQuery] int page, [FromQuery] int pageSize, [FromQuery] string? search)
         {
             var roles = await _me.Send(new GetRolesQuery { Page = page, PageSize = pageSize, Search = search });
-            return Ok(new ApiResponse<PagedResult<Role>>
+            return Ok(new ApiResponse<PagedResult<RoleViewDto>>
             {
                 Data = roles,
                 Message = "Lấy dữ liệu thành công"
@@ -106,7 +107,7 @@ namespace Journey_of_faith.Api.Controllers
         public async Task<IActionResult> GetPermission()
         {
             var result = await _me.Send(new GetPermissionsQuery());
-            return Ok(new ApiResponse<List<object>>
+            return Ok(new ApiResponse<IReadOnlyList<RolePermissionDto>>
             {
                 Message = "Lay quyen thanh cong",
                 Data = result

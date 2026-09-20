@@ -25,3 +25,28 @@ public class QuestionView
         // public string Explanation { get; set; } = string.Empty;
     }
 
+public sealed class QuizLevelDto
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Code { get; set; } = string.Empty;
+    public int Score { get; set; }
+}
+
+public sealed class QuestionTypeDto
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Code { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+}
+
+public sealed class QuestionCategoryDto
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Code { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public int CountOfCategory { get; set; }
+}
+

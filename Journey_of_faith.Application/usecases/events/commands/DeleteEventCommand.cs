@@ -23,11 +23,13 @@ namespace Journey_of_faith.Application.usecases.events.commands
     public class DeleteEventHandler : IRequestHandler<DeleteEventCommand, bool>
     {
         private readonly IEventRepository _eventRepository;
+        private readonly IEventQueries _eventQueries;
         private readonly ICurrentUserService _currentUserService;
 
-        public DeleteEventHandler(IEventRepository eventRepository, ICurrentUserService currentUserService)
+        public DeleteEventHandler(IEventRepository eventRepository, IEventQueries eventQueries, ICurrentUserService currentUserService)
         {
             _eventRepository = eventRepository;
+            _eventQueries = eventQueries;
             _currentUserService = currentUserService;
         }
 
@@ -37,7 +39,7 @@ namespace Journey_of_faith.Application.usecases.events.commands
             {
                 throw new UnauthorizationException("Không xác định được người dùng hiện tại.");
             }
-            if (!await _eventRepository.EventExistsAsync(request.Id))
+            if (!await _eventQueries.EventExistsAsync(request.Id, cancellationToken))
             {
                 throw new NotFoundException("Không tìm thấy sự kiện.");
             }

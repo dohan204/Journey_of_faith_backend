@@ -15,6 +15,8 @@ namespace Journey_of_faith.Domain.entities.musics
         public string? Lyric { get; private set; }
         public int? PlayCount { get; private set; }
         public bool? IsActive { get; private set; }
+        public Artist Artist { get; set; } = null!;
+        public Album? Album { get; set; }
 
         private readonly List<ListeningHistory> _listeningHistories = new();
         private readonly List<PlaylistSong> _playlistSongs = new();
@@ -23,7 +25,7 @@ namespace Journey_of_faith.Domain.entities.musics
 
         public IReadOnlyCollection<ListeningHistory> ListeningHistories => _listeningHistories.AsReadOnly();
         public IReadOnlyCollection<PlaylistSong> PlaylistSongs => _playlistSongs.AsReadOnly();
-        public IReadOnlyCollection<UserFavoriteSong> UserFavoriteSongs => _userFavoriteSongs.AsReadOnly();
+        public IReadOnlyCollection<UserFavoriteSong> FavoritedBy => _userFavoriteSongs.AsReadOnly();
         public IReadOnlyCollection<SongCategoryMapping> CategoryMappings => _categoryMappings.AsReadOnly();
 
         public Song() { }

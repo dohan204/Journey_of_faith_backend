@@ -9,19 +9,21 @@ namespace Journey_of_faith.Application.usecases.songs.commands;
 public class CreateSongHandler : IRequestHandler<CreateSongCommand, int>
 {
     private readonly ISongRepository songRepository;
-    public CreateSongHandler(ISongRepository songRepository)
+    private readonly ISongQueries songQueries;
+    public CreateSongHandler(ISongRepository songRepository, ISongQueries songQueries)
     {
         this.songRepository = songRepository;
+        this.songQueries = songQueries;
     }
 
     public async Task<int> Handle(CreateSongCommand command, CancellationToken cancellationToken)
     {
-        if(!await songRepository.ExitsArtistAsync(command.ArtistId))
+        if(!await songQueries.ArtistExistsAsync(command.ArtistId, cancellationToken))
         {
            throw new NotFoundException("Nghệ sĩ không tồn tại"); 
         }
 
-        if(!await songRepository.ExitsAlbumAsync(command.AlbumId))
+        if(!await songQueries.AlbumExistsAsync(command.AlbumId, cancellationToken))
         {
             throw new NotFoundException("Album không tồn tại.");
         }

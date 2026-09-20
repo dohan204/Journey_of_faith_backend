@@ -1,25 +1,16 @@
-using Journey_of_faith.Domain.entities.location;
-using Journey_of_faith.Domain.interfaces;
+using Journey_of_faith.Application.common.dtos.church;
 using MediatR;
 
 namespace Journey_of_faith.Application.usecases.churchs.queries;
 
+public class GetLiturgyTodayQuery : IRequest<LiturgyViewDto?>;
 
-public class GetLiturgyTodayQuery : IRequest<Liturgy?>
+public class GetLiturgyTodayHandler : IRequestHandler<GetLiturgyTodayQuery, LiturgyViewDto?>
 {
-    
-}
+    private readonly IChurchQueries _churchQueries;
 
-public class GetLiturgyTodayHandler : IRequestHandler<GetLiturgyTodayQuery, Liturgy?>
-{
-    private readonly IChurchRepository churchRepository;
-    public GetLiturgyTodayHandler(IChurchRepository repository)
-    {
-        this.churchRepository = repository;
-    }
+    public GetLiturgyTodayHandler(IChurchQueries churchQueries) => _churchQueries = churchQueries;
 
-    public async Task<Liturgy?> Handle(GetLiturgyTodayQuery query, CancellationToken cancellationToken)
-    {
-        return await churchRepository.GetLiturgyTodayAsync();
-    }
+    public Task<LiturgyViewDto?> Handle(GetLiturgyTodayQuery request, CancellationToken cancellationToken)
+        => _churchQueries.GetLiturgyTodayAsync(cancellationToken);
 }

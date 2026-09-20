@@ -10,6 +10,8 @@ namespace Journey_of_faith.Domain.entities.quiz
         public int QuizId { get; set; }
         public int QuestionId { get; set; }
         public int? OrderIndex { get; set; }
+        public Quiz Quiz { get; set; } = null!;
+        public Question Question { get; set; } = null!;
 
         private QuizQuestion() { }
         public QuizQuestion(int quizId, int questionId, int? orderIndex)

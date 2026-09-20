@@ -54,11 +54,13 @@ namespace Journey_of_faith.Application.usecases.events.commands
     public class CreateEventHandler : IRequestHandler<CreateEventCommand, int>
     {
         private readonly IEventRepository _eventRepository;
+        private readonly IEventQueries _eventQueries;
         private readonly ICurrentUserService _currentUserService;
 
-        public CreateEventHandler(IEventRepository eventRepository, ICurrentUserService currentUserService)
+        public CreateEventHandler(IEventRepository eventRepository, IEventQueries eventQueries, ICurrentUserService currentUserService)
         {
             _eventRepository = eventRepository;
+            _eventQueries = eventQueries;
             _currentUserService = currentUserService;
         }
 
@@ -71,7 +73,7 @@ namespace Journey_of_faith.Application.usecases.events.commands
 
             foreach (var categoryId in request.CategoryIds.Distinct())
             {
-                if (!await _eventRepository.CategoryExistsAsync(categoryId))
+                if (!await _eventQueries.CategoryExistsAsync(categoryId, cancellationToken))
                 {
                     throw new NotFoundException($"Không tìm thấy danh mục sự kiện với Id = {categoryId}.");
                 }
