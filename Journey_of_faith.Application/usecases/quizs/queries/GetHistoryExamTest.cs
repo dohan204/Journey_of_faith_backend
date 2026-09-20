@@ -1,31 +1,27 @@
+using Journey_of_faith.Application.common.dtos.quiz;
 using Journey_of_faith.Application.common.interfaces;
 using Journey_of_faith.Application.exceptions;
-using Journey_of_faith.Domain.interfaces;
 using MediatR;
 
 namespace Journey_of_faith.Application.usecases.quizs.queries;
 
-public class GetHistoryExamTestQuery : IRequest<IReadOnlyList<HistoryExamTest>>
-{
-}
+public class GetHistoryExamTestQuery : IRequest<IReadOnlyList<ExamHistoryDto>>;
 
-public class GetHistoryExamTestHandler : IRequestHandler<GetHistoryExamTestQuery, IReadOnlyList<HistoryExamTest>>
+public class GetHistoryExamTestHandler : IRequestHandler<GetHistoryExamTestQuery, IReadOnlyList<ExamHistoryDto>>
 {
-    private readonly ICurrentUserService currentUserService;
-    private readonly IExamRepository examRepository;
-    public GetHistoryExamTestHandler(IExamRepository examRepository, 
-        ICurrentUserService currentUserService)
+    private readonly ICurrentUserService _currentUserService;
+    private readonly IExamQueries _queries;
+
+    public GetHistoryExamTestHandler(IExamQueries queries, ICurrentUserService currentUserService)
     {
-        this.examRepository = examRepository;
-        this.currentUserService = currentUserService;
+        _queries = queries;
+        _currentUserService = currentUserService;
     }
 
-    public async Task<IReadOnlyList<HistoryExamTest>> Handle(GetHistoryExamTestQuery query, CancellationToken cancellationToken)
+    public Task<IReadOnlyList<ExamHistoryDto>> Handle(GetHistoryExamTestQuery request, CancellationToken cancellationToken)
     {
-        if(!Guid.TryParse(currentUserService.UserId, out Guid userId))
-        {
-            throw new UnauthorizationException("Thoong tin tai khoan khong hojp le");
-        }
-        return await examRepository.GetHistoryExamTestsAsync(userId);
+        if (!Guid.TryParse(_currentUserService.UserId, out var userId))
+            throw new UnauthorizationException("Thong tin tai khoan khong hop le");
+        return _queries.GetHistoryAsync(userId, cancellationToken);
     }
 }

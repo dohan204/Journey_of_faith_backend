@@ -13,11 +13,11 @@ namespace Journey_of_faith.Domain.entities.quiz
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
         public int Score { get; set; }
+        public Quiz Quiz { get; set; } = null!;
 
         private readonly List<AttemptAnswer> _attemptAnswers = new();
 
         public IReadOnlyCollection<AttemptAnswer> AttemptAnswers => _attemptAnswers.AsReadOnly();
-        private QuizAttempt() { }
         public QuizAttempt(int quizId, Guid userId, DateTime startTime, DateTime endTime, int score)
         {
             if(quizId < 0)
@@ -39,7 +39,7 @@ namespace Journey_of_faith.Domain.entities.quiz
             => new QuizAttempt(quizId, userId, startTime, endTime, score);
 
 
-        public void AddAttemptAnswer(int attemptId, int questionid, int answerid,  bool isCorrect)
+        public void AddAttemptAnswer(long attemptId, int questionid, int answerid, bool isCorrect)
         {
             var attemptAnswers = AttemptAnswer.Create(attemptId, questionid, answerid, isCorrect);
             _attemptAnswers.Add(attemptAnswers);

@@ -42,25 +42,18 @@ namespace Journey_of_faith.Application.usecases.auth.commands
         {
             // 1. Xác thực token từ Google
             var clientId = _configuration["Authentication:Google:ClientId"];
-            Console.WriteLine($"🟢 ClientId from appsettings: {clientId}");
-
             var payload = await VerifyGoogleToken(request.IdToken, clientId);
 
             if (payload == null)
             {
-                Console.WriteLine("❌ Token verification failed");
                 throw new UnauthorizedAccessException("Invalid Google token");
             }
-
-            Console.WriteLine($"✅ Token verified! Email: {payload.Email}, Name: {payload.Name}");
 
             // 2. Tìm user theo email
             var existingUser = await _userRepo.GetByEmailAsync(payload.Email);
 
             if (existingUser == null)
             {
-                Console.WriteLine($"🟢 User not found, creating new user: {payload.Email}");
-
                 var user = new User(
                     payload.Name,
                     payload.Email,
@@ -86,17 +79,12 @@ namespace Journey_of_faith.Application.usecases.auth.commands
                 user.PhoneNumberConfirmed = false;
 
                 await _userRepo.CreateAsync(user);
-                Console.WriteLine($"✅ User created: {user.Id}");
-
                 existingUser = user;
             }
             else
             {
-                Console.WriteLine($"🟢 User found: {existingUser.Email}, IsDeleted={existingUser.IsDeleted}");
-
                 if (existingUser.IsDeleted == true)
                 {
-                    Console.WriteLine("🟢 Reactivating deleted user");
                     existingUser.IsDeleted = false;
                     existingUser.DeletionTime = null;
                     await _userRepo.UpdateAsync(existingUser);
@@ -106,8 +94,6 @@ namespace Journey_of_faith.Application.usecases.auth.commands
             // 3. Tạo JWT token
             var token = GenerateJwtToken(existingUser);
             var refreshToken = GenerateRefreshToken();
-
-            Console.WriteLine($"✅ Login successful for: {existingUser.Email}");
 
             return new LoginResponse
             {
@@ -125,22 +111,16 @@ namespace Journey_of_faith.Application.usecases.auth.commands
         {
             try
             {
-                Console.WriteLine($"🟢 Verifying token with ClientId: {clientId}");
-                Console.WriteLine($"🟢 Token preview: {idToken?.Substring(0, Math.Min(80, idToken?.Length ?? 0))}...");
-
                 var settings = new GoogleJsonWebSignature.ValidationSettings
                 {
                     Audience = new[] { clientId }
                 };
 
                 var payload = await GoogleJsonWebSignature.ValidateAsync(idToken, settings);
-                Console.WriteLine($"✅ Token valid! Email: {payload.Email}");
                 return payload;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Console.WriteLine($"❌ Token verification error: {ex.Message}");
-                Console.WriteLine($"❌ Stack: {ex.StackTrace}");
                 return null;
             }
         }

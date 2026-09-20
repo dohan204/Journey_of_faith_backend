@@ -5,6 +5,7 @@ using Google.Apis.Auth.OAuth2.Responses;
 using Google.Apis.Services;
 using Journey_of_faith.Application.common.interfaces;
 using Journey_of_faith.Application.common.untils;
+using Journey_of_faith.Application.usecases.churchs;
 using Journey_of_faith.Application.exceptions;
 using Journey_of_faith.Domain.entities.location;
 using Journey_of_faith.Domain.interfaces;
@@ -21,15 +22,21 @@ namespace Journey_of_faith.Application.usecases.churchs.commands
         private readonly IChurchRepository _repo;
         private readonly ICurrentUserService _currentUserService;
         private readonly IConfiguration configuration;
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly IChurchQueries _churchQueries;
 
         public CreateChurchHandler(
             IChurchRepository repo,
             ICurrentUserService currentUserService,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            IUnitOfWork unitOfWork,
+            IChurchQueries churchQueries)
         {
             _repo = repo;
             _currentUserService = currentUserService;
             this.configuration = configuration;
+            this._unitOfWork = unitOfWork;
+            _churchQueries = churchQueries;
         }
 
         public async Task<int> Handle(CreateChurchCommand command, CancellationToken token)
@@ -38,7 +45,7 @@ namespace Journey_of_faith.Application.usecases.churchs.commands
             {
                 throw new UnauthorizationException("Người dùng không hợp lệ");
             }
-            if (!await _repo.GetDioceseExistsAsync(command.DioceseId))
+            if (!await _churchQueries.DioceseExistsAsync(command.DioceseId, token))
             {
                 throw new NotFoundException("Không có giáo phận mà nhà nhờ đăng ký.");
             }
@@ -138,11 +145,19 @@ namespace Journey_of_faith.Application.usecases.churchs.commands
                     CreatedAt = DateTime.UtcNow
                 })
                 .ToList());
+            await _unitOfWork.BeginTransactionAsync(token);
+            try
+            {
+            await _repo.AddAsync(church, token);
 
+            await _unitOfWork.CommitTransactionAsync(cancellationToken: token);
+            return church.Id;
+            } catch
+            {
+               await _unitOfWork.RollBackTransactionAsync(cancellationToken: token);
+                throw;
+            }
             // BƯỚC 5: Lưu thông tin vào DB thông qua Repository
-            var churchId = await _repo.CreateAsync(church);
-
-            return churchId;
         }
     }
 }

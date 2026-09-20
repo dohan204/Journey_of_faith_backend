@@ -55,7 +55,7 @@ namespace Journey_of_faith.Api.Controllers
         public async Task<IActionResult> GetMe()
         {
             var user = await _mediator.Send(new GetMeQuery());
-            return Ok(new ApiResponse<User>
+            return Ok(new ApiResponse<UserResponseDto>
             {
                 Data  = user,
                 Message = "Laays nguoi dung thanh cong."

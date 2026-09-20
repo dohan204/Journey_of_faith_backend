@@ -23,10 +23,10 @@ namespace Journey_of_faith.Domain.entities.events
         private readonly List<EventNotification> _notifications = new();
 
         public IReadOnlyCollection<EventCategoryMapping> CategoryMappings => _categoryMappings.AsReadOnly();
-        public IReadOnlyCollection<EventImage> EventImages => _eventImages.AsReadOnly();
-        public IReadOnlyCollection<EventComment> EventComments => _eventComments.AsReadOnly();
-        public IReadOnlyCollection<EventParticipant> EventParticipants => _eventParticipants.AsReadOnly();
-        public IReadOnlyCollection<EventFollower> EventFollowers => _eventFollowers.AsReadOnly();
+        public IReadOnlyCollection<EventImage> Images => _eventImages.AsReadOnly();
+        public IReadOnlyCollection<EventComment> Comments => _eventComments.AsReadOnly();
+        public IReadOnlyCollection<EventParticipant> Participants => _eventParticipants.AsReadOnly();
+        public IReadOnlyCollection<EventFollower> Followers => _eventFollowers.AsReadOnly();
         public IReadOnlyCollection<UserEvent> UserEvents => _userEvents.AsReadOnly();
         public IReadOnlyCollection<EventNotification> Notifications => _notifications.AsReadOnly();
     }

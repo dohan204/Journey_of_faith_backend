@@ -11,5 +11,6 @@ namespace Journey_of_faith.Domain.entities.events
         public Guid UserId { get; set; }
         public string Comment { get; set; } = string.Empty;
         public DateTime? CreatedTime { get; set; }
+        public Event Event { get; set; } = null!;
     }
 }

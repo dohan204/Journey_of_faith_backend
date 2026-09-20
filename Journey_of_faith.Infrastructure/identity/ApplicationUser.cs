@@ -1,11 +1,12 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using Journey_of_faith.Infrastructure.persistence.entities.events;
-using Journey_of_faith.Infrastructure.persistence.entities.quiz;
-using Journey_of_faith.Infrastructure.persistence.entities.location;
-using Journey_of_faith.Infrastructure.persistence.entities.messaging;
-using Journey_of_faith.Infrastructure.persistence.entities.social;
-using Journey_of_faith.Infrastructure.persistence.entities.music;
-using Journey_of_faith.Infrastructure.persistence.entities.faith_notifications;
+using Journey_of_faith.Domain.entities.location;
+using Journey_of_faith.Domain.entities.notifications;
+using Journey_of_faith.Domain.entities;
+using Journey_of_faith.Domain.entities.events;
+using Journey_of_faith.Domain.entities.musics;
+using Journey_of_faith.Domain.entities.prayer;
+using Journey_of_faith.Domain.entities.quiz;
+using Journey_of_faith.Domain.entities.social;
 
 namespace Journey_of_faith.Infrastructure.identity
 {
@@ -32,27 +33,5 @@ namespace Journey_of_faith.Infrastructure.identity
         public Province? Province { get; set; }
         public School? School { get; set; }
 
-        public ICollection<UserChurch> UserChurches { get; set; } = [];
-        public ICollection<Friendship> Friendships { get; set; } = [];
-        public ICollection<Friendship> FriendOf { get; set; } = [];
-        public ICollection<GroupMember> GroupMembers { get; set; } = [];
-        public ICollection<Playlist> Playlists { get; set; } = [];
-        public ICollection<UserFavoriteSong> FavoriteSongs { get; set; } = [];
-        public ICollection<ListeningHistory> ListeningHistories { get; set; } = [];
-        public ICollection<EventComment> EventComments { get; set; } = [];
-        public ICollection<EventFollower> EventFollowers { get; set; } = [];
-        public ICollection<EventParticipant> EventParticipants { get; set; } = [];
-        public ICollection<UserEvent> UserEvents { get; set; } = [];
-        public ICollection<QuizAttempt> QuizAttempts { get; set; } = [];
-        public ICollection<PrayerRequest> PrayerRequests { get; set; } = [];
-        public ICollection<PrayerComment> PrayerComments { get; set; } = [];
-        public ICollection<DeviceToken> DeviceTokens { get; set; } = [];
-        public ICollection<NotificationPreference> NotificationPreferences { get; set; } = [];
-        public ICollection<ReminderSetting> ReminderSettings { get; set; } = [];
-        public ICollection<Conversation> CreatedConversations { get; set; } = [];
-        public ICollection<ConversationParticipant> ConversationParticipants { get; set; } = [];
-        public ICollection<Message> SentMessages { get; set; } = [];
-        public ICollection<MessageReaction> MessageReactions { get; set; } = [];
-        public ICollection<UserActive> userActives{ get; set; } = [];
     }
 }

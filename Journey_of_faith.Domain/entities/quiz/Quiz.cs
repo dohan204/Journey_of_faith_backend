@@ -15,12 +15,13 @@ namespace Journey_of_faith.Domain.entities.quiz
         public bool? IsDailyQuiz { get; set; }
         public int TopicId { get; set; }
         public DateTime? CreatedTime { get; set; }
+        public Topic Topic { get; set; } = null!;
 
         private readonly List<QuizQuestion> _quizQuestions = new();
         private readonly List<QuizAttempt> _quizAttempts = new();
 
         public IReadOnlyCollection<QuizQuestion> QuizQuestions => _quizQuestions.AsReadOnly();
-        public IReadOnlyCollection<QuizAttempt> QuizAttempts => _quizAttempts.AsReadOnly();
+        public IReadOnlyCollection<QuizAttempt> Attempts => _quizAttempts.AsReadOnly();
 
         private Quiz () { }
         public Quiz(string title,int topicId, string description, int timeLimit, int questionCount)

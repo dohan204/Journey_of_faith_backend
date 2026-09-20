@@ -2,13 +2,13 @@
 using Journey_of_faith.Application.exceptions;
 using Journey_of_faith.Domain.entities;
 using Journey_of_faith.Infrastructure.context;
-using Journey_of_faith.Infrastructure.persistence.entities.location;
 using Journey_of_faith.Infrastructure.services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using System.Security.Claims;
 using System.Text;
 
@@ -24,9 +24,11 @@ namespace Journey_of_faith.Infrastructure.identity.services
         private readonly IConfiguration configuration;
         private readonly IEmailService emailService;
         private readonly RoleManager<ApplicationRole> _roleManager;
+        private readonly ILogger<AuthService> _logger;
         public AuthService(TokenService tokenService, UserManager<ApplicationUser> userManager,
             ApplicationDbContext context, ICurrentUserService currentUserService, IConfiguration configuration,
-            IHttpContextAccessor httpContextAccessor, IEmailService emailService, RoleManager<ApplicationRole> roleManager)
+            IHttpContextAccessor httpContextAccessor, IEmailService emailService, RoleManager<ApplicationRole> roleManager,
+            ILogger<AuthService> logger)
         {
             _tokenService = tokenService;
             _userManager = userManager;
@@ -36,17 +38,20 @@ namespace Journey_of_faith.Infrastructure.identity.services
             this.configuration = configuration;
             this.httpContextAccessor = httpContextAccessor;
             this.emailService = emailService;
+            _logger = logger;
         }
         public async Task<LoginUserResponse> Login(string email, string passwrod)
         {
             var user = await _userManager.FindByEmailAsync(email);
             if (user is null)
             {
+                _logger.LogWarning("Login rejected because the account was not found");
                 throw new UnauthorizationException("Tài khoản hoặc mật khẩu không chính xác");
             }            
             var result = await _userManager.CheckPasswordAsync(user, passwrod);
             if (!result)
             {
+                _logger.LogWarning("Login rejected for user {UserId} because the password was invalid", user.Id);
                 throw new UnauthorizationException("Tài khoản hoặc mật khẩu không chính xác");
             }
 
@@ -67,7 +72,7 @@ namespace Journey_of_faith.Infrastructure.identity.services
             var refreshToken = _tokenService.CreateRefreshToken(user.Id);
 
             await _context.RefreshTokens.AddAsync(refreshToken);
-            var active = new Journey_of_faith.Infrastructure.persistence.entities.location.UserActive
+            var active = new UserActive
             {
                 ApplicationUserId = user.Id,
                 Status = true,
@@ -76,6 +81,7 @@ namespace Journey_of_faith.Infrastructure.identity.services
             };
             await _context.UserActive.AddAsync(active);
             await _context.SaveChangesAsync();
+            _logger.LogInformation("User {UserId} logged in successfully", user.Id);
             return new LoginUserResponse(status: true, token: token, refreshToken: refreshToken.Token, expiry: configuration.GetValue<int>("Token:Expiry"));
         }
 
@@ -86,6 +92,7 @@ namespace Journey_of_faith.Infrastructure.identity.services
 
             if (refresh is null || refresh.ExpiresOnUtc < DateTime.UtcNow)
             {
+                _logger.LogWarning("Refresh token request was rejected because the token was invalid or expired");
                 throw new UnauthorizationException("Refresh token đã hết hạn hoặc không hợp lệ.");
             }
 
@@ -106,6 +113,7 @@ namespace Journey_of_faith.Infrastructure.identity.services
             await _context.RefreshTokens.AddAsync(newRefreshToken);
             await _context.SaveChangesAsync();
 
+            _logger.LogInformation("Refreshed authentication tokens for user {UserId}", user.Id);
             return new LoginUserResponse(true, token: newToken, refreshToken: newRefreshToken.Token, expiry);
         }
 
@@ -132,10 +140,11 @@ namespace Journey_of_faith.Infrastructure.identity.services
             var isValid = await _userManager.ChangePasswordAsync(user, currentPassword, newPassword);
             if (!isValid.Succeeded)
             {
+                _logger.LogWarning("Password change failed for user {UserId}", user.Id);
                 return false;
             }
 
-
+            _logger.LogInformation("Password changed successfully for user {UserId}", user.Id);
             return true;
         }
 
@@ -144,6 +153,7 @@ namespace Journey_of_faith.Infrastructure.identity.services
             var user = await _userManager.FindByEmailAsync(email);
             if (user is null)
             {
+                _logger.LogWarning("Password reset requested for an account that does not exist");
                 return false;
             }
 
@@ -174,9 +184,11 @@ namespace Journey_of_faith.Infrastructure.identity.services
                 </div>";
                 await emailService.SendEmailAsync(email, subject, body);
 
+                _logger.LogInformation("Password reset completed for user {UserId}", user.Id);
                 return true;
             }
 
+            _logger.LogWarning("Password reset failed for user {UserId}", user.Id);
             return false;
         }
 

@@ -4,6 +4,7 @@ using Journey_of_faith.Api.authorization;
 using Journey_of_faith.Api.dtos;
 using Journey_of_faith.Application.usecases.quizs.commands;
 using Journey_of_faith.Application.usecases.quizs.queries;
+using Journey_of_faith.Application.common.dtos.quiz;
 using Journey_of_faith.Domain.entities.quiz;
 using Journey_of_faith.Domain.interfaces;
 using MediatR;
@@ -41,12 +42,12 @@ namespace Journey_of_faith.Api.Controllers
         }
 
         [HttpGet]
-        [ProducesResponseType(typeof(ApiResponse<IEnumerable<QuizView>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<IEnumerable<QuizViewDto>>), StatusCodes.Status200OK)]
         [MapToApiVersion(1)]
         public async Task<IActionResult> GetAll()
         {
             var quizzes = await _mediator.Send(new GetAllQuizzesQuery());
-            return Ok(new ApiResponse<IEnumerable<QuizView>>
+            return Ok(new ApiResponse<IEnumerable<QuizViewDto>>
             {
                 Message = "Lấy danh sách đề thi thành công",
                 Data = quizzes
@@ -66,7 +67,7 @@ namespace Journey_of_faith.Api.Controllers
                     Data = details
                 });
             }
-            return Ok(new ApiResponse<QuizView>
+            return Ok(new ApiResponse<QuizViewDto>
             {
                 Message = "Lấy dữ liệu thành công",
                 Data = details
@@ -91,7 +92,7 @@ namespace Journey_of_faith.Api.Controllers
         public async Task<IActionResult> GetHistoryTest()
         {
             var data = await _mediator.Send(new GetHistoryExamTestQuery());
-            return Ok(new ApiResponse<IReadOnlyList<HistoryExamTest>>
+            return Ok(new ApiResponse<IReadOnlyList<ExamHistoryDto>>
             {
                 Message = "lay du lieu thanh cong",
                 Data = data
@@ -113,7 +114,7 @@ namespace Journey_of_faith.Api.Controllers
         public async Task<IActionResult> GetTopics()
         {
             var topics = await _mediator.Send(new GetAllTopicQuery());
-            return Ok(new ApiResponse<IEnumerable<Topic>>
+            return Ok(new ApiResponse<IEnumerable<TopicViewDto>>
             {
                 Data = topics,
                 Message = "Lấy chủ thế thành công"

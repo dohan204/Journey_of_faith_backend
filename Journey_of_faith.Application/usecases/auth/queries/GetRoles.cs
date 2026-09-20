@@ -1,11 +1,10 @@
 using Journey_of_faith.Domain.dtos;
-using Journey_of_faith.Domain.entities;
-using Journey_of_faith.Domain.interfaces;
+using Journey_of_faith.Application.common.dtos;
 using MediatR;
 
 namespace Journey_of_faith.Application.usecases.auth.queries;
 
-public class GetRolesQuery : IRequest<PagedResult<Role>>
+public class GetRolesQuery : IRequest<PagedResult<RoleViewDto>>
 {
     public int Page {get; set;}
     public int PageSize {get; set;}
@@ -14,16 +13,16 @@ public class GetRolesQuery : IRequest<PagedResult<Role>>
 
 
 
-public class GetRolesQueryHandler : IRequestHandler<GetRolesQuery, PagedResult<Role>>
+public class GetRolesQueryHandler : IRequestHandler<GetRolesQuery, PagedResult<RoleViewDto>>
 {
-    private readonly IRoleRepository roleRepository;
-    public GetRolesQueryHandler(IRoleRepository roleRepository)
+    private readonly IRoleQueries roleQueries;
+    public GetRolesQueryHandler(IRoleQueries roleQueries)
     {
-        this.roleRepository = roleRepository;
+        this.roleQueries = roleQueries;
     }
 
-    public async Task<PagedResult<Role>> Handle(GetRolesQuery query, CancellationToken cancellationToken)
+    public async Task<PagedResult<RoleViewDto>> Handle(GetRolesQuery query, CancellationToken cancellationToken)
     {
-        return await roleRepository.GetRolesAsync(query.Page, query.PageSize, query.Search);
+        return await roleQueries.GetRolesAsync(query.Page, query.PageSize, query.Search, cancellationToken);
     }
 }

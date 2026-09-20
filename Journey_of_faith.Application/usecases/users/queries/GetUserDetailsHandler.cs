@@ -1,27 +1,25 @@
 using System.Data.Common;
-using Journey_of_faith.Application.common.interfaces;
-using Journey_of_faith.Domain.entities;
-using Journey_of_faith.Domain.interfaces;
+using Journey_of_faith.Application.common.dtos;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace Journey_of_faith.Application.usecases.users.queries;
 
-public class GetUserDetailsHandler : IRequestHandler<GetUserDetailsQuery, User?>
+public class GetUserDetailsHandler : IRequestHandler<GetUserDetailsQuery, UserResponseDto?>
 {
     private readonly ILogger<GetUserDetailsHandler> _logger;
-    private readonly IUserRepository _userRepo;
-    public GetUserDetailsHandler(ILogger<GetUserDetailsHandler> logger, IUserRepository userRepo)
+    private readonly IUserQueries _userQueries;
+    public GetUserDetailsHandler(ILogger<GetUserDetailsHandler> logger, IUserQueries userQueries)
     {
-        _userRepo = userRepo;
+        _userQueries = userQueries;
         _logger = logger;
     }
 
-    public async Task<User?> Handle(GetUserDetailsQuery query, CancellationToken token)
+    public async Task<UserResponseDto?> Handle(GetUserDetailsQuery query, CancellationToken token)
     {
         try
         {
-            return await _userRepo.GetUserAsync(query.Id);
+            return await _userQueries.GetUserAsync(query.Id, token);
         } catch (TimeoutException ex)
         {
             _logger.LogError(ex, "Request timeout to server.");

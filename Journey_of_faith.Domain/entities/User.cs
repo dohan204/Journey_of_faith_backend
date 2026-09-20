@@ -1,14 +1,10 @@
 ﻿
-using Journey_of_faith.Domain.entities.musics;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using Journey_of_faith.Domain.entities.prayer;
-using Journey_of_faith.Domain.entities.social;
-using Journey_of_faith.Domain.entities.notifications;
-using Journey_of_faith.Domain.entities.quiz;
 using Journey_of_faith.Domain.entities.events;
-using System.Security.Cryptography.X509Certificates;
+using Journey_of_faith.Domain.entities.musics;
+using Journey_of_faith.Domain.entities.notifications;
+using Journey_of_faith.Domain.entities.prayer;
+using Journey_of_faith.Domain.entities.quiz;
+using Journey_of_faith.Domain.entities.social;
 
 namespace Journey_of_faith.Domain.entities
 {
@@ -47,30 +43,44 @@ namespace Journey_of_faith.Domain.entities
         private readonly List<UserChurch> _userChurches = new();
         private readonly List<Friendship> _friendships = new();
         private readonly List<Friendship> _friendOf = new();
+        private readonly List<GroupMember> _groupMembers = new();
         private readonly List<Playlist> _playlists = new();
-        private readonly List<PrayerRequest> _prayerRequests = new();
         private readonly List<UserFavoriteSong> _favoriteSongs = new();
+        private readonly List<ListeningHistory> _listeningHistories = new();
+        private readonly List<EventComment> _eventComments = new();
+        private readonly List<UserEvent> _userEvents = new();
+        private readonly List<QuizAttempt> _quizAttempts = new();
+        private readonly List<PrayerRequest> _prayerRequests = new();
+        private readonly List<PrayerComment> _prayerComments = new();
         private readonly List<DeviceToken> _deviceTokens = new();
         private readonly List<NotificationPreference> _notificationPreferences = new();
         private readonly List<ReminderSetting> _reminderSettings = new();
-        private readonly List<QuizAttempt> _quizAttempts = new();
-        private readonly List<ListeningHistory> _listeningHistories = new();
-        private readonly List<UserEvent> _userEvents = new();
+        private readonly List<Conversation> _createdConversations = new();
+        private readonly List<ConversationParticipant> _conversationParticipants = new();
+        private readonly List<Message> _sentMessages = new();
+        private readonly List<MessageReaction> _messageReactions = new();
+        private readonly List<UserActive> _userActives = new();
 
         public IReadOnlyCollection<UserChurch> UserChurches => _userChurches.AsReadOnly();
         public IReadOnlyCollection<Friendship> Friendships => _friendships.AsReadOnly();
         public IReadOnlyCollection<Friendship> FriendOf => _friendOf.AsReadOnly();
+        public IReadOnlyCollection<GroupMember> GroupMembers => _groupMembers.AsReadOnly();
         public IReadOnlyCollection<Playlist> Playlists => _playlists.AsReadOnly();
-        public IReadOnlyCollection<PrayerRequest> PrayerRequests => _prayerRequests.AsReadOnly();
         public IReadOnlyCollection<UserFavoriteSong> FavoriteSongs => _favoriteSongs.AsReadOnly();
+        public IReadOnlyCollection<ListeningHistory> ListeningHistories => _listeningHistories.AsReadOnly();
+        public IReadOnlyCollection<EventComment> EventComments => _eventComments.AsReadOnly();
+        public IReadOnlyCollection<UserEvent> UserEvents => _userEvents.AsReadOnly();
+        public IReadOnlyCollection<QuizAttempt> QuizAttempts => _quizAttempts.AsReadOnly();
+        public IReadOnlyCollection<PrayerRequest> PrayerRequests => _prayerRequests.AsReadOnly();
+        public IReadOnlyCollection<PrayerComment> PrayerComments => _prayerComments.AsReadOnly();
         public IReadOnlyCollection<DeviceToken> DeviceTokens => _deviceTokens.AsReadOnly();
         public IReadOnlyCollection<NotificationPreference> NotificationPreferences => _notificationPreferences.AsReadOnly();
         public IReadOnlyCollection<ReminderSetting> ReminderSettings => _reminderSettings.AsReadOnly();
-        public IReadOnlyCollection<QuizAttempt> QuizAttempts => _quizAttempts.AsReadOnly();
-        public IReadOnlyCollection<ListeningHistory> ListeningHistories => _listeningHistories.AsReadOnly();
-        public IReadOnlyCollection<UserEvent> UserEvents => _userEvents.AsReadOnly();
-        
-
+        public IReadOnlyCollection<Conversation> CreatedConversations => _createdConversations.AsReadOnly();
+        public IReadOnlyCollection<ConversationParticipant> ConversationParticipants => _conversationParticipants.AsReadOnly();
+        public IReadOnlyCollection<Message> SentMessages => _sentMessages.AsReadOnly();
+        public IReadOnlyCollection<MessageReaction> MessageReactions => _messageReactions.AsReadOnly();
+        public IReadOnlyCollection<UserActive> userActives => _userActives.AsReadOnly();
 
         public User()
         {
@@ -105,9 +115,26 @@ namespace Journey_of_faith.Domain.entities
         public static User Create(string username, string password, string email)
             => new User(username, password, email);
 
-        public void AddUserChurch(UserChurch uc) => _userChurches.Add(uc);
-        public void AddPlaylist(Playlist p) => _playlists.Add(p);
-        public void AddFavoriteSong(UserFavoriteSong fs) => _favoriteSongs.Add(fs);
-        public void AddPrayerRequest(PrayerRequest pr) => _prayerRequests.Add(pr);
+        public void AddUserChurch(UserChurch value) => _userChurches.Add(value);
+        public void AddFriendship(Friendship value) => _friendships.Add(value);
+        public void AddFriendOf(Friendship value) => _friendOf.Add(value);
+        public void AddGroupMember(GroupMember value) => _groupMembers.Add(value);
+        public void AddPlaylist(Playlist value) => _playlists.Add(value);
+        public void AddFavoriteSong(UserFavoriteSong value) => _favoriteSongs.Add(value);
+        public void AddListeningHistory(ListeningHistory value) => _listeningHistories.Add(value);
+        public void AddEventComment(EventComment value) => _eventComments.Add(value);
+        public void AddUserEvent(UserEvent value) => _userEvents.Add(value);
+        public void AddQuizAttempt(QuizAttempt value) => _quizAttempts.Add(value);
+        public void AddPrayerRequest(PrayerRequest value) => _prayerRequests.Add(value);
+        public void AddPrayerComment(PrayerComment value) => _prayerComments.Add(value);
+        public void AddDeviceToken(DeviceToken value) => _deviceTokens.Add(value);
+        public void AddNotificationPreference(NotificationPreference value) => _notificationPreferences.Add(value);
+        public void AddReminderSetting(ReminderSetting value) => _reminderSettings.Add(value);
+        public void AddCreatedConversation(Conversation value) => _createdConversations.Add(value);
+        public void AddConversationParticipant(ConversationParticipant value) => _conversationParticipants.Add(value);
+        public void AddSentMessage(Message value) => _sentMessages.Add(value);
+        public void AddMessageReaction(MessageReaction value) => _messageReactions.Add(value);
+        public void AddUserActive(UserActive value) => _userActives.Add(value);
+
     }
 }

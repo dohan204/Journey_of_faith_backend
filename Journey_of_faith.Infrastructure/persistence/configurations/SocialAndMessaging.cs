@@ -1,7 +1,8 @@
-﻿using Journey_of_faith.Infrastructure.persistence.entities.messaging;
-using Journey_of_faith.Infrastructure.persistence.entities.social;
+﻿
+using Journey_of_faith.Domain.entities.social;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Journey_of_faith.Infrastructure.identity;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -20,13 +21,13 @@ namespace Journey_of_faith.Infrastructure.persistence.configurations
             builder.Property(f => f.LastModificationTime).HasDefaultValueSql("getdate()");
 
             // NoAction để tránh multiple cascade paths
-            builder.HasOne(f => f.User)
-                .WithMany(u => u.Friendships)
+            builder.HasOne<ApplicationUser>()
+                .WithMany()
                 .HasForeignKey(f => f.UserId)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            builder.HasOne(f => f.Friend)
-                .WithMany(u => u.FriendOf)
+            builder.HasOne<ApplicationUser>()
+                .WithMany()
                 .HasForeignKey(f => f.FriendId)
                 .OnDelete(DeleteBehavior.NoAction);
         }
@@ -61,8 +62,8 @@ namespace Journey_of_faith.Infrastructure.persistence.configurations
                 .HasForeignKey(gm => gm.GroupId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasOne(gm => gm.User)
-                .WithMany(u => u.GroupMembers)
+            builder.HasOne<ApplicationUser>()
+                .WithMany()
                 .HasForeignKey(gm => gm.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
@@ -81,8 +82,8 @@ namespace Journey_of_faith.Infrastructure.persistence.configurations
                 .HasForeignKey(c => c.GroupId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasOne(c => c.Creator)
-                .WithMany(u => u.CreatedConversations)
+            builder.HasOne<ApplicationUser>()
+                .WithMany()
                 .HasForeignKey(c => c.CreatorUserId)
                 .OnDelete(DeleteBehavior.NoAction);
         }
@@ -100,8 +101,8 @@ namespace Journey_of_faith.Infrastructure.persistence.configurations
                 .HasForeignKey(cp => cp.ConversationId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasOne(cp => cp.User)
-                .WithMany(u => u.ConversationParticipants)
+            builder.HasOne<ApplicationUser>()
+                .WithMany()
                 .HasForeignKey(cp => cp.UserId)
                 .OnDelete(DeleteBehavior.NoAction);
         }
@@ -123,8 +124,8 @@ namespace Journey_of_faith.Infrastructure.persistence.configurations
                 .HasForeignKey(m => m.ConversationId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasOne(m => m.FromUser)
-                .WithMany(u => u.SentMessages)
+            builder.HasOne<ApplicationUser>()
+                .WithMany()
                 .HasForeignKey(m => m.FromUserId)
                 .OnDelete(DeleteBehavior.NoAction);
         }
@@ -160,8 +161,8 @@ namespace Journey_of_faith.Infrastructure.persistence.configurations
                 .HasForeignKey(mr => mr.MessageId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasOne(mr => mr.User)
-                .WithMany(u => u.MessageReactions)
+            builder.HasOne<ApplicationUser>()
+                .WithMany()
                 .HasForeignKey(mr => mr.UserId)
                 .OnDelete(DeleteBehavior.NoAction);
         }

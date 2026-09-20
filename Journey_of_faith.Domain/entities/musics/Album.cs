@@ -10,6 +10,8 @@ namespace Journey_of_faith.Domain.entities.musics
         public int ArtistId { get; set; }
         public int? ReleaseYear { get; set; }
         public string? CoverImageUrl { get; set; }
+        public Artist Artist { get; set; } = null!;
+        public ICollection<Song> Songs { get; set; } = [];
 
         public Album() {}
 

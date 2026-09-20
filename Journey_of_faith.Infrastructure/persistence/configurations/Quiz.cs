@@ -1,6 +1,7 @@
-﻿using Journey_of_faith.Infrastructure.persistence.entities.quiz;
+﻿using Journey_of_faith.Domain.entities.quiz;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Journey_of_faith.Infrastructure.identity;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -133,8 +134,8 @@ namespace Journey_of_faith.Infrastructure.persistence.configurations
                 .HasForeignKey(qa => qa.QuizId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasOne(qa => qa.User)
-                .WithMany(u => u.QuizAttempts)
+            builder.HasOne<ApplicationUser>()
+                .WithMany()
                 .HasForeignKey(qa => qa.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
         }

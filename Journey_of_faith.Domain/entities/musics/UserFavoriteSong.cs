@@ -9,7 +9,7 @@ namespace Journey_of_faith.Domain.entities.musics
         public int Id { get; set; }
         public Guid UserId { get; set; }
         public int SongId { get; set; }
-        public Song Song { get; set; }
+        public Song Song { get; set; } = null!;
         public DateTime? CreatedTime { get; set; }
 
         public UserFavoriteSong(Guid userId, int songId)

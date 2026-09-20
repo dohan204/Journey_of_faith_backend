@@ -1,16 +1,17 @@
-﻿using Journey_of_faith.Infrastructure.identity;
-using Journey_of_faith.Infrastructure.persistence.entities.events;
-using Journey_of_faith.Infrastructure.persistence.entities.faith_notifications;
-using Journey_of_faith.Infrastructure.persistence.entities.location;
-using Journey_of_faith.Infrastructure.persistence.entities.messaging;
-using Journey_of_faith.Infrastructure.persistence.entities.music;
-using Journey_of_faith.Infrastructure.persistence.entities.quiz;
-using Journey_of_faith.Infrastructure.persistence.entities.social;
+﻿
+using Journey_of_faith.Domain.entities;
+using Journey_of_faith.Domain.entities.catholic;
+using Journey_of_faith.Domain.entities.events;
+using Journey_of_faith.Domain.entities.location;
+using Journey_of_faith.Domain.entities.masslive;
+using Journey_of_faith.Domain.entities.musics;
+using Journey_of_faith.Domain.entities.notifications;
+using Journey_of_faith.Domain.entities.prayer;
+using Journey_of_faith.Domain.entities.quiz;
+using Journey_of_faith.Domain.entities.social;
+using Journey_of_faith.Infrastructure.identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Journey_of_faith.Infrastructure.context
 {
@@ -87,6 +88,7 @@ namespace Journey_of_faith.Infrastructure.context
 
         // ── Faith Content ─────────────────────────────────────────────────
         public DbSet<MassType> MassTypes => Set<MassType>();
+        public DbSet<ChurchImage> ChurchImages=> Set<ChurchImage>();
         public DbSet<MassSchedule> MassSchedules => Set<MassSchedule>();
         public DbSet<MassVideo> MassVideos => Set<MassVideo>();
         public DbSet<LiveStream> LiveStreams => Set<LiveStream>();

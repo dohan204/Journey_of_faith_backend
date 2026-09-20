@@ -6,7 +6,8 @@ namespace Journey_of_faith.Domain.entities
 {
     public class UserChurch
     {
-        public long UserId { get; set; }
+        public Guid UserId { get; set; }
         public int ChurchId { get; set; }
+        public location.Church Church { get; set; } = null!;
     }
 }

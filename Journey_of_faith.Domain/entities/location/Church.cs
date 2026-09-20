@@ -16,15 +16,14 @@ namespace Journey_of_faith.Domain.entities.location
         public string? Boss {get; private set;}
         public string? Description {get; private set;}
         public GeoLocation GeoLocation { get; private set; }
+        public Diocese? Diocese { get; set; }
         private List<ChurchImage> churchImages = new List<ChurchImage>();
         private List<MassSchedule> _massSchedules = new();
         private List<LiveStream> _liveStreams = new();
-        private readonly List<User> _users = new();
         private readonly List<UserChurch> _userChurches = new();
 
         public IReadOnlyCollection<MassSchedule> MassSchedules => _massSchedules.AsReadOnly();
         public IReadOnlyCollection<LiveStream> LiveStreams => _liveStreams.AsReadOnly();
-        public IReadOnlyCollection<User> Users => _users.AsReadOnly();
         public IReadOnlyCollection<UserChurch> UserChurches => _userChurches.AsReadOnly();
         public IReadOnlyCollection<ChurchImage> ChurchImages => churchImages.AsReadOnly();
 
@@ -99,15 +98,6 @@ namespace Journey_of_faith.Domain.entities.location
         {
             GeoLocation = GeoLocation.FromCoordinates(latitude, longtitude);
         }
-        public void AddUser(User user)
-        {
-            if (user == null)
-            {
-                throw new ArgumentNullException(nameof(user), "User không được null");
-            }
-            _users.Add(user);
-        }
-
         public void SetImages(List<ChurchImage> images)
         {
             churchImages = images;

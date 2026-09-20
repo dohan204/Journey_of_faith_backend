@@ -11,6 +11,7 @@ namespace Journey_of_faith.Domain.entities.quiz
         public string Name { get; private set; } = string.Empty;
         public string Code {get; set; } = string.Empty;
         public string Description {get; set; } = string.Empty;
+        public ICollection<Question> Questions { get; set; } = [];
         private QuestionType() { }
         public QuestionType(string name, string code, string description)
         {

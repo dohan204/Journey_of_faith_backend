@@ -13,13 +13,29 @@ namespace Journey_of_faith.Api.middlewares
 
         public async ValueTask<bool> TryHandleAsync(HttpContext context, Exception exception, CancellationToken token)
         {
-            _logger.LogInformation("Start into middle wate");
             var statusCode = exception switch
             {
                 BaseException exp => (int)exp.StatusCode,
                 _ => StatusCodes.Status500InternalServerError,
             };
 
+            if (exception is BaseException)
+            {
+                _logger.LogWarning(
+                    exception,
+                    "Request {Method} {Path} failed with status code {StatusCode}",
+                    context.Request.Method,
+                    context.Request.Path,
+                    statusCode);
+            }
+            else
+            {
+                _logger.LogError(
+                    exception,
+                    "Unhandled exception while processing {Method} {Path}",
+                    context.Request.Method,
+                    context.Request.Path);
+            }
 
             var problem = new ProblemDetails
             {

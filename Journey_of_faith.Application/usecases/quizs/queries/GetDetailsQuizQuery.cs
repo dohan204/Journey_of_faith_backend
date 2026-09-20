@@ -1,14 +1,18 @@
-﻿using Journey_of_faith.Domain.entities.quiz;
-using Journey_of_faith.Domain.interfaces;
+using Journey_of_faith.Application.common.dtos.quiz;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace Journey_of_faith.Application.usecases.quizs.queries
+namespace Journey_of_faith.Application.usecases.quizs.queries;
+
+public class GetDetailsQuizQuery : IRequest<QuizViewDto?>
 {
-    public class GetDetailsQuizQuery : IRequest<QuizView>
-    {
-        public int Id { get; set; }
-    }
+    public int Id { get; set; }
+}
+
+public class GetDetailsQuizHandler : IRequestHandler<GetDetailsQuizQuery, QuizViewDto?>
+{
+    private readonly IExamQueries _queries;
+    public GetDetailsQuizHandler(IExamQueries queries) => _queries = queries;
+
+    public Task<QuizViewDto?> Handle(GetDetailsQuizQuery request, CancellationToken cancellationToken)
+        => _queries.GetQuizDetailsAsync(request.Id, cancellationToken);
 }

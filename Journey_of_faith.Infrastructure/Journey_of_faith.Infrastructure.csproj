@@ -13,11 +13,6 @@
     <PackageReference Include="Dapper" Version="2.1.72" />
     <PackageReference Include="FirebaseAdmin" Version="3.5.0" />
     <PackageReference Include="Google.Apis.Auth" Version="1.76.0" />
-    <PackageReference Include="GreenDonut.Data.EntityFramework" Version="16.0.5" />
-    <PackageReference Include="HotChocolate.AspNetCore" Version="16.0.5" />
-    <PackageReference Include="HotChocolate.Caching" Version="16.0.7" />
-    <PackageReference Include="HotChocolate.Data" Version="16.0.9" />
-    <PackageReference Include="HotChocolate.Types.Analyzers" Version="16.0.5" />
     <PackageReference Include="MailKit" Version="4.17.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.5" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.5" />
@@ -40,10 +35,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Journey_of_faith.Application\Journey_of_faith.Application.csproj" />
     <ProjectReference Include="..\Journey_of_faith.Domain\Journey_of_faith.Domain.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="graphql\types\songs\NewFolder\" />
   </ItemGroup>
 
 </Project>

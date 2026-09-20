@@ -6,7 +6,7 @@ namespace Journey_of_faith.Domain.entities.prayer
 {
     public class PrayerRequest : AuditableEntity
     {
-        public long UserId { get; set; }
+        public Guid UserId { get; set; }
         public string? Title { get; set; }
         public string? RequestContent { get; set; }
         public bool? IsAnonymous { get; set; }

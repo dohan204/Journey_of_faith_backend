@@ -1,23 +1,23 @@
-using Journey_of_faith.Domain.interfaces;
+using Journey_of_faith.Application.common.dtos.Events;
 using MediatR;
 
 namespace Journey_of_faith.Application.usecases.events.queries;
 
-public class GetCommentForEventQuery : IRequest<List<EventCommentView>>
+public class GetCommentForEventQuery : IRequest<IReadOnlyList<EventCommentDto>>
 {
     public int EventId {get; set;}
 }
 
-public class GetCommentForEventHandler : IRequestHandler<GetCommentForEventQuery, List<EventCommentView>>
+public class GetCommentForEventHandler : IRequestHandler<GetCommentForEventQuery, IReadOnlyList<EventCommentDto>>
 {
-    private readonly IEventRepository eventRepository;
-    public GetCommentForEventHandler(IEventRepository eventRepository)
+    private readonly IEventQueries eventQueries;
+    public GetCommentForEventHandler(IEventQueries eventQueries)
     {
-        this.eventRepository = eventRepository;
+        this.eventQueries = eventQueries;
     }
 
-    public async Task<List<EventCommentView>> Handle(GetCommentForEventQuery query, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<EventCommentDto>> Handle(GetCommentForEventQuery query, CancellationToken cancellationToken = default)
     {
-        return await eventRepository.GetCommmentForEventAsync(query.EventId);
+        return await eventQueries.GetCommentsAsync(query.EventId, cancellationToken);
     }
 }

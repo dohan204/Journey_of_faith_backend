@@ -1,22 +1,12 @@
-﻿using HotChocolate.Execution;
 using Journey_of_faith.Application.common.interfaces;
 using Journey_of_faith.Domain.interfaces;
+using Journey_of_faith.Domain.entities;
+using Journey_of_faith.Domain.entities.location;
 using Journey_of_faith.Infrastructure.common;
 using Journey_of_faith.Infrastructure.context;
-using Journey_of_faith.Infrastructure.graphql;
-using Journey_of_faith.Infrastructure.graphql.DataLoaders.churches;
-using Journey_of_faith.Infrastructure.graphql.DataLoaders.quizes;
-using Journey_of_faith.Infrastructure.graphql.DataLoaders.songs;
-using Journey_of_faith.Infrastructure.graphql.DataLoaders.users;
-using Journey_of_faith.Infrastructure.graphql.Resolvers;
-using Journey_of_faith.Infrastructure.graphql.types;
-// using Journey_of_faith.Infrastructure.graphql.types.churches;
-using Journey_of_faith.Infrastructure.graphql.types.quizes;
-// using Journey_of_faith.Infrastructure.graphql.types.songs;
-using Journey_of_faith.Infrastructure.graphql.types.users;
 using Journey_of_faith.Infrastructure.identity;
 using Journey_of_faith.Infrastructure.identity.services;
-using Journey_of_faith.Infrastructure.persistence.entities.location;
+using Journey_of_faith.Infrastructure.persistence.queries;
 using Journey_of_faith.Infrastructure.repositories;
 using Journey_of_faith.Infrastructure.services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -37,7 +27,8 @@ namespace Journey_of_faith.Infrastructure
     {
         public static IServiceCollection AddInfrastructure(this IServiceCollection service, IConfiguration configuration)
         {
-            service.AddDbContext<ApplicationDbContext>(options =>
+            service.AddSingleton<LoggingSaveChangesInterceptor>();
+            service.AddDbContext<ApplicationDbContext>((serviceProvider, options) =>
             {
                 options.UseSqlServer(configuration.GetConnectionString("Connection"), sqlServerOptionsAction: sqloption =>
                 {
@@ -48,6 +39,7 @@ namespace Journey_of_faith.Infrastructure
 
                     );
                 });
+                options.AddInterceptors(serviceProvider.GetRequiredService<LoggingSaveChangesInterceptor>());
             });
 
              
@@ -103,31 +95,37 @@ namespace Journey_of_faith.Infrastructure
         public static IServiceCollection AddRegisterService(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddScoped<TokenService>();
-            services.AddScoped<IIdentityService, IdentityService>();
-            services.AddScoped<IAuthService, AuthService>();
+            services.AddLoggedScoped<IIdentityService, IdentityService>();
+            services.AddLoggedScoped<IAuthService, AuthService>();
             services.AddScoped<ICurrentUserService, CurrentUserService>();
             services.Configure<TableSchemaName>(
                 configuration.GetSection("Db")
             );
             services.AddScoped<IDbConnectionFactory, DbConnectionFactory>();
-            services.AddScoped<IQuestionRepository, QuestionRepository>();
-            services.AddScoped<IEventRepository, EventRepository>();
+            services.AddLoggedScoped<IQuestionRepository, QuestionRepository>();
+            services.AddLoggedScoped<Journey_of_faith.Application.usecases.questions.IQuestionQueries, QuestionQueries>();
+            services.AddLoggedScoped<IEventRepository, EventRepository>();
+            services.AddLoggedScoped<Journey_of_faith.Application.usecases.events.IEventQueries, EventQueries>();
 
-            services.AddScoped<IUnitOfWork, UnitOfWork>();
-            services.AddScoped<IFileStorageService, FileStorageQuestion>();
-            services.AddScoped<IExamRepository, ExamRepository>();
-            services.AddScoped<IChurchRepository, ChurchRepository>();
+            services.AddScoped<IUnitOfWork, Journey_of_faith.Infrastructure.context.UnitOfWork>();
+            services.AddLoggedScoped<IFileStorageService, FileStorageQuestion>();
+            services.AddLoggedScoped<IExamRepository, ExamRepository>();
+            services.AddLoggedScoped<Journey_of_faith.Application.usecases.quizs.IExamQueries, ExamQueries>();
+            services.AddLoggedScoped<IChurchRepository, ChurchRepository>();
+            services.AddLoggedScoped<Journey_of_faith.Application.usecases.churchs.IChurchQueries, ChurchQueries>();
 
-            services.AddScoped<IUserRepository, UserRepository>();
-            services.AddScoped<IDashboardRepository, DashboardRepository>();
-            services.AddScoped<ISongRepository, SongRepository>();
+            services.AddLoggedScoped<IUserRepository, UserRepository>();
+            services.AddLoggedScoped<Journey_of_faith.Application.usecases.users.IUserQueries, UserQueries>();
+            services.AddLoggedScoped<Journey_of_faith.Application.usecases.dashboard.IDashboardQueries, DashboardQueries>();
+            services.AddLoggedScoped<ISongRepository, SongRepository>();
+            services.AddLoggedScoped<Journey_of_faith.Application.usecases.songs.ISongQueries, SongQueries>();
             services.AddScoped(typeof(IGetOneToOneData<,>), typeof(GetDataRepository<,>));
             services.AddScoped(typeof(IGetOneToManyData<,>), typeof(GetDataRepository<,>));
-            services.AddScoped<IRoleRepository, RoleRepository>();
-            services.AddScoped<IDataHandler, DataHandlerRequest>();
-            services.AddScoped<IEmailService, EmailService>();
-            services.AddScoped<IFirebaseAuthService, FirebaseAuthService>();
-            services.AddScoped<IFirebaseNotification, FirebaseNotification>();
+            services.AddLoggedScoped<IRoleRepository, RoleRepository>();
+            services.AddLoggedScoped<Journey_of_faith.Application.usecases.auth.IRoleQueries, RoleQueries>();
+            services.AddLoggedScoped<IEmailService, EmailService>();
+            services.AddLoggedScoped<IFirebaseAuthService, FirebaseAuthService>();
+            services.AddLoggedScoped<IFirebaseNotification, FirebaseNotification>();
             return services;
         }
     }
@@ -141,87 +139,12 @@ namespace Journey_of_faith.Infrastructure
             services.AddAutoMapper(cfg =>
             {
                 cfg.CreateMap<Journey_of_faith.Infrastructure.identity.ApplicationUser, Journey_of_faith.Domain.entities.User>().ReverseMap();
-                cfg.CreateMap<UserChurch, UserChurch>().ReverseMap();
-                cfg.CreateMap<Diocese, Domain.entities.location.Diocese>().ReverseMap();
-                cfg.CreateMap<Church, Domain.entities.location.Church>().ReverseMap();
-                cfg.CreateMap<persistence.entities.music.Song, Domain.entities.musics.Song>().ReverseMap();
-                cfg.CreateMap<persistence.entities.music.Artist, Domain.entities.musics.Artist>().ReverseMap();
-                cfg.CreateMap<persistence.entities.quiz.Quiz, Domain.entities.quiz.Quiz>().ReverseMap();
-                cfg.CreateMap<persistence.entities.quiz.Topic, Domain.entities.quiz.Topic>().ReverseMap();
-                cfg.CreateMap<Journey_of_faith.Domain.entities.masslive.MassSchedule, Journey_of_faith.Infrastructure.persistence.entities.faith_notifications.MassSchedule>();
-                cfg.CreateMap<Journey_of_faith.Domain.entities.location.Liturgy, Journey_of_faith.Infrastructure.persistence.entities.location.Liturgy>();
             });
 
             return services;
         }
     }
 
-
-    // public static class RegisterGraphQL
-    // {
-    //     public static IServiceCollection AddGraphQLExtension(this IServiceCollection services)
-    //     {
-    //         services.AddGraphQLServer()
-
-
-    //             .AddQueryType(typeof(Query))
-    //             .AddTypeExtension(typeof(UserNodeResolver))
-    //             .AddTypeExtension(typeof(UserChurches))
-    //             .AddDataLoader<IChurchsByUserIdDataLoader, ChurchsByUserIdDataLoader>()
-    //             .AddTypeExtension(typeof(TopicNodeResolver))
-    //             .AddTypeExtension(typeof(QuizNodeResovler))
-    //             .AddTypeExtension(typeof(QuizQueryExtension))
-    //             .AddTypeExtension(typeof(QuestionQueryExtension))
-    //             .AddTypeExtension(typeof(AnswerQueryExtension))
-    //             .AddDataLoader<IQuestionByQuizDataLoader, QuestionByQuizDataLoader>()
-    //             .AddDataLoader<IAnswerByQuestionDataLoader, AnswerByQuestionDataLoader>()
-    //             .AddDataLoader<IQuizByTopicDataLoader, QuizByTopicDataLoader>()
-
-
-    //             .AddTypeExtension(typeof(SongNodeResolver))
-    //             .AddTypeExtension(typeof(ArtistNodeResolver))
-    //             .AddTypeExtension(typeof(ArtistExtension))
-    //             .AddTypeExtension(typeof(SongCategoryExtension))
-    //             .AddTypeExtension(typeof(UserSongAysnc))
-    //             .AddTypeExtension(typeof(AlbumQueryExtension))
-    //             .AddTypeExtension(typeof(ArtistQueryExtension))
-    //             .AddTypeExtension(typeof(SongCategoryExtension))
-
-
-    //             .AddTypeExtension(typeof(ChurchNodeResolver))
-    //             .AddTypeExtension(typeof(DioceseNodeResolver))
-    //             .AddTypeExtension(typeof(DioceseQueryExtension))
-    //             .AddTypeExtension(typeof(ChurchQueryExtension))
-    //             .AddTypeExtension(typeof(MassScheduleQueryExtension))
-    //             .AddTypeExtension(typeof(UserChurchQueryExtension))
-
-
-    //             .AddDataLoader<ISongsByUserIdDataLoader, SongsByUserIdDataLoader>()
-    //             .AddDataLoader<IAlbumDataLoader, AlbumDataLoader>()
-    //             .AddDataLoader<IArtistDataLoader, ArtistDataLoader>()
-    //             .AddDataLoader<ICategoryByIdDataLoader, CategoryByIdDataLoader>()
-    //             .AddDataLoader<ISongByArtistDataLoader, SongByArtistDataLoader>()
-    //             .AddDataLoader<ISongByCategoryDataLoader, SongByCategoryDataLoader>()
-    //             .AddDataLoader<IMassSchedulesDataLoader, MassSchedulesDataLoader>()
-    //             .AddDataLoader<IDioceseByChurchDataLoader, DioceseByChurchDataLoader>()
-    //             .AddDataLoader<IUserChurchByMappingDataLoader, UserChurchByMappingDataLoader>()
-    //             .AddDataLoader<IChurchesDataLoader, ChurchesDataLoader>()
-
-
-    //             .AddFiltering()
-    //             .AddSorting()
-    //             .AddCacheControl()
-    //             .AddWarmupTask(async (executor, cancellationToken) =>
-    //             {
-    //                 var request = OperationRequestBuilder.New()
-    //                     .SetDocument("{ __typename }")
-    //                     .MarkAsWarmupRequest()
-    //                     .Build();
-    //                 await executor.ExecuteAsync(request, cancellationToken: cancellationToken);
-    //             });
-    //         return services;
-    //     }
-    // }
 
     public static class RegisterFirebase
     {

@@ -1,6 +1,8 @@
-﻿using Journey_of_faith.Infrastructure.persistence.entities.music;
+﻿
+using Journey_of_faith.Domain.entities.musics;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Journey_of_faith.Infrastructure.identity;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -98,8 +100,8 @@ namespace Journey_of_faith.Infrastructure.persistence.configurations
             builder.HasKey(p => p.Id);
             builder.Property(p => p.Title).HasMaxLength(200).IsRequired();
 
-            builder.HasOne(p => p.User)
-                .WithMany(u => u.Playlists)
+            builder.HasOne<ApplicationUser>()
+                .WithMany()
                 .HasForeignKey(p => p.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
@@ -131,8 +133,8 @@ namespace Journey_of_faith.Infrastructure.persistence.configurations
             builder.ToTable("UserFavoriteSong");
             builder.HasKey(ufs => ufs.Id);
 
-            builder.HasOne(ufs => ufs.User)
-                .WithMany(u => u.FavoriteSongs)
+            builder.HasOne<ApplicationUser>()
+                .WithMany()
                 .HasForeignKey(ufs => ufs.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
@@ -150,8 +152,8 @@ namespace Journey_of_faith.Infrastructure.persistence.configurations
             builder.ToTable("ListeningHistory");
             builder.HasKey(lh => lh.Id);
 
-            builder.HasOne(lh => lh.User)
-                .WithMany(u => u.ListeningHistories)
+            builder.HasOne<ApplicationUser>()
+                .WithMany()
                 .HasForeignKey(lh => lh.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 

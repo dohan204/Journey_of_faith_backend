@@ -1,12 +1,12 @@
 using FluentValidation;
 using Journey_of_faith.Application.common.interfaces;
 using Journey_of_faith.Application.exceptions;
-using Journey_of_faith.Domain.interfaces;
+using Journey_of_faith.Application.common.dtos.Events;
 using MediatR;
 
 namespace Journey_of_faith.Application.usecases.events.queries
 {
-    public class GetFollowedEventsQuery : IRequest<IEnumerable<EventListItemView>>
+    public class GetFollowedEventsQuery : IRequest<IEnumerable<EventViewDto>>
     {
         public DateTime? StartFrom { get; set; }
         public DateTime? StartTo { get; set; }
@@ -22,25 +22,25 @@ namespace Journey_of_faith.Application.usecases.events.queries
         }
     }
 
-    public class GetFollowedEventsHandler : IRequestHandler<GetFollowedEventsQuery, IEnumerable<EventListItemView>>
+    public class GetFollowedEventsHandler : IRequestHandler<GetFollowedEventsQuery, IEnumerable<EventViewDto>>
     {
-        private readonly IEventRepository _eventRepository;
+        private readonly IEventQueries _eventQueries;
         private readonly ICurrentUserService _currentUserService;
 
-        public GetFollowedEventsHandler(IEventRepository eventRepository, ICurrentUserService currentUserService)
+        public GetFollowedEventsHandler(IEventQueries eventQueries, ICurrentUserService currentUserService)
         {
-            _eventRepository = eventRepository;
+            _eventQueries = eventQueries;
             _currentUserService = currentUserService;
         }
 
-        public async Task<IEnumerable<EventListItemView>> Handle(GetFollowedEventsQuery request, CancellationToken cancellationToken)
+        public async Task<IEnumerable<EventViewDto>> Handle(GetFollowedEventsQuery request, CancellationToken cancellationToken)
         {
             if (!Guid.TryParse(_currentUserService.UserId, out var userId))
             {
                 throw new UnauthorizationException("Không xác định được người dùng hiện tại.");
             }
 
-            return await _eventRepository.GetFollowedEventsAsync(userId, request.StartFrom, request.StartTo);
+            return await _eventQueries.GetFollowedEventsAsync(userId, request.StartFrom, request.StartTo, cancellationToken);
         }
     }
 }

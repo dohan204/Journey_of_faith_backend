@@ -13,7 +13,7 @@ namespace Journey_of_faith.Domain.entities.location
         public int CountChurch => _churchList.Count;
         private List<Church> _churchList { get; set ; } = new List<Church>();
 
-        public IReadOnlyCollection<Church> Churchs => _churchList.AsReadOnly();
+        public IReadOnlyCollection<Church> Churches => _churchList.AsReadOnly();
         public Diocese() {  }
 
         public Diocese(string name, string? websizte, string address, string thumbnail, Guid Userid)

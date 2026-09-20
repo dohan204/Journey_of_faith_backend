@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Text;
 using Journey_of_faith.Domain.entities.location;
 using Journey_of_faith.Application.common.interfaces;
+using Journey_of_faith.Application.usecases.churchs;
 
 namespace Journey_of_faith.Application.usecases.churchs.commands
 {
@@ -13,15 +14,23 @@ namespace Journey_of_faith.Application.usecases.churchs.commands
     {
         private readonly IChurchRepository _churchRepository;
         private readonly ICurrentUserService _currentUserService;
-        public CreateDioceseHandler(IChurchRepository churchRepository, ICurrentUserService currentUserService)
+        private readonly IChurchQueries _churchQueries;
+        private readonly IUnitOfWork _unitOfWork;
+        public CreateDioceseHandler(
+            IChurchRepository churchRepository,
+            ICurrentUserService currentUserService,
+            IChurchQueries churchQueries,
+            IUnitOfWork unitOfWork)
         {
             _churchRepository = churchRepository;
             _currentUserService = currentUserService;
+            _churchQueries = churchQueries;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<int> Handle(CreateDioceseCommand command, CancellationToken token)
         {
-            if (await _churchRepository.UniqueNameDiocese(command.Name))
+            if (await _churchQueries.DioceseNameExistsAsync(command.Name, token))
             {
                 throw new UnprocessableEntityException("Tên Giáo xữ đã tòn tại");
             }
@@ -30,8 +39,9 @@ namespace Journey_of_faith.Application.usecases.churchs.commands
                 throw new UnauthorizationException("Người dùng không hợp lệ");
             }
             var diocese = new Diocese(command.Name, command.Website, command.Address ?? string.Empty, command.Thumbnail ?? string.Empty, userId);
-            var dioceseId = await _churchRepository.CreateAsync(diocese);
-            return dioceseId;
+            await _churchRepository.AddAsync(diocese, token);
+            await _unitOfWork.SaveChangeAsync(token);
+            return diocese.Id;
         }
     }
 }

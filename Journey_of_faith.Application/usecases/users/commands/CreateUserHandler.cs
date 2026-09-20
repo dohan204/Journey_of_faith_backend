@@ -20,15 +20,12 @@ namespace Journey_of_faith.Application.usecases.users.commands
         {
             if(await _services.ExistsEmail(command.Email))
             {
-                Console.WriteLine($"email: ${command.Email} trùng với email trong cơ sở dữ liệu");
                 throw new ConfictException($"Email {command.Email} đã đươc sử dụng, vui lòng nhập email khác");
             }
 
-            Console.WriteLine("ok!, tạo người dùng");
             var user = User.Create(command.Username, command.Password, command.Email);
 
             await _services.CreateAsync(user, command.RoleName);
-            Console.WriteLine("Tạo người dùng thành công.");
             return true;
         }
     }

@@ -5,6 +5,7 @@ using Google.Apis.Drive.v3;
 using Google.Apis.Services;
 using Journey_of_faith.Application.common.interfaces;
 using Journey_of_faith.Application.common.untils;
+using Journey_of_faith.Application.usecases.churchs;
 using Journey_of_faith.Application.exceptions;
 using Journey_of_faith.Domain.entities.location;
 using Journey_of_faith.Domain.entities.masslive;
@@ -22,15 +23,21 @@ public class UpdateChurchHandler : IRequestHandler<UpdateChurchCommand, int>
     private readonly IChurchRepository _repo;
     private readonly ICurrentUserService _currentUserService;
     private readonly IConfiguration configuration;
+    private readonly IChurchQueries _churchQueries;
+    private readonly IUnitOfWork _unitOfWork;
 
     public UpdateChurchHandler(
         IChurchRepository repo,
         ICurrentUserService currentUserService,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IChurchQueries churchQueries,
+        IUnitOfWork unitOfWork)
     {
         _repo = repo;
         _currentUserService = currentUserService;
         this.configuration = configuration;
+        _churchQueries = churchQueries;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<int> Handle(UpdateChurchCommand command, CancellationToken token)
@@ -39,7 +46,7 @@ public class UpdateChurchHandler : IRequestHandler<UpdateChurchCommand, int>
         {
             throw new UnauthorizationException("Người dùng không hợp lệ");
         }
-        if (!await _repo.GetDioceseExistsAsync(command.DioceseId))
+        if (!await _churchQueries.DioceseExistsAsync(command.DioceseId, token))
         {
             throw new NotFoundException("Không có giáo phận mà nhà thờ đăng ký.");
         }
@@ -119,13 +126,13 @@ public class UpdateChurchHandler : IRequestHandler<UpdateChurchCommand, int>
         }
 
         var massSchedules = command.MassSchedules
-            .Select(schedule => new MassSchedule
-            {
-                Id = schedule.Id ?? 0,
-                Name = schedule.Name ?? string.Empty,
-                Time = schedule.Time ?? string.Empty,
-                MassTypeId = 1
-            })
+            .Select(schedule => new MassSchedule(
+                schedule.Id ?? 0,
+                command.Id,
+                date: null,
+                schedule.Time ?? string.Empty,
+                massTypeId: 1,
+                schedule.Name ?? string.Empty))
             .ToList();
 
         var church = new Church(
@@ -150,6 +157,8 @@ public class UpdateChurchHandler : IRequestHandler<UpdateChurchCommand, int>
             })
             .ToList());
 
-        return await _repo.UpdateAsync(church, userId);
+        _repo.Update(church);
+        await _unitOfWork.SaveChangeAsync(token);
+        return church.Id;
     }
 }
