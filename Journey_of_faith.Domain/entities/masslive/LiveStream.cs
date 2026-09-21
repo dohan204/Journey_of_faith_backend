@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Journey_of_faith.Domain.entities.location;
 
 namespace Journey_of_faith.Domain.entities.masslive
 {
@@ -15,5 +16,6 @@ namespace Journey_of_faith.Domain.entities.masslive
         public DateTime? ScheduledAt { get; set; }
         public bool IsLive { get; set; }
         public DateTime CreatedAt { get; set; }
+        public Church? Church { get; set; }
     }
 }

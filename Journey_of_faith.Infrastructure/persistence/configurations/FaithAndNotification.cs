@@ -1,7 +1,12 @@
-﻿using Journey_of_faith.Infrastructure.persistence.entities.faith_notifications;
-using Journey_of_faith.Infrastructure.persistence.entities.location;
+﻿
+using Journey_of_faith.Domain.entities.catholic;
+using Journey_of_faith.Domain.entities.location;
+using Journey_of_faith.Domain.entities.masslive;
+using Journey_of_faith.Domain.entities.notifications;
+using Journey_of_faith.Domain.entities.prayer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Journey_of_faith.Infrastructure.identity;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -115,8 +120,8 @@ namespace Journey_of_faith.Infrastructure.persistence.configurations
             builder.Property(pr => pr.CreationTime).HasDefaultValueSql("getdate()");
             builder.Property(pr => pr.LastModificationTime).HasDefaultValueSql("getdate()");
 
-            builder.HasOne(pr => pr.User)
-                .WithMany(u => u.PrayerRequests)
+            builder.HasOne<ApplicationUser>()
+                .WithMany()
                 .HasForeignKey(pr => pr.UserId)
                 .OnDelete(DeleteBehavior.NoAction);
         }
@@ -138,8 +143,8 @@ namespace Journey_of_faith.Infrastructure.persistence.configurations
                 .HasForeignKey(pc => pc.PrayerRequestId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasOne(pc => pc.User)
-                .WithMany(u => u.PrayerComments)
+            builder.HasOne<ApplicationUser>()
+                .WithMany()
                 .HasForeignKey(pc => pc.UserId)
                 .OnDelete(DeleteBehavior.NoAction);
         }
@@ -155,8 +160,8 @@ namespace Journey_of_faith.Infrastructure.persistence.configurations
             builder.Property(dt => dt.Platform).HasMaxLength(20);
             builder.Property(dt => dt.CreatedAt).HasDefaultValueSql("getdate()");
 
-            builder.HasOne(dt => dt.User)
-                .WithMany(u => u.DeviceTokens)
+            builder.HasOne<ApplicationUser>()
+                .WithMany()
                 .HasForeignKey(dt => dt.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
@@ -169,8 +174,8 @@ namespace Journey_of_faith.Infrastructure.persistence.configurations
             builder.ToTable("NotificationPreference");
             builder.HasKey(np => np.Id);
 
-            builder.HasOne(np => np.User)
-                .WithMany(u => u.NotificationPreferences)
+            builder.HasOne<ApplicationUser>()
+                .WithMany()
                 .HasForeignKey(np => np.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
@@ -184,8 +189,8 @@ namespace Journey_of_faith.Infrastructure.persistence.configurations
             builder.HasKey(rs => rs.Id);
             builder.Property(rs => rs.SpeechGender).HasMaxLength(50);
 
-            builder.HasOne(rs => rs.User)
-                .WithMany(u => u.ReminderSettings)
+            builder.HasOne<ApplicationUser>()
+                .WithMany()
                 .HasForeignKey(rs => rs.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
         }

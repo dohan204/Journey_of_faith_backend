@@ -1,5 +1,6 @@
 ﻿using FluentValidation;
 using Journey_of_faith.Application.common.interfaces;
+using Journey_of_faith.Application.usecases.questions;
 using Journey_of_faith.Domain.interfaces;
 using MediatR;
 using System;
@@ -32,11 +33,11 @@ namespace Journey_of_faith.Application.usecases.quizs.commands
 
     public class CreateQuizValidator : AbstractValidator<CreateQuizCommand>
     {
-        private readonly IQuestionRepository _repo;
+        private readonly IQuestionQueries _queries;
         private readonly ICurrentUserService _currentUser;
-        public CreateQuizValidator(IQuestionRepository questionRepository, ICurrentUserService currentUserService)
+        public CreateQuizValidator(IQuestionQueries questionQueries, ICurrentUserService currentUserService)
         {
-            _repo = questionRepository;
+            _queries = questionQueries;
             _currentUser = currentUserService;
             RuleFor(e => e.Title)
                 .NotEmpty().WithMessage("Tên đề thi không được bỏ trống")
@@ -68,19 +69,19 @@ namespace Journey_of_faith.Application.usecases.quizs.commands
             RuleFor(e => e.HardQuestion)
                     .MustAsync(async (hard, token) =>
                     {
-                        return await _repo.GetCountQuestionByLevel("Khó") >= hard;
+                        return await _queries.GetQuestionCountByLevelAsync("Khó", token) >= hard;
                     }).WithMessage("Số lượng câu hỏi khó trong cơ sở dữ liệu không đủ");
 
             RuleFor(e => e.MediumQuestion)
                     .MustAsync(async (medium, token) =>
                     {
-                        return await _repo.GetCountQuestionByLevel("Trung bình") >= medium;
+                        return await _queries.GetQuestionCountByLevelAsync("Trung bình", token) >= medium;
                     }).WithMessage("Số lượng câu hỏi trung bình trong cơ sở dữ liệu không đủ");
 
             RuleFor(e => e.EasyQuestion)
                     .MustAsync(async (easy, token) =>
                     {
-                        return await _repo.GetCountQuestionByLevel("Dễ") >= easy;
+                        return await _queries.GetQuestionCountByLevelAsync("Dễ", token) >= easy;
                     }).WithMessage("Số lượng câu hỏi dễ trong cơ sở dữ liệu không đủ");
 
         }
@@ -88,16 +89,16 @@ namespace Journey_of_faith.Application.usecases.quizs.commands
 
     public class CreateQuizQuestionValidator : AbstractValidator<CreateQuizQuestionCommand>
     {
-        private readonly IQuestionRepository questionRepository;
-        public CreateQuizQuestionValidator(IQuestionRepository questionRepository)
+        private readonly IQuestionQueries questionQueries;
+        public CreateQuizQuestionValidator(IQuestionQueries questionQueries)
         {
 
-            this.questionRepository = questionRepository;
+            this.questionQueries = questionQueries;
             RuleFor(e => e.QuizId).NotEmpty().WithMessage("Mã đề kh đucợ để trống");
             RuleFor(e => e.QuestionId).NotEmpty().WithMessage("questionId không được để trống")
                 .MustAsync(async (id, cancellationToken) =>
             {
-                return await questionRepository.CheckValidId(id, "Question");
+                return await questionQueries.IdExistsAsync(id, "Question", cancellationToken);
             }).WithMessage("Question ID Không hợp lệ");
         }
     }

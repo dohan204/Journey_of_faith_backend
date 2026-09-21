@@ -1,27 +1,27 @@
 using Journey_of_faith.Application.common.interfaces;
-using Journey_of_faith.Domain.interfaces;
+using Journey_of_faith.Application.common.dtos.church;
 using MediatR;
 
 namespace Journey_of_faith.Application.usecases.churchs.queries
 {
-    public class SearchChurchQuery : IRequest<IEnumerable<ChurchListItemView>>
+    public class SearchChurchQuery : IRequest<IEnumerable<ChurchListItemDto>>
     {
         public string? Keyword { get; set; }
         public int? DioceseId { get; set; }
     }
 
-    public class SearchChurchHandler : IRequestHandler<SearchChurchQuery, IEnumerable<ChurchListItemView>>
+    public class SearchChurchHandler : IRequestHandler<SearchChurchQuery, IEnumerable<ChurchListItemDto>>
     {
-        private readonly IChurchRepository _churchRepository;
+        private readonly IChurchQueries _churchQueries;
         private readonly ICurrentUserService _currentUserService;
 
-        public SearchChurchHandler(IChurchRepository churchRepository, ICurrentUserService currentUserService)
+        public SearchChurchHandler(IChurchQueries churchQueries, ICurrentUserService currentUserService)
         {
-            _churchRepository = churchRepository;
+            _churchQueries = churchQueries;
             _currentUserService = currentUserService;
         }
 
-        public async Task<IEnumerable<ChurchListItemView>> Handle(SearchChurchQuery request, CancellationToken cancellationToken)
+        public async Task<IEnumerable<ChurchListItemDto>> Handle(SearchChurchQuery request, CancellationToken cancellationToken)
         {
             Guid? userId = null;
             if (Guid.TryParse(_currentUserService.UserId, out var parsed))
@@ -29,7 +29,7 @@ namespace Journey_of_faith.Application.usecases.churchs.queries
                 userId = parsed;
             }
 
-            return await _churchRepository.SearchChurchesAsync(request.Keyword, request.DioceseId, userId);
+            return await _churchQueries.SearchChurchesAsync(request.Keyword, request.DioceseId, userId, cancellationToken);
         }
     }
 }

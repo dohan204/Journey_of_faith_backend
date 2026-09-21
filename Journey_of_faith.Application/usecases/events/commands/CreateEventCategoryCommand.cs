@@ -24,11 +24,13 @@ namespace Journey_of_faith.Application.usecases.events.commands
     public class CreateEventCategoryHandler : IRequestHandler<CreateEventCategoryCommand, int>
     {
         private readonly IEventRepository _eventRepository;
+        private readonly IEventQueries _eventQueries;
         private readonly ICurrentUserService _currentUserService;
 
-        public CreateEventCategoryHandler(IEventRepository eventRepository, ICurrentUserService currentUserService)
+        public CreateEventCategoryHandler(IEventRepository eventRepository, IEventQueries eventQueries, ICurrentUserService currentUserService)
         {
             _eventRepository = eventRepository;
+            _eventQueries = eventQueries;
             _currentUserService = currentUserService;
         }
 
@@ -44,7 +46,7 @@ namespace Journey_of_faith.Application.usecases.events.commands
                 throw new ForbiddenException("Bạn không có quyền tạo danh mục sự kiện.");
             }
 
-            if (await _eventRepository.CategoryNameExistsAsync(request.Name.Trim()))
+            if (await _eventQueries.CategoryNameExistsAsync(request.Name.Trim(), cancellationToken))
             {
                 throw new ConfictException("Tên danh mục sự kiện đã tồn tại.");
             }

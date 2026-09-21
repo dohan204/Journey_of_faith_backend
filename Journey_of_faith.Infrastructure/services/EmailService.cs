@@ -1,6 +1,7 @@
 using Journey_of_faith.Application.common.interfaces;
 using MailKit.Net.Smtp;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using MimeKit;
 
 namespace Journey_of_faith.Infrastructure.services;
@@ -8,8 +9,11 @@ namespace Journey_of_faith.Infrastructure.services;
 public class EmailService : IEmailService
 {
     private readonly EmailSendProperties emailSendProperties;
-    public EmailService(IConfiguration config)
+    private readonly ILogger<EmailService> _logger;
+
+    public EmailService(IConfiguration config, ILogger<EmailService> logger)
     {
+        _logger = logger;
         emailSendProperties = config.GetSection(EmailSendPropertiesExtensions.COLLECTION_EMAIL)
             .Get<EmailSendProperties>() ?? new EmailSendProperties();
     }
@@ -41,12 +45,13 @@ public class EmailService : IEmailService
 
                 await client.DisconnectAsync(true);
             }
-            Console.WriteLine("Reset mật khẩu thành công, gửi email");
+            _logger.LogInformation("Email sent successfully");
             return "Gửi email thành công.";
-        } catch (Exception ex)
+        }
+        catch (Exception exception)
         {
-             return $"Gửi email thất bại: {ex.Message}";
-             throw;
+            _logger.LogError(exception, "Failed to send email");
+            return $"Gửi email thất bại: {exception.Message}";
         }
     }
 }

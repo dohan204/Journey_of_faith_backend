@@ -9,6 +9,8 @@ namespace Journey_of_faith.Domain.entities.musics
         public string Name { get; private set; } = string.Empty;
         public string Description { get; private set; } = string.Empty;
         public string? ImageUrl { get; private set; }
+        public ICollection<Album> Albums { get; set; } = [];
+        public ICollection<Song> Songs { get; set; } = [];
 
 
         public Artist() {}

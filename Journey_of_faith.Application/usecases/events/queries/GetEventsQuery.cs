@@ -1,13 +1,12 @@
 using FluentValidation;
 using Journey_of_faith.Application.common.interfaces;
+using Journey_of_faith.Application.common.dtos.Events;
 using Journey_of_faith.Domain.dtos;
-using Journey_of_faith.Domain.entities.events;
-using Journey_of_faith.Domain.interfaces;
 using MediatR;
 
 namespace Journey_of_faith.Application.usecases.events.queries
 {
-    public class GetEventsQuery : IRequest<PagedResult<Event>>
+    public class GetEventsQuery : IRequest<PagedResult<EventViewDto>>
     {
         public string? Keyword { get; set; }
         public int? CategoryId { get; set; }
@@ -38,27 +37,25 @@ namespace Journey_of_faith.Application.usecases.events.queries
         }
     }
 
-    public class GetEventsHandler : IRequestHandler<GetEventsQuery, PagedResult<Event>>
+    public class GetEventsHandler : IRequestHandler<GetEventsQuery, PagedResult<EventViewDto>>
     {
-        private readonly IEventRepository _eventRepository;
-        private readonly ICurrentUserService _currentUserService;
+        private readonly IEventQueries _eventQueries;
 
-        public GetEventsHandler(IEventRepository eventRepository, ICurrentUserService currentUserService)
+        public GetEventsHandler(IEventQueries eventQueries)
         {
-            _eventRepository = eventRepository;
-            _currentUserService = currentUserService;
+            _eventQueries = eventQueries;
         }
 
-        public async Task<PagedResult<Event>> Handle(GetEventsQuery request, CancellationToken cancellationToken)
+        public async Task<PagedResult<EventViewDto>> Handle(GetEventsQuery request, CancellationToken cancellationToken)
         {
-            var filter = new EventListFilter
+            var filter = new EventFilterDto
             {
                 Keyword = request.Keyword,
                 PageIndex = request.PageIndex,
                 PageSize = request.PageSize
             };
 
-            return await _eventRepository.GetEventsAsync(filter);
+            return await _eventQueries.GetEventsAsync(filter, cancellationToken);
         }
     }
 }

@@ -1,5 +1,6 @@
 using Journey_of_faith.Application.usecases.quizs.queries;
-using Journey_of_faith.Domain.interfaces;
+using Journey_of_faith.Application.usecases.quizs;
+using Journey_of_faith.Application.common.dtos.quiz;
 using Moq;
 
 namespace UnitTesting.HandlerTests.quiz
@@ -9,19 +10,19 @@ namespace UnitTesting.HandlerTests.quiz
         [Fact]
         public async Task Handle_ShouldReturnAllQuizzesFromRepository()
         {
-            var quizzes = new List<QuizView>
+            var quizzes = new List<QuizViewDto>
             {
                 new()
                 {
                     Id = 2,
                     Title = "Đề thi 2",
-                    Questions = new List<QuestionQuiz>
+                    Questions = new List<QuizQuestionDto>
                     {
                         new()
                         {
                             Id = 10,
                             QuestionContent = "Câu hỏi 1",
-                            Ansewrs = new List<AnsewrQuestion>
+                            Answers = new List<QuizAnswerDto>
                             {
                                 new() { Id = 100, QuestionId = 10, Content = "Đáp án 1" }
                             }
@@ -30,14 +31,14 @@ namespace UnitTesting.HandlerTests.quiz
                 },
                 new() { Id = 1, Title = "Đề thi 1" }
             };
-            var repository = new Mock<IExamRepository>();
-            repository.Setup(x => x.GetAllQuizzesAsync()).ReturnsAsync(quizzes);
-            var handler = new GetAllQuizzesHandler(repository.Object);
+            var queries = new Mock<IExamQueries>();
+            queries.Setup(x => x.GetAllQuizzesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(quizzes);
+            var handler = new GetAllQuizzesHandler(queries.Object);
 
             var result = await handler.Handle(new GetAllQuizzesQuery(), CancellationToken.None);
 
             Assert.Equal(quizzes, result);
-            repository.Verify(x => x.GetAllQuizzesAsync(), Times.Once);
+            queries.Verify(x => x.GetAllQuizzesAsync(It.IsAny<CancellationToken>()), Times.Once);
         }
     }
 }

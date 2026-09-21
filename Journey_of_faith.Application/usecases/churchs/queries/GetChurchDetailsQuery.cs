@@ -1,26 +1,19 @@
-using Journey_of_faith.Domain.entities.location;
-using Journey_of_faith.Domain.interfaces;
+using Journey_of_faith.Application.common.dtos.church;
 using MediatR;
 
-namespace Journey_of_faith.Application.usecases.churchs.queries
+namespace Journey_of_faith.Application.usecases.churchs.queries;
+
+public class GetChurchDetailsQuery : IRequest<ChurchViewDto?>
 {
-    public class GetChurchDetailsQuery : IRequest<Church?>
-    {
-        public int Id { get; set; }
-    }
+    public int Id { get; set; }
+}
 
-    public class GetChurchDetailsHandler : IRequestHandler<GetChurchDetailsQuery, Church?>
-    {
-        private readonly IChurchRepository _churchRepository;
+public class GetChurchDetailsHandler : IRequestHandler<GetChurchDetailsQuery, ChurchViewDto?>
+{
+    private readonly IChurchQueries _churchQueries;
 
-        public GetChurchDetailsHandler(IChurchRepository churchRepository)
-        {
-            _churchRepository = churchRepository;
-        }
+    public GetChurchDetailsHandler(IChurchQueries churchQueries) => _churchQueries = churchQueries;
 
-        public async Task<Church?> Handle(GetChurchDetailsQuery request, CancellationToken cancellationToken)
-        {
-            return await _churchRepository.GetChurchByIdAsync(request.Id, cancellationToken);
-        }
-    }
+    public Task<ChurchViewDto?> Handle(GetChurchDetailsQuery request, CancellationToken cancellationToken)
+        => _churchQueries.GetChurchByIdAsync(request.Id, cancellationToken);
 }

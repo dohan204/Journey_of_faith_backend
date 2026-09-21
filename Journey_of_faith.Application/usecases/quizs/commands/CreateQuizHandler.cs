@@ -1,6 +1,7 @@
 ﻿using Journey_of_faith.Application.exceptions;
 using Journey_of_faith.Domain.entities.quiz;
 using Journey_of_faith.Domain.interfaces;
+using Journey_of_faith.Application.usecases.questions;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -13,16 +14,16 @@ namespace Journey_of_faith.Application.usecases.quizs.commands
     public class CreateQuizHandler : IRequestHandler<CreateQuizCommand, int>
     {
         private readonly IExamRepository _examRepository;
-        private readonly IQuestionRepository _questionRepository;
-        public CreateQuizHandler(IExamRepository examRepository, IQuestionRepository questionRepository)
+        private readonly IQuestionQueries _questionQueries;
+        public CreateQuizHandler(IExamRepository examRepository, IQuestionQueries questionQueries)
         {
             _examRepository = examRepository;
-            _questionRepository = questionRepository;
+            _questionQueries = questionQueries;
         }
 
         public async Task<int> Handle(CreateQuizCommand command, CancellationToken token)
         {
-            if(await _questionRepository.GetCountQuestion() < command.QuestionCount)
+            if(await _questionQueries.GetQuestionCountAsync(token) < command.QuestionCount)
             {
                 throw new BadRequestException("Không đủ số câu hỏi để tạo đề thi");
             }

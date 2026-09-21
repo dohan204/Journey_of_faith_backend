@@ -2,6 +2,7 @@ using Journey_of_faith.Application.common.interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Journey_of_faith.Infrastructure.common;
 using Quartz;
 
 namespace Journey_of_faith.Infrastructure.scheduling;
@@ -12,7 +13,7 @@ public static class NotificationSchedulingExtensions
         this IServiceCollection services, IConfiguration configuration)
     {
         services.TryAddSingleton<TimeProvider>(TimeProvider.System);
-        services.AddScoped<INotificationScheduler, QuartzNotificationScheduler>();
+        services.AddLoggedScoped<INotificationScheduler, QuartzNotificationScheduler>();
 
         services.AddQuartz(quartz =>
         {

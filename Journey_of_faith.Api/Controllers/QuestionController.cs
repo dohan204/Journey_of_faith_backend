@@ -1,5 +1,6 @@
 ﻿using Journey_of_faith.Application.usecases.questions.commands;
 using Journey_of_faith.Application.usecases.questions.queries;
+using Journey_of_faith.Application.common.dtos;
 using Journey_of_faith.Domain.entities.quiz;
 using MediatR;
 using Journey_of_faith.Api.dtos;
@@ -9,7 +10,6 @@ using System.Net.Mime;
 using Journey_of_faith.Application.common.interfaces;
 using Journey_of_faith.Domain.interfaces;
 using Journey_of_faith.Domain.dtos;
-using Journey_of_faith.Application.common.dtos;
 using Journey_of_faith.Application.exceptions;
 using Asp.Versioning;
 using Journey_of_faith.Api.Attributes;
@@ -52,13 +52,13 @@ namespace Journey_of_faith.Api.Controllers
             var result = await _mediator.Send(new GetLevelQuery());
             if (!result.Any())
             {
-                return Ok(new ApiResponse<IEnumerable<QuizLevel>>
+                return Ok(new ApiResponse<IEnumerable<QuizLevelDto>>
                 {
                     Message = "Không dó dữ liệu",
                     Data = result
                 });
             }
-            return Ok(new ApiResponse<IEnumerable<QuizLevel>>
+            return Ok(new ApiResponse<IEnumerable<QuizLevelDto>>
             {
                 Message = "Lấy dữ liệu thành công",
                 Data = result
@@ -73,13 +73,13 @@ namespace Journey_of_faith.Api.Controllers
             var quiz = await _mediator.Send(new GetDetailsQuestionLevelCommand { Id = levelId });
             if (quiz is null)
             {
-                return NotFound(new ApiResponse<QuizLevel>
+                return NotFound(new ApiResponse<QuizLevelDto>
                 {
                     Message = "Không tìm thấy dữ liệu",
                     Data = quiz
                 });
             }
-            return Ok(new ApiResponse<QuizLevel>
+            return Ok(new ApiResponse<QuizLevelDto>
             {
                 Message = "Lấy dữ liệu thành công",
                 Data = quiz
@@ -114,14 +114,14 @@ namespace Journey_of_faith.Api.Controllers
             var types = await _mediator.Send(new GetQuestionTypeQuery());
             if (!types.Any())
             {
-                return Ok(new ApiResponse<IEnumerable<QuestionType>>
+                return Ok(new ApiResponse<IEnumerable<QuestionTypeDto>>
                 {
                     Message = "Không có dữ liệu",
                     Data = types
                 });
             }
 
-            return Ok(new ApiResponse<IEnumerable<QuestionType>>
+            return Ok(new ApiResponse<IEnumerable<QuestionTypeDto>>
             {
                 Message = "Lấy dữ lieuj thành công.",
                 Data = types
@@ -136,13 +136,13 @@ namespace Journey_of_faith.Api.Controllers
             var type = await _mediator.Send(new GetDetailsQuestionTypeQuery { Id = id });
             if (type is null)
             {
-                return NotFound(new ApiResponse<QuestionType>
+                return NotFound(new ApiResponse<QuestionTypeDto>
                 {
                     Message = "Không có dữ liệu",
                     Data = type
                 });
             }
-            return Ok(new ApiResponse<QuestionType>
+            return Ok(new ApiResponse<QuestionTypeDto>
             {
                 Message = "Lấy dữ liệu thành công",
                 Data = type
@@ -176,13 +176,13 @@ namespace Journey_of_faith.Api.Controllers
             var categories = await _mediator.Send(new GetCategoriesQuery());
             if (!categories.Any())
             {
-                return Ok(new ApiResponse<IEnumerable<QuestionCategory>>
+                return Ok(new ApiResponse<IEnumerable<QuestionCategoryDto>>
                 {
                     Message = "Không dó dữ liệu",
                     Data = categories
                 });
             }
-            return Ok(new ApiResponse<IEnumerable<QuestionCategory>>
+            return Ok(new ApiResponse<IEnumerable<QuestionCategoryDto>>
             {
                 Message = "Lấy dữ liệu thành công",
                 Data = categories
@@ -197,13 +197,13 @@ namespace Journey_of_faith.Api.Controllers
             var category = await _mediator.Send(new GetDetailsQuestionCategoryQuery { Id = id });
             if (category is null)
             {
-                return NotFound(new ApiResponse<QuestionCategory>
+                return NotFound(new ApiResponse<QuestionCategoryDto>
                 {
                     Message = "Không có dữ liệu",
                     Data = category
                 });
             }
-            return Ok(new ApiResponse<QuestionCategory>
+            return Ok(new ApiResponse<QuestionCategoryDto>
             {
                 Message = "Lấy dữ liệu thành công.",
                 Data = category
@@ -317,7 +317,7 @@ namespace Journey_of_faith.Api.Controllers
         )
         {
             var result = await _mediator.Send(new GetQuestionWithConditionQuery {CategoryId = CategoryId, LevelId = LevelId, QuestionCount = QuestionCount});
-            return Ok(new ApiResponse<IEnumerable<Question>>
+            return Ok(new ApiResponse<IEnumerable<QuestionView>>
             {
                 Data = result,
                 Message = "Lấy câu hỏi thành công."

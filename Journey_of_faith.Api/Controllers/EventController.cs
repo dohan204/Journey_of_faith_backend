@@ -4,9 +4,8 @@ using Journey_of_faith.Api.authorization;
 using Journey_of_faith.Api.dtos;
 using Journey_of_faith.Application.usecases.events.commands;
 using Journey_of_faith.Application.usecases.events.queries;
+using Journey_of_faith.Application.common.dtos.Events;
 using Journey_of_faith.Domain.dtos;
-using Journey_of_faith.Domain.entities.events;
-using Journey_of_faith.Domain.interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -48,7 +47,7 @@ namespace Journey_of_faith.Api.Controllers
         public async Task<IActionResult> GetCategories()
         {
             var categories = await _mediator.Send(new GetEventCategoriesQuery());
-            return Ok(new ApiResponse<IEnumerable<EventCategoryView>>
+            return Ok(new ApiResponse<IEnumerable<EventCategoryDto>>
             {
                 Message = categories.Any() ? "Lấy danh mục sự kiện thành công." : "Không có danh mục sự kiện nào.",
                 Data = categories
@@ -103,7 +102,7 @@ namespace Journey_of_faith.Api.Controllers
         public async Task<IActionResult> GetEvents([FromQuery] GetEventsQuery query)
         {
             var events = await _mediator.Send(query);
-            return Ok(new ApiResponse<PagedResult<Event>>
+            return Ok(new ApiResponse<PagedResult<EventViewDto>>
             {
                 Message = events.TotalCount > 0 ? "Lấy danh sách sự kiện thành công." : "Không có sự kiện phù hợp.",
                 Data = events
@@ -125,7 +124,7 @@ namespace Journey_of_faith.Api.Controllers
                 });
             }
 
-            return Ok(new ApiResponse<EventDetailsView>
+            return Ok(new ApiResponse<EventDetailsDto>
             {
                 Message = "Lấy chi tiết sự kiện thành công.",
                 Data = details
@@ -164,7 +163,7 @@ namespace Journey_of_faith.Api.Controllers
         public async Task<IActionResult> GetFollowedEvents([FromQuery] GetFollowedEventsQuery query)
         {
             var events = await _mediator.Send(query);
-            return Ok(new ApiResponse<IEnumerable<EventListItemView>>
+            return Ok(new ApiResponse<IEnumerable<EventViewDto>>
             {
                 Message = events.Any() ? "Lấy danh sách sự kiện theo dõi thành công." : "Bạn chưa theo dõi sự kiện nào.",
                 Data = events
@@ -195,7 +194,7 @@ namespace Journey_of_faith.Api.Controllers
         public async Task<IActionResult> GetComment([FromRoute]int Id)
         {
             var result = await _mediator.Send(new GetCommentForEventQuery {EventId = Id});
-            return Ok(new ApiResponse<List<EventCommentView>>
+            return Ok(new ApiResponse<IReadOnlyList<EventCommentDto>>
             {
                 Message = "Lấy comment thành công",
                 Data = result

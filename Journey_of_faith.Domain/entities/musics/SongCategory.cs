@@ -7,6 +7,7 @@ namespace Journey_of_faith.Domain.entities.musics
     public class SongCategory : AuditableEntity
     {
         public string? Name { get; private set; }
+        public ICollection<SongCategoryMapping> SongMappings { get; set; } = [];
 
         public SongCategory() {}
 

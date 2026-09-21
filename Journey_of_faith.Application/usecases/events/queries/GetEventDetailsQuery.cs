@@ -1,11 +1,11 @@
 using FluentValidation;
 using Journey_of_faith.Application.common.interfaces;
-using Journey_of_faith.Domain.interfaces;
+using Journey_of_faith.Application.common.dtos.Events;
 using MediatR;
 
 namespace Journey_of_faith.Application.usecases.events.queries
 {
-    public class GetEventDetailsQuery : IRequest<EventDetailsView?>
+    public class GetEventDetailsQuery : IRequest<EventDetailsDto?>
     {
         public int EventId { get; set; }
     }
@@ -19,18 +19,18 @@ namespace Journey_of_faith.Application.usecases.events.queries
         }
     }
 
-    public class GetEventDetailsHandler : IRequestHandler<GetEventDetailsQuery, EventDetailsView?>
+    public class GetEventDetailsHandler : IRequestHandler<GetEventDetailsQuery, EventDetailsDto?>
     {
-        private readonly IEventRepository _eventRepository;
+        private readonly IEventQueries _eventQueries;
         private readonly ICurrentUserService _currentUserService;
 
-        public GetEventDetailsHandler(IEventRepository eventRepository, ICurrentUserService currentUserService)
+        public GetEventDetailsHandler(IEventQueries eventQueries, ICurrentUserService currentUserService)
         {
-            _eventRepository = eventRepository;
+            _eventQueries = eventQueries;
             _currentUserService = currentUserService;
         }
 
-        public async Task<EventDetailsView?> Handle(GetEventDetailsQuery request, CancellationToken cancellationToken)
+        public async Task<EventDetailsDto?> Handle(GetEventDetailsQuery request, CancellationToken cancellationToken)
         {
             Guid? userId = null;
             if (Guid.TryParse(_currentUserService.UserId, out var parsedUserId))
@@ -38,7 +38,7 @@ namespace Journey_of_faith.Application.usecases.events.queries
                 userId = parsedUserId;
             }
 
-            return await _eventRepository.GetEventDetailsAsync(request.EventId, userId);
+            return await _eventQueries.GetEventDetailsAsync(request.EventId, userId, cancellationToken);
         }
     }
 }

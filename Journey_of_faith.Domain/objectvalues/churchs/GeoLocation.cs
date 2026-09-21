@@ -9,10 +9,10 @@ namespace Journey_of_faith.Domain.objectvalues.churchs
         public float Latitude { get; }
         public float Longitude { get; }
 
-        public GeoLocation(float latitude, float longtitude)
+        public GeoLocation(float latitude, float longitude)
         {
             Latitude = latitude;
-            Longitude = longtitude;
+            Longitude = longitude;
         }
 
         public static GeoLocation FromCoordinates(float latitude, float longitude)

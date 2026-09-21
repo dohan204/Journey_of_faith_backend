@@ -15,6 +15,9 @@ namespace Journey_of_faith.Domain.entities.quiz
         public string? ImageUrl { get; private set; }
         public bool? IsActive { get; private set; } 
         public DateTime? CreatedTime { get; private set; }
+        public QuizLevel Level { get; set; } = null!;
+        public QuestionType? Type { get; set; }
+        public QuestionCategory? Category { get; set; }
 
         private readonly List<Answer> _answers = new();
         private readonly List<QuizQuestion> _quizQuestions = new();

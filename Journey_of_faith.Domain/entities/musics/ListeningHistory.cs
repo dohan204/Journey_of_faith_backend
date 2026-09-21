@@ -10,6 +10,7 @@ namespace Journey_of_faith.Domain.entities.musics
         public Guid UserId { get; private set; }
         public int SongId { get; private set; }
         public DateTime? ListenTime { get; private set; }
+        public Song Song { get; set; } = null!;
         public ListeningHistory(Guid userId, int songId)
         {
             UserId = userId;

@@ -1,9 +1,9 @@
+using Journey_of_faith.Application.common.dtos.church;
+using Journey_of_faith.Application.usecases.churchs;
 using Journey_of_faith.Domain.dtos;
-using Journey_of_faith.Domain.entities.location;
-using Journey_of_faith.Domain.interfaces;
 using MediatR;
 
-public class GetChurchWithCondition : IRequest<PagedResult<Church>>
+public class GetChurchWithCondition : IRequest<PagedResult<ChurchViewDto>>
 {
     public string? NameChurch { get; set; }
     public string? Province { get; set; }
@@ -12,30 +12,29 @@ public class GetChurchWithCondition : IRequest<PagedResult<Church>>
     public int Page { get; set; }
     public int PageSize { get; set; }
 }
-
-public class GetChurchWithConditionHandler : IRequestHandler<GetChurchWithCondition, PagedResult<Church>>
+public class GetChurchWithConditionHandler : IRequestHandler<GetChurchWithCondition, PagedResult<ChurchViewDto>>
 {
-    private readonly IChurchRepository churchRepository;
+    private readonly IChurchQueries churchQueries;
 
-    public GetChurchWithConditionHandler(IChurchRepository churchRepository)
+    public GetChurchWithConditionHandler(IChurchQueries churchQueries)
     {
-        this.churchRepository = churchRepository;
+        this.churchQueries = churchQueries;
     }
 
-    public async Task<PagedResult<Church>> Handle(
+    public async Task<PagedResult<ChurchViewDto>> Handle(
         GetChurchWithCondition query,
         CancellationToken cancellationToken)
     {
-        var page = query.Page > 0 ? query.Page : 1;
-        var pageSize = query.PageSize > 0 ? query.PageSize : 10;
-
-        return await churchRepository.GetChurchWithCondition(
-            query.NameChurch,
-            query.Province,
-            query.Ward,
-            query.Time,
-            page,
-            pageSize);
+        return await churchQueries.GetListAsync(new QueryFilter
+        {
+            ChurchName = query.NameChurch,
+            Province = query.Province,
+            Ward = query.Ward,
+            Time = query.Time,
+            Page = query.Page,
+            PageSize = query.PageSize,
+        }
+            );
 
     }
 }

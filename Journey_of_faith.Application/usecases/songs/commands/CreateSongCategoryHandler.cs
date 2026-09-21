@@ -16,7 +16,7 @@ public class CreateSongCategoryHandler : IRequestHandler<CreateSongCategoryComma
 
     public async Task<int> Handle(CreateSongCategoryCommand command, CancellationToken cancellationToken)
     {
-        var insert = new SongCategory(command.Name);
+        var insert = new SongCategory(command.Name.Trim());
         return await _repo.CreateSongCategoryAsync(insert, cancellationToken);
     }
 }

@@ -1,7 +1,7 @@
-﻿
-using Journey_of_faith.Infrastructure.persistence.entities.events;
+﻿using Journey_of_faith.Domain.entities.events;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Journey_of_faith.Infrastructure.identity;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -66,8 +66,8 @@ namespace Journey_of_faith.Infrastructure.persistence.configurations
                 .HasForeignKey(ec => ec.EventId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasOne(ec => ec.User)
-                .WithMany(u => u.EventComments)
+            builder.HasOne<ApplicationUser>()
+                .WithMany()
                 .HasForeignKey(ec => ec.UserId)
                 .OnDelete(DeleteBehavior.NoAction);
         }
@@ -85,6 +85,11 @@ namespace Journey_of_faith.Infrastructure.persistence.configurations
                 .WithMany(e => e.Followers)
                 .HasForeignKey(ef => ef.EventId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasOne<ApplicationUser>()
+                .WithMany()
+                .HasForeignKey(ef => ef.UserId)
+                .OnDelete(DeleteBehavior.NoAction);
         }
     }
 
@@ -100,6 +105,11 @@ namespace Journey_of_faith.Infrastructure.persistence.configurations
                 .WithMany(e => e.Participants)
                 .HasForeignKey(ep => ep.EventId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasOne<ApplicationUser>()
+                .WithMany()
+                .HasForeignKey(ep => ep.UserId)
+                .OnDelete(DeleteBehavior.NoAction);
         }
     }
 
@@ -143,8 +153,8 @@ namespace Journey_of_faith.Infrastructure.persistence.configurations
             builder.HasKey(ue => new { ue.UserId, ue.EventId });
             builder.Property(ue => ue.FollowedAt).HasDefaultValueSql("getdate()");
 
-            builder.HasOne(ue => ue.User)
-                .WithMany(u => u.UserEvents)
+            builder.HasOne<ApplicationUser>()
+                .WithMany()
                 .HasForeignKey(ue => ue.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 

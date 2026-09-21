@@ -7,7 +7,7 @@ namespace Journey_of_faith.Domain.entities.musics
     public class Playlist
     {
         public int Id { get; set; }
-        public long UserId { get; set; }
+        public Guid UserId { get; set; }
         public string Title { get; set; } = string.Empty;
         public DateTime? CreatedTime { get; set; }
 
