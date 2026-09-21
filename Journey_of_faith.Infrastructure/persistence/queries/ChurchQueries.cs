@@ -115,11 +115,24 @@ public sealed class ChurchQueries : BaseRepository, IChurchQueries
     public async Task<IReadOnlyList<MassScheduleTodayDto>> GetMassScheduleTodayViewsAsync(
         CancellationToken cancellationToken = default)
     {
-        var today = DateOnly.FromDateTime(DateTime.Today);
+        var todayDateTime = DateTime.Today;
+        var tomorrowDateTime = todayDateTime.AddDays(1);
+        var today = DateOnly.FromDateTime(todayDateTime);
+        var todayNames = GetVietnameseDayNames(todayDateTime.DayOfWeek);
 
         return await _dbContext.MassSchedules
             .AsNoTracking()
-            .Where(schedule => schedule.Date == today && schedule.IsDeleted != true)
+            .Where(schedule =>
+                schedule.IsDeleted != true &&
+                (
+                    schedule.Date == today ||
+                    todayNames.Contains(schedule.Name.Trim()) ||
+                    _dbContext.CatholicFeasts.Any(feast =>
+                        feast.IsDeleted != true &&
+                        feast.FeastDate >= todayDateTime &&
+                        feast.FeastDate < tomorrowDateTime &&
+                        (schedule.Name.Contains(feast.Name) || feast.Name.Contains(schedule.Name)))
+                ))
             .Select(schedule => new MassScheduleTodayDto
             {
                 Time = schedule.Time,
@@ -128,6 +141,21 @@ public sealed class ChurchQueries : BaseRepository, IChurchQueries
                 Description = schedule.Church.Description
             })
             .ToListAsync(cancellationToken);
+    }
+
+    private static string[] GetVietnameseDayNames(DayOfWeek dayOfWeek)
+    {
+        return dayOfWeek switch
+        {
+            DayOfWeek.Monday => ["Thứ 2", "thứ 2", "Thứ Hai", "Thứ hai", "thứ Hai", "thứ hai"],
+            DayOfWeek.Tuesday => ["Thứ 3", "thứ 3", "Thứ Ba", "Thứ ba", "thứ Ba", "thứ ba"],
+            DayOfWeek.Wednesday => ["Thứ 4", "thứ 4", "Thứ Tư", "Thứ tư", "thứ Tư", "thứ tư"],
+            DayOfWeek.Thursday => ["Thứ 5", "thứ 5", "Thứ Năm", "Thứ năm", "thứ Năm", "thứ năm"],
+            DayOfWeek.Friday => ["Thứ 6", "thứ 6", "Thứ Sáu", "Thứ sáu", "thứ Sáu", "thứ sáu"],
+            DayOfWeek.Saturday => ["Thứ 7", "thứ 7", "Thứ Bảy", "Thứ bảy", "thứ Bảy", "thứ bảy"],
+            DayOfWeek.Sunday => ["Chủ Nhật", "Chủ nhật", "chủ Nhật", "chủ nhật", "Chúa Nhật", "Chúa nhật", "chúa Nhật", "chúa nhật"],
+            _ => []
+        };
     }
 
     public Task<bool> DioceseExistsAsync(
@@ -263,19 +291,104 @@ public sealed class ChurchQueries : BaseRepository, IChurchQueries
         Guid userId,
         CancellationToken cancellationToken = default)
     {
-        var churches = await _dbContext.UserChurches
-            .AsNoTracking()
-            .Where(link => link.UserId == userId && link.Church.IsDeleted != true)
-            .Select(link => link.Church)
-            .Include(church => church.Diocese)
-            .Include(church => church.MassSchedules)
-                .ThenInclude(schedule => schedule.MassType)
-            .Include(church => church.MassSchedules)
-                .ThenInclude(schedule => schedule.Liturgy)
-            .Include(church => church.ChurchImages)
-            .ToListAsync(cancellationToken);
+        return await QueryAsync(async connection =>
+        {
+            var command = new CommandDefinition(
+                $"""
+                SELECT c.Id,
+                       c.Name AS ChurchName,
+                       c.Thumbnail,
+                       c.Email,
+                       c.Address,
+                       c.DioceseId,
+                       d.Name AS DioceseName,
+                       c.Boss,
+                       c.Description,
+                       c.Latitude,
+                       c.Longitude,
+                       CAST(1 AS bit) AS IsFollowed
+                FROM [{_schema}].[{TableTopicChurch.Church}] c
+                INNER JOIN [{_schema}].[{TableTopicChurch.UserChurch}] uc
+                    ON uc.ChurchId = c.Id
+                LEFT JOIN [{_schema}].[{TableTopicChurch.Diocese}] d
+                    ON d.Id = c.DioceseId
+                WHERE uc.UserId = @UserId
+                  AND ISNULL(c.IsDeleted, 0) = 0;
 
-        return churches.Select(church => MapChurch(church, true));
+                SELECT ms.Id,
+                       ms.ChurchId,
+                       c.Name AS ChurchName,
+                       ms.Name AS MassName,
+                       ms.Time,
+                       ms.Date,
+                       ms.FromDate,
+                       ms.ToDate,
+                       ms.IsFixed,
+                       ms.MassTypeId,
+                       mt.Name AS MassTypeName
+                FROM [{_schema}].[{TableTopicChurch.MassSchedule}] ms
+                INNER JOIN [{_schema}].[{TableTopicChurch.UserChurch}] uc
+                    ON uc.ChurchId = ms.ChurchId
+                INNER JOIN [{_schema}].[{TableTopicChurch.Church}] c
+                    ON c.Id = ms.ChurchId
+                LEFT JOIN [{_schema}].[MassType] mt
+                    ON mt.Id = ms.MassTypeId
+                WHERE uc.UserId = @UserId
+                  AND ISNULL(c.IsDeleted, 0) = 0;
+
+                SELECT l.Id,
+                       l.MassScheduleId,
+                       l.ReadingOne,
+                       l.ResponsorialPsalm,
+                       l.GoodNew AS Gospel,
+                       l.EndWord,
+                       l.DateActive
+                FROM [{_schema}].[{TableTopicChurch.Liturgy}] l
+                INNER JOIN [{_schema}].[{TableTopicChurch.MassSchedule}] ms
+                    ON ms.Id = l.MassScheduleId
+                INNER JOIN [{_schema}].[{TableTopicChurch.UserChurch}] uc
+                    ON uc.ChurchId = ms.ChurchId
+                INNER JOIN [{_schema}].[{TableTopicChurch.Church}] c
+                    ON c.Id = ms.ChurchId
+                WHERE uc.UserId = @UserId
+                  AND ISNULL(c.IsDeleted, 0) = 0;
+
+                SELECT ci.Id,
+                       ci.ChurchId,
+                       ci.ImageName
+                FROM [{_schema}].[{TableTopicChurch.ChurchImages}] ci
+                INNER JOIN [{_schema}].[{TableTopicChurch.UserChurch}] uc
+                    ON uc.ChurchId = ci.ChurchId
+                INNER JOIN [{_schema}].[{TableTopicChurch.Church}] c
+                    ON c.Id = ci.ChurchId
+                WHERE uc.UserId = @UserId
+                  AND ISNULL(c.IsDeleted, 0) = 0;
+                """,
+                new { UserId = userId },
+                cancellationToken: cancellationToken);
+
+            using var multi = await connection.QueryMultipleAsync(command);
+            var churches = (await multi.ReadAsync<ChurchViewDto>()).ToList();
+            var massSchedules = (await multi.ReadAsync<MassScheduleViewDto>()).ToList();
+            var liturgies = (await multi.ReadAsync<LiturgyViewDto>())
+                .ToLookup(liturgy => liturgy.MassScheduleId);
+            var images = (await multi.ReadAsync<ChurchImageViewDto>())
+                .ToLookup(image => image.ChurchId);
+
+            foreach (var schedule in massSchedules)
+            {
+                schedule.Liturgy = liturgies[schedule.Id].FirstOrDefault() ?? new LiturgyViewDto();
+            }
+
+            var schedules = massSchedules.ToLookup(schedule => schedule.ChurchId);
+            foreach (var church in churches)
+            {
+                church.MassSchedules = schedules[church.Id].ToList();
+                church.ChurchImages = images[church.Id].ToList();
+            }
+
+            return churches;
+        });
     }
 
     public async Task<ReminderSettingDto> GetReminderSettingAsync(
@@ -454,7 +567,7 @@ public sealed class ChurchQueries : BaseRepository, IChurchQueries
         return new ChurchViewDto
         {
             Id = church.Id,
-            ChurchName = church.Name,
+            Name = church.Name,
             Thumbnail = church.Thumbnail,
             Email = church.Email ?? string.Empty,
             Address = church.Address ?? string.Empty,

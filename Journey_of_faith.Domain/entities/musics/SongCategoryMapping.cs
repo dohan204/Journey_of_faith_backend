@@ -15,14 +15,17 @@ namespace Journey_of_faith.Domain.entities.musics
         public SongCategoryMapping() {}
         public SongCategoryMapping(int songId, int categoryId)
         {
-            if(songId == 0)
+            if(songId <= 0)
             {
                 throw new ArgumentException(nameof(songId), "SongId is invalid.");
             }
-            if(categoryId == 0)
+            if(categoryId <= 0)
             {
                 throw new ArgumentException(nameof(categoryId), "categoryId is invalid.");
             }
+
+            SongId = songId;
+            CategoryId = categoryId;
         }
     }
 }

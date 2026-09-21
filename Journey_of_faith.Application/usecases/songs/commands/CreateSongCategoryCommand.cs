@@ -17,9 +17,12 @@ public class CreateSongCategoryCommandValidator : AbstractValidator<CreateSongCa
     {
         this.songQueries = songQueries;
 
-        RuleFor(e => e.Name).MustAsync(async (name, cancellationToken) =>
+        RuleFor(e => e.Name)
+        .NotEmpty().WithMessage("Tên thể loại không được để trống.")
+        .MaximumLength(200).WithMessage("Tên thể loại không được vượt quá 200 ký tự.")
+        .MustAsync(async (name, cancellationToken) =>
         {
-            bool exists = await songQueries.SongCategoryExistsAsync(name, cancellationToken);
+            bool exists = await songQueries.SongCategoryExistsAsync(name.Trim(), cancellationToken);
             return !exists;
         }).WithMessage("SongCategory already taken.");
     }

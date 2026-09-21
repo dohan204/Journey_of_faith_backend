@@ -41,7 +41,7 @@ namespace Journey_of_faith.Application.usecases.auth.commands
         public async Task<LoginResponse> Handle(GoogleLoginCommand request, CancellationToken cancellationToken)
         {
             // 1. Xác thực token từ Google
-            var clientId = _configuration["Authentication:Google:ClientId"];
+            var clientId = _configuration["web:client_id"];
             var payload = await VerifyGoogleToken(request.IdToken, clientId);
 
             if (payload == null)

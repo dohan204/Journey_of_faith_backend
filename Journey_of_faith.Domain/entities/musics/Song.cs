@@ -30,7 +30,7 @@ namespace Journey_of_faith.Domain.entities.musics
 
         public Song() { }
 
-        public Song(string title, int artistId, int albumId, int duration, string? audio,
+        public Song(string title, int artistId, int? albumId, int duration, string? audio,
         string? converImageUrl, string lyric, int playCount, bool isActive)
         {
             Title = title;

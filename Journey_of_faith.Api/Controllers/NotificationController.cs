@@ -41,4 +41,12 @@ public class NotificationController : ControllerBase
         }
     }
 
+    [MapToApiVersion(1)]
+    [HttpPost("fcm-register")]
+    public async Task<IActionResult> FCMRegister([FromBody] FcmRegisterCommand command)
+    {
+        await mediator.Send(command);
+        return Ok(new {Success = true});
+    }
+
 }

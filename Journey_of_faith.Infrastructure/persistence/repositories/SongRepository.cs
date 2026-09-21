@@ -1,10 +1,8 @@
-using Azure.Core;
 using Dapper;
 using Journey_of_faith.Application.common.interfaces;
 using Journey_of_faith.Domain.entities.musics;
 using Journey_of_faith.Domain.interfaces;
 using Journey_of_faith.Infrastructure.common;
-using Microsoft.AspNetCore.StaticAssets;
 using Microsoft.Extensions.Options;
 
 namespace Journey_of_faith.Infrastructure.repositories;
@@ -20,29 +18,34 @@ public class SongRepository : BaseRepository, ISongRepository
     {
         return await QueryAsync<int>(async connection =>
         {
-           var sql = $@"insert into 
-            [{_schemaName.Schema}].[{SongRelationShip.SongCategory}] (Name) values (@Name)";
+           var sql = $@"insert into
+            [{_schemaName.Schema}].[{SongRelationShip.SongCategory}] (Name)
+            output inserted.Id values (@Name)";
 
-            return await connection.ExecuteAsync(sql: sql, new {Name = songCategory.Name});
+            return await connection.ExecuteScalarAsync<int>(new CommandDefinition(
+                sql, new { Name = songCategory.Name }, cancellationToken: cancellationToken));
+        });
+    }
+    public async Task<bool> UpdateSongCategoryAsync(int id, SongCategory songCategory, Guid userId, CancellationToken cancellationToken)
+    {
+        return await QueryAsync(async connection =>
+        {
+            var affected = await connection.ExecuteAsync(new CommandDefinition($@"
+                update [{_schemaName.Schema}].[{SongRelationShip.SongCategory}]
+                set Name = @Name
+                where Id = @Id",
+                new { Id = id, Name = songCategory.Name },
+                cancellationToken: cancellationToken));
+            return affected > 0;
         });
     }
     public async Task<bool> DeleteSongCategoryAsync(int id, Guid userId, CancellationToken cancellationToken)
     {
         return await QueryAsync<bool>(async connection =>
         {
-           var songCategory = await connection.ExecuteAsync($@"
-              update from [{_schemaName.Schema}].[{SongRelationShip.SongCategory}]
-                set IsDeleted = true,
-                    DeletionTime = getdate(),
-                    LastModificationTime = getdate(),
-                    LastModifierUserId = @userId,
-                    DeleterUserId = @userId
-                where Id = @Id
-           ", new
-           {
-                userId = userId,
-                Id = id                                                  
-           });
+           var songCategory = await connection.ExecuteAsync(new CommandDefinition($@"
+              delete from [{_schemaName.Schema}].[{SongRelationShip.SongCategory}]
+              where Id = @Id", new { Id = id }, cancellationToken: cancellationToken));
 
            return songCategory > 0;
         });
@@ -137,25 +140,70 @@ public class SongRepository : BaseRepository, ISongRepository
     {
         return await QueryAsync<int>(async connection =>
         {
+            connection.Open();
+            using var transaction = connection.BeginTransaction();
+            try
+            {
+                var songId = await connection.ExecuteScalarAsync<int>(new CommandDefinition($@"
+                    insert into [{_schemaName.Schema}].[{SongRelationShip.Song}]
+                        (Title, ArtistId, AlbumId, Duration, AudioUrl, CoverImageUrl, Lyric, PlayCount, IsActive)
+                    output inserted.Id
+                    values (@Title, @ArtistId, @AlbumId, @Duration, @AudioUrl, @CoverImageUrl, @Lyric, @PlayCount, @IsActive)",
+                    new
+                    {
+                        song.Title,
+                        song.ArtistId,
+                        song.AlbumId,
+                        song.Duration,
+                        song.AudioUrl,
+                        song.CoverImageUrl,
+                        song.Lyric,
+                        song.PlayCount,
+                        song.IsActive
+                    }, transaction, cancellationToken: token));
 
-           var songId = await connection.ExecuteScalarAsync<int>("sp_CreateSong", new
-           {
-               Title = song.Title,
-               ArtistId = song.ArtistId,
-               AlbumId = song.AlbumId,
-               Duration = song.Duration,
-               AudioUrl = song.AudioUrl,
-               CoverImageUrl = song.CoverImageUrl,
-               Lyric = song.Lyric,
-               PlayCount = song.PlayCount,
-               IsActive = song.IsActive,
-           }, commandType: System.Data.CommandType.StoredProcedure); 
-            await connection.ExecuteAsync($@"
+                await connection.ExecuteAsync(new CommandDefinition($@"
                 insert into [{_schemaName.Schema}].[{SongRelationShip.SongCategoryMapping}] (SongId, CategoryId)
                 values(@SongId, @CategoryId)
-            ", new {SongId = songId, CategoryId = categoryId});
+                ", new { SongId = songId, CategoryId = categoryId }, transaction, cancellationToken: token));
 
-            return songId;
+                transaction.Commit();
+                return songId;
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
+        });
+    }
+
+    public async Task<bool> UpdateSongAsync(int id, Song song, Guid userId, CancellationToken cancellationToken)
+    {
+        return await QueryAsync(async connection =>
+        {
+            var affected = await connection.ExecuteAsync(new CommandDefinition($@"
+                update [{_schemaName.Schema}].[{SongRelationShip.Song}]
+                set Title = @Title, ArtistId = @ArtistId, AlbumId = @AlbumId,
+                    Duration = @Duration, AudioUrl = @AudioUrl, CoverImageUrl = @CoverImageUrl,
+                    Lyric = @Lyric, PlayCount = @PlayCount, IsActive = @IsActive,
+                    LastModificationTime = getutcdate(), LastModifierUserId = @UserId
+                where Id = @Id and ISNULL(IsDeleted, 0) = 0",
+                new
+                {
+                    Id = id,
+                    song.Title,
+                    song.ArtistId,
+                    song.AlbumId,
+                    song.Duration,
+                    song.AudioUrl,
+                    song.CoverImageUrl,
+                    song.Lyric,
+                    song.PlayCount,
+                    song.IsActive,
+                    UserId = userId
+                }, cancellationToken: cancellationToken));
+            return affected > 0;
         });
     }
     
@@ -164,13 +212,13 @@ public class SongRepository : BaseRepository, ISongRepository
         return await QueryAsync<bool>(async connection =>
         {
            var song = await connection.ExecuteAsync($@"
-              update from [{_schemaName.Schema}].[{SongRelationShip.Song}]
-                set IsDeleted = true,
-                    DeletionTime = getdate(),
-                    LastModificationTime = getdate(),
+              update [{_schemaName.Schema}].[{SongRelationShip.Song}]
+                set IsDeleted = 1,
+                    DeletionTime = getutcdate(),
+                    LastModificationTime = getutcdate(),
                     LastModifierUserId = @userId,
                     DeleterUserId = @userId
-                where Id = @Id
+                where Id = @Id and ISNULL(IsDeleted, 0) = 0
            ", new
            {
                 userId = userId,
@@ -179,6 +227,24 @@ public class SongRepository : BaseRepository, ISongRepository
 
            return song > 0;
         });
+    }
+
+    public async Task<int> CreateSongCategoryMappingAsync(SongCategoryMapping mapping, CancellationToken cancellationToken)
+    {
+        return await QueryAsync(async connection =>
+            await connection.ExecuteScalarAsync<int>(new CommandDefinition($@"
+                insert into [{_schemaName.Schema}].[{SongRelationShip.SongCategoryMapping}] (SongId, CategoryId)
+                output inserted.Id values (@SongId, @CategoryId)",
+                new { mapping.SongId, mapping.CategoryId }, cancellationToken: cancellationToken)));
+    }
+
+    public async Task<bool> DeleteSongCategoryMappingAsync(int songId, int categoryId, CancellationToken cancellationToken)
+    {
+        return await QueryAsync(async connection =>
+            await connection.ExecuteAsync(new CommandDefinition($@"
+                delete from [{_schemaName.Schema}].[{SongRelationShip.SongCategoryMapping}]
+                where SongId = @SongId and CategoryId = @CategoryId",
+                new { SongId = songId, CategoryId = categoryId }, cancellationToken: cancellationToken)) > 0);
     }
     public async Task<int> CreatePlaylistSongAsync(PlaylistSong playlistSong, CancellationToken cancellationToken)
     {

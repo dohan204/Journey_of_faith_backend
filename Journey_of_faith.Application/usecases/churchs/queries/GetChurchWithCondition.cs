@@ -12,7 +12,6 @@ public class GetChurchWithCondition : IRequest<PagedResult<ChurchViewDto>>
     public int Page { get; set; }
     public int PageSize { get; set; }
 }
-
 public class GetChurchWithConditionHandler : IRequestHandler<GetChurchWithCondition, PagedResult<ChurchViewDto>>
 {
     private readonly IChurchQueries churchQueries;

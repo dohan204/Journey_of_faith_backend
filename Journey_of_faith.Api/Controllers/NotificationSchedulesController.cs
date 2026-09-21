@@ -27,7 +27,6 @@ public sealed class NotificationSchedulesController(INotificationScheduler sched
         var result = await scheduler.GetAsync(id, cancellationToken);
         return result is null ? NotFound() : Ok(result);
     }
-
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Cancel(Guid id, CancellationToken cancellationToken)
     {

@@ -6,6 +6,7 @@ namespace Journey_of_faith.Domain.interfaces;
 public interface ISongRepository
 {
     Task<int> CreateSongCategoryAsync(SongCategory songCategory, CancellationToken token);
+    Task<bool> UpdateSongCategoryAsync(int id, SongCategory songCategory, Guid userId, CancellationToken token);
     Task<bool> DeleteSongCategoryAsync(int id, Guid userId, CancellationToken token);
 
 
@@ -18,7 +19,10 @@ public interface ISongRepository
 
 
     Task<int> CreateSongAsync(Song song,int categoryId, CancellationToken cancellationToken);
+    Task<bool> UpdateSongAsync(int id, Song song, Guid userId, CancellationToken cancellationToken);
     Task<bool> DeleteSongAsync(int id, Guid userId, CancellationToken cancellationToken);
+    Task<int> CreateSongCategoryMappingAsync(SongCategoryMapping mapping, CancellationToken cancellationToken);
+    Task<bool> DeleteSongCategoryMappingAsync(int songId, int categoryId, CancellationToken cancellationToken);
 
 
     Task<int> CreatePlaylistSongAsync(PlaylistSong playlistSong, CancellationToken cancellationToken);
