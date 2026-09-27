@@ -68,9 +68,13 @@ namespace Journey_of_faith.Api.Controllers
         [MapToApiVersion(1)]
         [HttpGet("massSchedule-today")]
         [AllowAnonymous]
-        public async Task<IActionResult> GetMassScheduleToday()
+        public async Task<IActionResult> GetMassScheduleToday([FromQuery] bool nextDay = false, [FromQuery] string? province = null)
         {
-            var result = await _mediator.Send(new GetMassScheduleTodayQuery());
+            var result = await _mediator.Send(new GetMassScheduleTodayQuery
+            {
+                NextDay = nextDay,
+                Province = province
+            });
             return Ok(new ApiResponse<IReadOnlyList<MassScheduleTodayDto>>
             {
                 Data = result,
@@ -191,7 +195,6 @@ namespace Journey_of_faith.Api.Controllers
 
             return Ok(result);
         }
-
         [HttpPut]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [Authorize]
@@ -201,25 +204,23 @@ namespace Journey_of_faith.Api.Controllers
             await _mediator.Send(command);
             return NoContent();
         }
-
-        [HttpDelete("{Id}")]
+        [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [Authorize]
         public async Task<IActionResult> DeleteChurch(
-            [FromRoute] int Id,
+            [FromRoute] int id,
             [FromQuery] bool? force)
         {
             var result =
                 await _mediator.Send(
                     new DeleteChurchCommand
                     {
-                        Id = Id,
+                        Id = id,
                         Force = force
                     });
 
             return Ok(result);
         }
-
         [HttpGet("{id:int}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

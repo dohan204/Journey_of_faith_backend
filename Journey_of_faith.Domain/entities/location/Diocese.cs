@@ -10,10 +10,11 @@ namespace Journey_of_faith.Domain.entities.location
         public string? Website { get; set; }
         public string? Address { get; set; }
         public string? Thumbnail { get; set; }
-        public int CountChurch => _churchList.Count;
-        private List<Church> _churchList { get; set ; } = new List<Church>();
+        public int CountChurch => _churches.Count;
 
-        public IReadOnlyCollection<Church> Churches => _churchList.AsReadOnly();
+        private readonly List<Church> _churches = new();
+
+        public ICollection<Church> Churches => _churches.AsReadOnly();
         public Diocese() {  }
 
         public Diocese(string name, string? websizte, string address, string thumbnail, Guid Userid)
@@ -29,8 +30,8 @@ namespace Journey_of_faith.Domain.entities.location
 
         public void SetChurch(List<Church> churches)
         {
-            _churchList.Clear();
-            _churchList.AddRange(churches);
+            _churches.Clear();
+            _churches.AddRange(churches);
         }
     }
 }

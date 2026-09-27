@@ -29,8 +29,8 @@ namespace Journey_of_faith.Domain.entities.location
 
         private Church() { }
         public Church(string name, string thumbnail, 
-            string website, string address, int discoceId, float latitude, 
-            float longtitude, Guid Userid, Guid modifier, string boss, string description
+            string website, string address, int discoceId, double latitude, 
+            double longtitude, Guid Userid, Guid modifier, string boss, string description
             )
         {
             if(string.IsNullOrEmpty(name))
@@ -59,7 +59,7 @@ namespace Journey_of_faith.Domain.entities.location
             Boss = boss;
             Description = description;
         }
-        public Church(int id, string name, string email, string address, int discoceId, string boss, string description, Guid lastModifier, List<MassSchedule> massSchedules)
+        public Church(int id, string name, string email, string address, int discoceId, string boss, string description, Guid lastModifier, List<MassSchedule>? massSchedules)
         {
             Id = id;
             Name = name;
@@ -69,9 +69,20 @@ namespace Journey_of_faith.Domain.entities.location
             Boss = boss;
             Description = description;
             LastModifierUserId = lastModifier;
-            _massSchedules = massSchedules;
+            _massSchedules = massSchedules ?? new List<MassSchedule>();
         }
-        public Church(string name, string address, int discoceId, float latitude, float longtitude)
+        public Church(int id, string name, string email, string address, int discoceId, string boss, string description, Guid lastModifier)
+        {
+            Id = id;
+            Name = name;
+            Email = email;
+            Address = address;
+            DioceseId = discoceId;
+            Boss = boss;
+            Description = description;
+            LastModifierUserId = lastModifier;
+        }
+        public Church(string name, string address, int discoceId, double latitude, double longtitude)
         {
             if (string.IsNullOrEmpty(name))
             {
@@ -94,7 +105,7 @@ namespace Journey_of_faith.Domain.entities.location
             GeoLocation = GeoLocation.FromCoordinates(latitude, longtitude);
         }
 
-        public void SetLocation(float latitude, float longtitude)
+        public void SetLocation(double latitude, double longtitude)
         {
             GeoLocation = GeoLocation.FromCoordinates(latitude, longtitude);
         }

@@ -5,7 +5,7 @@ namespace Journey_of_faith.Domain.interfaces;
 
 public interface IRoleRepository
 {
-    Task<string> CreateAsync(Role role, CancellationToken cancellationToken);
+    Task<Guid> CreateAsync(Role role, CancellationToken cancellationToken);
     Task<bool> AddPermissionForRole(string roleName, List<string> permissions);
 
     Task<bool> DeleteRoleAsync(string roleName);

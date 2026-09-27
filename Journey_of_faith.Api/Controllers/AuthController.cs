@@ -83,7 +83,7 @@ namespace Journey_of_faith.Api.Controllers
         public async Task<IActionResult> CreateRole([FromBody] CreateRoleCommand command)
         {
             var roleId = await _me.Send(command);
-            return StatusCode(StatusCodes.Status201Created, new ApiResponse<string>
+            return StatusCode(StatusCodes.Status201Created, new ApiResponse<Guid>
             {
                 Message = "Tạo vai trò thành công.",
                 Data = roleId
@@ -115,8 +115,8 @@ namespace Journey_of_faith.Api.Controllers
         }
         [MapToApiVersion(1)]
         [HasPermission(Permissions.Roles.DELETE)]
-        [HttpDelete("roles/{Name}")]
-        public async Task<IActionResult> Delete([FromRoute] string Name)
+        [HttpDelete("roles")]
+        public async Task<IActionResult> Delete([FromQuery] string Name)
         {
             await _me.Send(new DeleteRoleCommand { RoleName = Name });
             return NoContent();

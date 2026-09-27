@@ -34,7 +34,7 @@ public class RoleRepository : BaseRepository, IRoleRepository
     }
 
 
-    public async Task<string> CreateAsync(Role role, CancellationToken cancellationToken)
+    public async Task<Guid> CreateAsync(Role role, CancellationToken cancellationToken)
     {
         var insert = new ApplicationRole
         {

@@ -4,6 +4,7 @@ using Journey_of_faith.Infrastructure.context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Journey_of_faith.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260924012038_NotificationLogs")]
+    partial class NotificationLogs
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1753,9 +1756,12 @@ namespace Journey_of_faith.Infrastructure.Migrations
                         .HasMaxLength(300)
                         .HasColumnType("nvarchar(300)");
 
-                   
+                    b.Property<int>("TopicId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
+                    b.HasIndex("TopicId");
 
                     b.ToTable("Quiz", (string)null);
                 });
@@ -3010,7 +3016,17 @@ namespace Journey_of_faith.Infrastructure.Migrations
                     b.Navigation("Type");
                 });
 
-            
+            modelBuilder.Entity("Journey_of_faith.Domain.entities.quiz.Quiz", b =>
+                {
+                    b.HasOne("Journey_of_faith.Domain.entities.quiz.Topic", "Topic")
+                        .WithMany("Quizs")
+                        .HasForeignKey("TopicId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Topic");
+                });
+
             modelBuilder.Entity("Journey_of_faith.Domain.entities.quiz.QuizAttempt", b =>
                 {
                     b.HasOne("Journey_of_faith.Domain.entities.quiz.Quiz", "Quiz")

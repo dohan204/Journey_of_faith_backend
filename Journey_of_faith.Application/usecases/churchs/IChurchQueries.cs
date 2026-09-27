@@ -11,7 +11,10 @@ public interface IChurchQueries
     Task<ChurchViewDto?> GetChurchByIdAsync(int id, CancellationToken cancellationToken = default);
     Task<PagedResult<ChurchViewDto>> GetChurchesAsync(int page, int pageSize, string? search, CancellationToken cancellationToken = default);
     Task<LiturgyViewDto?> GetLiturgyTodayAsync(CancellationToken cancellationToken = default);
-    Task<IReadOnlyList<MassScheduleTodayDto>> GetMassScheduleTodayViewsAsync(CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<MassScheduleTodayDto>> GetMassScheduleTodayViewsAsync(
+        bool nextDay = false,
+        string? province = null,
+        CancellationToken cancellationToken = default);
     Task<bool> DioceseExistsAsync(int dioceseId, CancellationToken cancellationToken = default);
     Task<bool> DioceseNameExistsAsync(string name, CancellationToken cancellationToken = default);
     Task<DioceseViewDto?> GetDioceseByIdAsync(int id, CancellationToken cancellationToken = default);

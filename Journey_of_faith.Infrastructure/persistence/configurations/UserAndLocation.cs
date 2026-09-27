@@ -68,6 +68,8 @@ namespace Journey_of_faith.Infrastructure.persistence.configurations
             builder.Property(d => d.IsDeleted).HasDefaultValue(false);
             builder.Property(d => d.CreationTime).HasDefaultValueSql("getdate()");
             builder.Property(d => d.LastModificationTime).HasDefaultValueSql("getdate()");
+            builder.Navigation(d => d.Churches)
+                .UsePropertyAccessMode(PropertyAccessMode.Field);
         }
     }
 
@@ -98,6 +100,15 @@ namespace Journey_of_faith.Infrastructure.persistence.configurations
                 .WithMany(d => d.Churches)
                 .HasForeignKey(c => c.DioceseId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Navigation(c => c.MassSchedules)
+                .UsePropertyAccessMode(PropertyAccessMode.Field);
+            builder.Navigation(c => c.LiveStreams)
+                .UsePropertyAccessMode(PropertyAccessMode.Field);
+            builder.Navigation(c => c.UserChurches)
+                .UsePropertyAccessMode(PropertyAccessMode.Field);
+            builder.Navigation(c => c.ChurchImages)
+                .UsePropertyAccessMode(PropertyAccessMode.Field);
         }
     }
 

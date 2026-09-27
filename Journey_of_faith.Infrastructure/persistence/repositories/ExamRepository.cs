@@ -27,7 +27,6 @@ namespace Journey_of_faith.Infrastructure.repositories
                 var Id = await connection.ExecuteScalarAsync<int>("CreateQuiz", new
                 {
                     quiz.Title,
-                    quiz.TopicId,
                     quiz.Description,
                     quiz.TimeLimit,
                     quiz.QuestionCount,

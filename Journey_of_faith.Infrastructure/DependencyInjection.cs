@@ -116,6 +116,7 @@ namespace Journey_of_faith.Infrastructure
 
             services.AddLoggedScoped<IUserRepository, UserRepository>();
             services.AddLoggedScoped<Journey_of_faith.Application.usecases.users.IUserQueries, UserQueries>();
+            services.AddLoggedScoped<Journey_of_faith.Application.usecases.notifications.IUserDeviceQueries, UserDeviceQueries>();
             services.AddLoggedScoped<Journey_of_faith.Application.usecases.dashboard.IDashboardQueries, DashboardQueries>();
             services.AddLoggedScoped<ISongRepository, SongRepository>();
             services.AddLoggedScoped<Journey_of_faith.Application.usecases.songs.ISongQueries, SongQueries>();

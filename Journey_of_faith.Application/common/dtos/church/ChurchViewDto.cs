@@ -11,8 +11,8 @@ public class ChurchViewDto
     public string? DioceseName { get; set; }
     public string Boss { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
-    public float Longitude { get; set; }
-    public float Latitude { get; set; }
+    public double Longitude { get; set; }
+    public double Latitude { get; set; }
     public bool IsFollowed { get; set; }
     public IEnumerable<MassScheduleViewDto> MassSchedules { get; set; } = [];
     public IEnumerable<ChurchImageViewDto> ChurchImages { get; set; } = [];

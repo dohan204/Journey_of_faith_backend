@@ -74,7 +74,6 @@ namespace Journey_of_faith.Api.Controllers
             });
         }
         [HttpPost("submit")]
-        [HasPermission(Permissions.Quizes.SUBMIT)]
         [ProducesResponseType(statusCode: StatusCodes.Status201Created)]
         [MapToApiVersion(1)]
         public async Task<IActionResult> SubmitExam(SubmitExamCommand command)

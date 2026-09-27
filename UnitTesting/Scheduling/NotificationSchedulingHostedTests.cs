@@ -1,6 +1,8 @@
 using Journey_of_faith.Application.common.interfaces;
 using Journey_of_faith.Application.usecases.notifications;
+using Journey_of_faith.Domain.entities.notifications;
 using Journey_of_faith.Infrastructure.scheduling;
+using FirebaseAdmin.Messaging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -74,6 +76,14 @@ public sealed class NotificationSchedulingHostedTests
 
     private sealed class RecordingFirebaseNotification(RecordedDelivery delivery) : IFirebaseNotification
     {
+        public Task<bool> DeviceTokenExistsAsync(
+            DeviceToken deviceToken, CancellationToken cancellationToken = default)
+            => throw new InvalidOperationException("The scheduling job should not query registered device tokens.");
+
+        public Task FcmRegisterAsync(
+            DeviceToken deviceToken, CancellationToken cancellationToken = default)
+            => throw new InvalidOperationException("The scheduling job should not register device tokens.");
+
         public Task<string> SendNotificationAsync(
             string deviceToken, string title, string body, Dictionary<string, string>? data = null)
         {
@@ -82,8 +92,18 @@ public sealed class NotificationSchedulingHostedTests
             return Task.FromResult("recorded-firebase-message-id");
         }
 
+        public Task<string> SendNotificationAsync(
+            string deviceToken, Guid userId, string title, string body, Dictionary<string, string>? data = null)
+            => SendNotificationAsync(deviceToken, title, body, data);
+
         public Task<string> SendToTopicAsync(
             string topic, string title, string body, Dictionary<string, string>? data = null)
             => throw new InvalidOperationException("This one-off job should target a device token.");
+
+        public Task<TopicManagementResponse> SubscribeToTopicAsync(List<string> deviceTokens, string topic)
+            => throw new InvalidOperationException("The scheduling job should not subscribe tokens to a topic.");
+
+        public Task<TopicManagementResponse> UnsubscribeFromTopicAsync(List<string> deviceTokens, string topic)
+            => throw new InvalidOperationException("The scheduling job should not unsubscribe tokens from a topic.");
     }
 }

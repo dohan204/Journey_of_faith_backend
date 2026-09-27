@@ -15,7 +15,7 @@ namespace Journey_of_faith.Api.Controllers
 {
     [ApiVersion(1)]
     [ApiController]
-    [Authorize]
+    [Authorize] // validate đăng nhập
     [Route("api/v{version:apiVersion}/events")]
     public class EventController : ControllerBase
     {
@@ -27,7 +27,7 @@ namespace Journey_of_faith.Api.Controllers
         }
         [MapToApiVersion(1)]
         [HttpPost("category")]
-        [HasPermission(Permissions.Event.CREATE_CATEGORY)]
+        [HasPermission(Permissions.Event.CREATE_CATEGORY)] // check quyền
         [Consumes(MediaTypeNames.Application.Json)]
         [ProducesResponseType(StatusCodes.Status201Created)]
         public async Task<IActionResult> CreateCategory([FromBody] CreateEventCategoryCommand command)
@@ -132,7 +132,6 @@ namespace Journey_of_faith.Api.Controllers
         }
         [MapToApiVersion(1)]
         [HttpPost("{id:int}/follow")]
-        [HasPermission(Permissions.Event.USER_CREATE)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> FollowEvent([FromRoute] int id)
         {
