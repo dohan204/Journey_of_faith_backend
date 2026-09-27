@@ -13,6 +13,89 @@ using System.Text;
 
 namespace Journey_of_faith.Infrastructure.persistence.configurations
 {
+    public class BibleBookConfiguration : IEntityTypeConfiguration<BibleBook>
+    {
+        public void Configure(EntityTypeBuilder<BibleBook> builder)
+        {
+            builder.ToTable("BibleBook");
+
+            builder.HasKey(bb => bb.Id);
+
+            builder.Property(bb => bb.Name)
+                .HasMaxLength(100)
+                .IsRequired();
+
+            builder.Property(bb => bb.Abbreviation)
+                .HasMaxLength(20)
+                .IsRequired();
+
+            builder.Property(bb => bb.Testament)
+                .HasMaxLength(2)
+                .IsRequired();
+
+            builder.Property(bb => bb.Category)
+                .HasMaxLength(50);
+
+            builder.Property(bb => bb.ChapterCount)
+                .IsRequired();
+
+            builder.HasIndex(bb => bb.Abbreviation)
+                .IsUnique();
+        }
+    }
+    public class BibleChapterConfiguration : IEntityTypeConfiguration<BibleChapter>
+    {
+        public void Configure(EntityTypeBuilder<BibleChapter> builder)
+        {
+            builder.ToTable("BibleChapter");
+
+            builder.HasKey(bc => bc.Id);
+
+            builder.Property(bc => bc.ChapterNumber)
+                .IsRequired();
+
+            builder.HasOne(bc => bc.Book)
+                .WithMany(bb => bb.Chapters)
+                .HasForeignKey(bc => bc.BookId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasIndex(bc => new
+            {
+                bc.BookId,
+                bc.ChapterNumber
+            })
+            .IsUnique();
+        }
+    }
+    public class BibleVerseConfiguration : IEntityTypeConfiguration<BibleVerse>
+    {
+        public void Configure(EntityTypeBuilder<BibleVerse> builder)
+        {
+            builder.ToTable("BibleVerse");
+
+            builder.HasKey(bv => bv.Id);
+
+            builder.Property(bv => bv.VerseNumber)
+                .IsRequired();
+
+            builder.Property(bv => bv.TextVi)
+                .IsRequired();
+
+            builder.Property(bv => bv.TextEn);
+
+            builder.HasOne(bv => bv.Chapter)
+                .WithMany(bc => bc.Verses)
+                .HasForeignKey(bv => bv.ChapterId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasIndex(bv => new
+            {
+                bv.ChapterId,
+                bv.VerseNumber
+            })
+            .IsUnique();
+        }
+    }
     public class MassTypeConfiguration : IEntityTypeConfiguration<MassType>
     {
         public void Configure(EntityTypeBuilder<MassType> builder)

@@ -5,13 +5,13 @@ using MediatR;
 
 namespace Journey_of_faith.Application.usecases.auth.commands;
 
-public class CreateRoleCommand : IRequest<string>
+public class CreateRoleCommand : IRequest<Guid>
 {
     public string Name {get; set;}
     public string Description {get; set;}
 }
 
-public class CreateRoleHandler : IRequestHandler<CreateRoleCommand, string>
+public class CreateRoleHandler : IRequestHandler<CreateRoleCommand, Guid>
 {
     private readonly IRoleRepository roleRepository;
     private readonly IRoleQueries roleQueries;
@@ -21,7 +21,7 @@ public class CreateRoleHandler : IRequestHandler<CreateRoleCommand, string>
         this.roleQueries = roleQueries;
     }
 
-    public async Task<string> Handle(CreateRoleCommand command, CancellationToken cancellationToken)
+    public async Task<Guid> Handle(CreateRoleCommand command, CancellationToken cancellationToken)
     {
         if(await roleQueries.NameExistsAsync(command.Name, cancellationToken))
         {

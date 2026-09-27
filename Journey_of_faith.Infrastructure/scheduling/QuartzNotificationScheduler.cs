@@ -12,12 +12,13 @@ namespace Journey_of_faith.Infrastructure.scheduling;
 public sealed class QuartzNotificationScheduler(
     ISchedulerFactory schedulerFactory,
     TimeProvider timeProvider,
+    ICurrentUserService _currentUser,
     ILogger<QuartzNotificationScheduler> logger) : INotificationScheduler
 {
     private const string Group = "firebase-notifications";
 
-    public QuartzNotificationScheduler(ISchedulerFactory schedulerFactory, TimeProvider timeProvider)
-        : this(schedulerFactory, timeProvider, NullLogger<QuartzNotificationScheduler>.Instance)
+    public QuartzNotificationScheduler(ISchedulerFactory schedulerFactory, TimeProvider timeProvider, ICurrentUserService currentUserService)
+        : this(schedulerFactory, timeProvider,currentUserService, NullLogger<QuartzNotificationScheduler>.Instance)
     {
     }
 
@@ -28,6 +29,10 @@ public sealed class QuartzNotificationScheduler(
         ValidatePayload(request);
         try
         {
+            if(Guid.TryParse(_currentUser.UserId, out Guid Id))
+            {
+                throw new ArgumentException("", nameof(Id));
+            } 
             var now = timeProvider.GetUtcNow();
             var hasCron = !string.IsNullOrWhiteSpace(request.CronExpression);
             if (request.RunAt.HasValue == hasCron)
@@ -69,6 +74,7 @@ public sealed class QuartzNotificationScheduler(
             var job = JobBuilder.Create<FirebaseNotificationJob>()
                 .WithIdentity(jobKey)
                 .UsingJobData(FirebaseNotificationJob.PayloadKey, JsonSerializer.Serialize(request))
+                .UsingJobData($"user_id", Id.ToString())
                 .Build();
             var trigger = triggerBuilder.Build();
             var scheduler = await schedulerFactory.GetScheduler(cancellationToken);

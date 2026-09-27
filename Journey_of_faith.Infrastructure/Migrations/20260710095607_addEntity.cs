@@ -11,9 +11,58 @@ namespace Journey_of_faith.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_Quiz_Topic_TopicId",
-                table: "Quiz");
+            // Topic may have been removed manually from databases that have only
+            // applied the April migrations. Recreate its pre-migration shape so
+            // the alterations below can run, and drop the FK only when present.
+            migrationBuilder.Sql(@"
+IF OBJECT_ID(N'[Topic]', N'U') IS NULL
+BEGIN
+    CREATE TABLE [Topic]
+    (
+        [Id] int IDENTITY(1,1) NOT NULL,
+        [CreatedBy] uniqueidentifier NULL,
+        [DeletedBy] uniqueidentifier NULL,
+        [DeletedAt] datetime2 NOT NULL,
+        [IsDeleted] bit NOT NULL,
+        [CreationTime] datetime2 NOT NULL,
+        [TopicName] nvarchar(max) NULL,
+        [QuizCount] int NULL,
+        CONSTRAINT [PK_Topic] PRIMARY KEY ([Id])
+    );
+END;
+
+IF OBJECT_ID(N'[Quiz]', N'U') IS NOT NULL
+   AND EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = N'FK_Quiz_Topic_TopicId' AND parent_object_id = OBJECT_ID(N'[Quiz]'))
+    ALTER TABLE [Quiz] DROP CONSTRAINT [FK_Quiz_Topic_TopicId];
+
+IF OBJECT_ID(N'[Quiz]', N'U') IS NOT NULL
+BEGIN
+    IF COL_LENGTH(N'Quiz', N'TopicId') IS NULL
+        ALTER TABLE [Quiz] ADD [TopicId] int NULL;
+    ELSE
+    BEGIN
+        DECLARE @topicIdDefaultConstraint nvarchar(max);
+        SELECT @topicIdDefaultConstraint = QUOTENAME([d].[name])
+        FROM [sys].[default_constraints] AS [d]
+        INNER JOIN [sys].[columns] AS [c]
+            ON [d].[parent_column_id] = [c].[column_id]
+            AND [d].[parent_object_id] = [c].[object_id]
+        WHERE [d].[parent_object_id] = OBJECT_ID(N'[Quiz]')
+            AND [c].[name] = N'TopicId';
+
+        IF @topicIdDefaultConstraint IS NOT NULL
+            EXEC(N'ALTER TABLE [Quiz] DROP CONSTRAINT ' + @topicIdDefaultConstraint + N';');
+
+        ALTER TABLE [Quiz] ALTER COLUMN [TopicId] int NULL;
+    END;
+END;
+
+IF COL_LENGTH(N'Quiz', N'TopicId') IS NOT NULL
+    UPDATE q SET [TopicId] = NULL
+    FROM [Quiz] AS q
+    LEFT JOIN [Topic] AS t ON t.[Id] = q.[TopicId]
+    WHERE q.[TopicId] IS NOT NULL AND t.[Id] IS NULL;
+");
 
             migrationBuilder.AlterColumn<bool>(
                 name: "IsDeleted",
@@ -39,41 +88,6 @@ namespace Journey_of_faith.Infrastructure.Migrations
                 oldClrType: typeof(DateTime),
                 oldType: "datetime2");
 
-            migrationBuilder.AlterColumn<int>(
-                name: "TopicId",
-                table: "Quiz",
-                type: "int",
-                nullable: true,
-                oldClrType: typeof(int),
-                oldType: "int");
-
-            migrationBuilder.CreateTable(
-                name: "UserActive",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Status = table.Column<bool>(type: "bit", nullable: false),
-                    ApplicationUserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    ActiveLocation = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Timespan = table.Column<DateTime>(type: "datetime2", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_UserActive", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_UserActive_User_ApplicationUserId",
-                        column: x => x.ApplicationUserId,
-                        principalTable: "User",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_UserActive_ApplicationUserId",
-                table: "UserActive",
-                column: "ApplicationUserId");
-
             migrationBuilder.AddForeignKey(
                 name: "FK_Quiz_Topic_TopicId",
                 table: "Quiz",
@@ -88,9 +102,6 @@ namespace Journey_of_faith.Infrastructure.Migrations
             migrationBuilder.DropForeignKey(
                 name: "FK_Quiz_Topic_TopicId",
                 table: "Quiz");
-
-            migrationBuilder.DropTable(
-                name: "UserActive");
 
             migrationBuilder.AlterColumn<bool>(
                 name: "IsDeleted",

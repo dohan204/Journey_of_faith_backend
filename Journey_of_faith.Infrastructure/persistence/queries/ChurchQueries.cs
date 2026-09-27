@@ -113,34 +113,37 @@ public sealed class ChurchQueries : BaseRepository, IChurchQueries
     }
 
     public async Task<IReadOnlyList<MassScheduleTodayDto>> GetMassScheduleTodayViewsAsync(
+        bool nextDay = false,
+        string? province = null,
         CancellationToken cancellationToken = default)
     {
-        var todayDateTime = DateTime.Today;
-        var tomorrowDateTime = todayDateTime.AddDays(1);
-        var today = DateOnly.FromDateTime(todayDateTime);
-        var todayNames = GetVietnameseDayNames(todayDateTime.DayOfWeek);
+        var targetDateTime = DateTime.Today.AddDays(nextDay ? 1 : 0);
+        var targetDateEnd = targetDateTime.AddDays(1);
+        var targetDate = DateOnly.FromDateTime(targetDateTime);
+        var targetDayNames = GetVietnameseDayNames(targetDateTime.DayOfWeek);
 
         return await _dbContext.MassSchedules
-            .AsNoTracking()
-            .Where(schedule =>
-                schedule.IsDeleted != true &&
-                (
-                    schedule.Date == today ||
-                    todayNames.Contains(schedule.Name.Trim()) ||
-                    _dbContext.CatholicFeasts.Any(feast =>
-                        feast.IsDeleted != true &&
-                        feast.FeastDate >= todayDateTime &&
-                        feast.FeastDate < tomorrowDateTime &&
-                        (schedule.Name.Contains(feast.Name) || feast.Name.Contains(schedule.Name)))
-                ))
-            .Select(schedule => new MassScheduleTodayDto
-            {
-                Time = schedule.Time,
-                MassName = schedule.Name,
-                ChurchName = schedule.Church.Name,
-                Description = schedule.Church.Description
-            })
-            .ToListAsync(cancellationToken);
+        .AsNoTracking()
+        .Where(schedule =>
+            schedule.IsDeleted != true &&
+            (province == null || schedule.Church.Address.Contains(province)) &&
+            (
+                schedule.Date == targetDate ||
+                targetDayNames.Contains(schedule.Name.Trim()) ||
+                _dbContext.CatholicFeasts.Any(feast =>
+                    feast.IsDeleted != true &&
+                    feast.FeastDate >= targetDateTime &&
+                    feast.FeastDate < targetDateEnd &&
+                    (schedule.Name.Contains(feast.Name) || feast.Name.Contains(schedule.Name)))
+            ))
+        .Select(schedule => new MassScheduleTodayDto
+        {
+            Time = schedule.Time,
+            MassName = schedule.Name,
+            ChurchName = schedule.Church.Name,
+            Description = schedule.Church.Description
+        })
+        .ToListAsync(cancellationToken);
     }
 
     private static string[] GetVietnameseDayNames(DayOfWeek dayOfWeek)

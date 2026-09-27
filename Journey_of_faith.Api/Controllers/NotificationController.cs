@@ -2,6 +2,7 @@ using Asp.Versioning;
 using FirebaseAdmin.Messaging;
 using Journey_of_faith.Application.common.interfaces;
 using Journey_of_faith.Application.usecases.notifications;
+using Journey_of_faith.Application.usecases.notifications.queries;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -19,7 +20,7 @@ public class NotificationController : ControllerBase
     }
     [MapToApiVersion(1)]
     [HttpPost("send-notification")]
-    public async Task<IActionResult> PushToUser(string? token, string? topic, string title, string message)
+    public async Task<IActionResult> PushToUser(string? token, string? topic, string title, string message, Guid? userId)
     {
         try
         {
@@ -28,6 +29,7 @@ public class NotificationController : ControllerBase
             {
                 Topic = topic,
                 Token = token,
+                UserId = userId,
                 Title = title,
                 Body = message,
                 Data = dataPayload
@@ -49,4 +51,58 @@ public class NotificationController : ControllerBase
         return Ok(new {Success = true});
     }
 
+
+    [MapToApiVersion(1)]
+    [HttpPost("subscribe-topic")]
+    public async Task<IActionResult> SubscribeToTopic([FromBody] SubscribeToTopicCommand command)
+    {
+        try
+        {
+            var response = await mediator.Send(command);
+            return Ok(new { Success = true, response.SuccessCount, response.FailureCount, response.Errors });
+        }
+        catch (FirebaseMessagingException ex)
+        {
+            return BadRequest(new { Success = false, Error = ex.Message, ErrorCode = ex.MessagingErrorCode.ToString() });
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { Success = false, Error = ex.Message });
+        }
+    }
+
+    [MapToApiVersion(1)]
+    [HttpPost("unsubscribe-topic")]
+    public async Task<IActionResult> UnsubscribeFromTopic([FromBody] UnsubscribeFromTopicCommand command)
+    {
+        try
+        {
+            var response = await mediator.Send(command);
+            return Ok(new { Success = true, response.SuccessCount, response.FailureCount, response.Errors });
+        }
+        catch (FirebaseMessagingException ex)
+        {
+            return BadRequest(new { Success = false, Error = ex.Message, ErrorCode = ex.MessagingErrorCode.ToString() });
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { Success = false, Error = ex.Message });
+        }
+    }
+
+    [MapToApiVersion(1)]
+    [HttpGet("users/devices")]
+    public async Task<IActionResult> GetAllUserDeviceTokens(CancellationToken cancellationToken)
+    {
+        var result = await mediator.Send(new GetAllUserDeviceTokensQuery(), cancellationToken);
+        return Ok(result);
+    }
+
+    [MapToApiVersion(1)]
+    [HttpGet("users/{userId:guid}/devices")]
+    public async Task<IActionResult> GetUserWithDevices([FromRoute] Guid userId, CancellationToken cancellationToken)
+    {
+        var result = await mediator.Send(new GetUserWithDevicesQuery(userId), cancellationToken);
+        return result is null ? NotFound(new { Success = false, Error = "Không tìm thấy người dùng." }) : Ok(result);
+    }
 }

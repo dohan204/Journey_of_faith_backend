@@ -125,16 +125,6 @@ public class UpdateChurchHandler : IRequestHandler<UpdateChurchCommand, int>
             uploadedImageIds.Add(uploadRequest.ResponseBody.Id);
         }
 
-        var massSchedules = command.MassSchedules
-            .Select(schedule => new MassSchedule(
-                schedule.Id ?? 0,
-                command.Id,
-                date: null,
-                schedule.Time ?? string.Empty,
-                massTypeId: 1,
-                schedule.Name ?? string.Empty))
-            .ToList();
-
         var church = new Church(
             command.Id,
             command.Name ?? string.Empty,
@@ -143,8 +133,8 @@ public class UpdateChurchHandler : IRequestHandler<UpdateChurchCommand, int>
             command.DioceseId,
             command.Boss ?? string.Empty,
             command.Description ?? string.Empty,
-            userId,
-            massSchedules);
+            userId
+            );
 
         church.SetLocation(command.Latitude ?? 0, command.Longitude ?? 0);
         church.SetImages(uploadedImageIds

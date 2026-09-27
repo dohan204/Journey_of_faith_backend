@@ -1,4 +1,4 @@
-﻿using Dapper;
+using Dapper;
 using Journey_of_faith.Api.middlewares;
 using Journey_of_faith.Application;
 using Journey_of_faith.Infrastructure;
@@ -14,6 +14,22 @@ using Journey_of_faith.Infrastructure.scheduling;
 using Microsoft.AspNetCore.Authorization;
 using Serilog;
 
+
+var envFile = Path.Combine(Directory.GetCurrentDirectory(), ".env");
+if (File.Exists(envFile))
+{
+    foreach (var line in File.ReadLines(envFile))
+    {
+        var entry = line.Trim();
+        if (entry.Length == 0 || entry.StartsWith('#')) continue;
+        var separator = entry.IndexOf('=');
+        if (separator <= 0) continue;
+        var name = entry[..separator].Trim();
+        var value = entry[(separator + 1)..].Trim();
+        if (Environment.GetEnvironmentVariable(name) is null)
+            Environment.SetEnvironmentVariable(name, value);
+    }
+}
 
 var builder = WebApplication.CreateBuilder(args);
 const string logOutputTemplate =
@@ -54,7 +70,23 @@ builder.Services.AddCors(options =>
 });
 
 // Add services to the container.
+builder.Services.AddSwaggerGen(options =>
+{
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Description = "Enter the JWT token.",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT"
+    });
 
+    options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
+    {
+        [new OpenApiSecuritySchemeReference("Bearer", document)] = []
+    });
+});
 // builder.Services.AddFirebaseService(builder.Configuration);
 builder.Services.AddSingleton<IAuthorizationPolicyProvider, UserPermissionPolicyProvider>();
 builder.Services.AddScoped<IAuthorizationHandler, UserPermissionHandler>();
@@ -75,6 +107,11 @@ builder.Services.AddApplication();
 builder.Services.AddAutoMapperConfig();
 
 builder.Services.AddControllers();
+builder.Services.AddHttpClient("Gemini", client =>
+{
+    client.BaseAddress = new Uri("https://generativelanguage.googleapis.com/");
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 

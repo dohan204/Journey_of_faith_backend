@@ -47,7 +47,7 @@ public sealed class RoleQueries : BaseRepository, IRoleQueries
             .Take(pageSize)
             .Select(role => new RoleViewDto
             {
-                Id = role.Id.ToString(),
+                Id = role.Id,
                 Name = role.Name ?? string.Empty,
                 Description = role.Descriptions
             })

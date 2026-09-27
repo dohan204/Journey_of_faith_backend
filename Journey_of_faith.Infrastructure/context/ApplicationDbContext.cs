@@ -37,7 +37,6 @@ namespace Journey_of_faith.Infrastructure.context
         public DbSet<SchoolLevel> SchoolLevels => Set<SchoolLevel>();
         public DbSet<School> Schools => Set<School>();
         public DbSet<UserChurch> UserChurches => Set<UserChurch>();
-
         // ── Social ────────────────────────────────────────────────────────
         public DbSet<Friendship> Friendships => Set<Friendship>();
         public DbSet<Group> Groups => Set<Group>();
@@ -75,7 +74,6 @@ namespace Journey_of_faith.Infrastructure.context
         public DbSet<UserEvent> UserEvents => Set<UserEvent>();
 
         // ── Quiz ──────────────────────────────────────────────────────────
-        public DbSet<Topic> Topics => Set<Topic>();
         public DbSet<QuizLevel> QuizLevels => Set<QuizLevel>();
         public DbSet<QuestionType> QuestionTypes => Set<QuestionType>();
         public DbSet<QuestionCategory> QuestionCategories => Set<QuestionCategory>();
@@ -88,7 +86,7 @@ namespace Journey_of_faith.Infrastructure.context
 
         // ── Faith Content ─────────────────────────────────────────────────
         public DbSet<MassType> MassTypes => Set<MassType>();
-        public DbSet<ChurchImage> ChurchImages=> Set<ChurchImage>();
+        public DbSet<ChurchImage> ChurchImages => Set<ChurchImage>();
         public DbSet<MassSchedule> MassSchedules => Set<MassSchedule>();
         public DbSet<MassVideo> MassVideos => Set<MassVideo>();
         public DbSet<LiveStream> LiveStreams => Set<LiveStream>();
@@ -101,7 +99,10 @@ namespace Journey_of_faith.Infrastructure.context
         public DbSet<DeviceToken> DeviceTokens => Set<DeviceToken>();
         public DbSet<NotificationPreference> NotificationPreferences => Set<NotificationPreference>();
         public DbSet<ReminderSetting> ReminderSettings => Set<ReminderSetting>();
-
+        public DbSet<BibleBook> BibleBooks => Set<BibleBook>();
+        public DbSet<BibleChapter> BibleChapters => Set<BibleChapter>();
+        public DbSet<BibleVerse> BibleVerses => Set<BibleVerse>();
+        public DbSet<NotificationLogs> NotificationLogs=> Set<NotificationLogs>();
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder); // Identity tables trước
